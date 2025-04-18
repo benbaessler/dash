@@ -3,6 +3,7 @@ import ReactPlayer from "react-player";
 import { useEffect, useState } from "react";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
+import { PlayIcon } from "@heroicons/react/24/solid";
 
 const videoUrl =
   "https://stream.warpcast.com/v1/video/01964433-5ec7-26c7-8d8d-8e6928a9b7f7.m3u8";
@@ -66,6 +67,11 @@ export default function App() {
         loop={true}
         url={videoUrl}
       />
+      {!playing && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <PlayIcon className="size-12 text-white opacity-70 cursor-pointer" />
+        </div>
+      )}
       <InteractionButtons
         liked={liked}
         setLiked={setLiked}
