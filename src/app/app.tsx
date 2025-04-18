@@ -1,15 +1,20 @@
 "use client";
+import ReactPlayer from "react-player";
 
-import dynamic from "next/dynamic";
+const videoUrl =
+  "https://stream.warpcast.com/v1/video/01964433-5ec7-26c7-8d8d-8e6928a9b7f7.m3u8";
 
-
-// note: dynamic import is required for components that use the Frame SDK
-const Demo = dynamic(() => import("~/components/Demo"), {
-  ssr: false,
-});
-
-export default function App(
-  { title }: { title?: string } = { title: process.env.NEXT_PUBLIC_FRAME_NAME || "Frames v2 Demo" }
-) {
-  return <Demo title={title} />;
+export default function App() {
+  return (
+    <main>
+      <ReactPlayer
+        width="100%"
+        height="100%"
+        playing={true}
+        volume={1}
+        loop={true}
+        url={videoUrl}
+      />
+    </main>
+  );
 }
