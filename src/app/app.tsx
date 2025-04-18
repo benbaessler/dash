@@ -2,6 +2,7 @@
 import ReactPlayer from "react-player";
 import { useEffect, useState } from "react";
 import { useFrame } from "~/components/providers/FrameProvider";
+import { InteractionButtons } from "./components/interaction-buttons";
 
 const videoUrl =
   "https://stream.warpcast.com/v1/video/01964433-5ec7-26c7-8d8d-8e6928a9b7f7.m3u8";
@@ -15,6 +16,10 @@ export default function App() {
   const [playing, setPlaying] = useState(false);
   const [feed, setFeed] = useState([]);
 
+  const [liked, setLiked] = useState(false);
+  const [recasted, setRecasted] = useState(false);
+  const [playTimeout, setPlayTimeout] = useState<NodeJS.Timeout | null>(null);
+
   const fetchFeed = async () => {
     const response = await fetch(`/api/feed/${context?.user.fid}`);
     const { data } = await response.json();
@@ -22,20 +27,36 @@ export default function App() {
     setFeed(data);
   };
 
-  useEffect(() => {
-    if (isSDKLoaded && context?.user.fid) {
-      fetchFeed();
+  const handleClick = () => {
+    if (playTimeout) {
+      clearTimeout(playTimeout);
+      setPlayTimeout(null);
+      return;
     }
-  }, [isSDKLoaded, context]);
 
-  useEffect(() => {
-    console.log(feed);
-  }, [feed]);
+    const timeout = setTimeout(() => {
+      setPlaying(!playing);
+      setPlayTimeout(null);
+    }, 300);
+
+    setPlayTimeout(timeout);
+  };
+
+  // useEffect(() => {
+  //   if (isSDKLoaded && context?.user.fid) {
+  //     fetchFeed();
+  //   }
+  // }, [isSDKLoaded, context]);
+
+  // useEffect(() => {
+  //   console.log(feed);
+  // }, [feed]);
 
   return (
     <main
-      className="min-h-screen flex items-center justify-center cursor-pointer"
-      onClick={() => setPlaying(!playing)}
+      className="min-h-screen flex items-center justify-center relative"
+      onClick={handleClick}
+      onDoubleClick={() => setLiked(true)}
     >
       <ReactPlayer
         width="100%"
@@ -44,6 +65,12 @@ export default function App() {
         volume={1}
         loop={true}
         url={videoUrl}
+      />
+      <InteractionButtons
+        liked={liked}
+        setLiked={setLiked}
+        recasted={recasted}
+        setRecasted={setRecasted}
       />
     </main>
   );
