@@ -1,9 +1,9 @@
 "use client";
-import ReactPlayer from "react-player";
 import { useEffect, useState } from "react";
 import { useFrame } from "~/components/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
 import { PlayIcon } from "@heroicons/react/24/solid";
+import { MediaPlayer, MediaProvider } from "@vidstack/react";
 
 const videoUrl =
   "https://stream.warpcast.com/v1/video/01964433-5ec7-26c7-8d8d-8e6928a9b7f7.m3u8";
@@ -13,8 +13,8 @@ const wrongFormatUrl =
 
 export default function App() {
   const { isSDKLoaded, context } = useFrame();
-  // TODO: disabled for development
-  const [playing, setPlaying] = useState(false);
+  // TODO: enabled for development
+  const [paused, setPaused] = useState(true);
   const [feed, setFeed] = useState([]);
 
   const [liked, setLiked] = useState(false);
@@ -36,7 +36,7 @@ export default function App() {
     }
 
     const timeout = setTimeout(() => {
-      setPlaying(!playing);
+      setPaused(!paused);
       setPlayTimeout(null);
     }, 300);
 
@@ -55,19 +55,24 @@ export default function App() {
 
   return (
     <main
-      className="min-h-screen flex items-center justify-center relative"
+      className="h-screen w-screen flex items-center justify-center relative"
       onClick={handleClick}
       onDoubleClick={() => setLiked(true)}
     >
-      <ReactPlayer
-        width="100%"
-        height="100%"
-        playing={playing}
-        volume={1}
-        loop={true}
-        url={videoUrl}
-      />
-      {!playing && (
+      <MediaPlayer
+        className="w-full h-full"
+        aspectRatio="9 / 16"
+        src={videoUrl}
+        streamType="on-demand"
+        load="eager"
+        playsInline
+        loop
+        autoPlay={false}
+        paused={paused}
+      >
+        <MediaProvider className="w-full h-full" />
+      </MediaPlayer>
+      {paused && (
         <div className="absolute inset-0 flex items-center justify-center">
           <PlayIcon className="size-12 text-white opacity-70 cursor-pointer" />
         </div>
