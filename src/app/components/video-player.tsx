@@ -4,20 +4,29 @@ import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { InteractionButtons } from "./interaction-buttons";
 import { useInView } from "react-intersection-observer";
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/api";
 
 interface VideoPlayerProps {
-  src: string;
+  cast: CastWithInteractions;
   isActive: boolean;
 }
 
-export function VideoPlayer({ src, isActive }: VideoPlayerProps) {
+export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
   const [ref, inView] = useInView({
-    threshold: .9,
+    threshold: 0.9,
   });
   const [liked, setLiked] = useState(false);
   const [recasted, setRecasted] = useState(false);
   const [playTimeout, setPlayTimeout] = useState<NodeJS.Timeout | null>(null);
   const [paused, setPaused] = useState(true);
+
+  const src = cast.embeds
+    .filter((embed: any) => {
+      return embed.metadata?.content_type === "application/x-mpegurl";
+    })
+    .map((embed: any) => {
+      return embed.url!;
+    })[0];
 
   const handleClick = () => {
     if (playTimeout) {
@@ -69,6 +78,7 @@ export function VideoPlayer({ src, isActive }: VideoPlayerProps) {
       )}
       <div className="absolute right-4 top-1/2 -translate-y-1/2">
         <InteractionButtons
+          cast={cast}
           liked={liked}
           setLiked={setLiked}
           recasted={recasted}

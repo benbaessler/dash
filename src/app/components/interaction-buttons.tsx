@@ -1,6 +1,8 @@
 import { ArrowPathIcon, HeartIcon } from "@heroicons/react/24/solid";
-
+import { CastWithInteractions } from "@neynar/nodejs-sdk/build/api";
+import Image from "next/image";
 interface InteractionButtonsProps {
+  cast: CastWithInteractions;
   liked: boolean;
   setLiked: (liked: boolean) => void;
   recasted: boolean;
@@ -8,6 +10,7 @@ interface InteractionButtonsProps {
 }
 
 export const InteractionButtons = ({
+  cast,
   liked,
   setLiked,
   recasted,
@@ -15,6 +18,13 @@ export const InteractionButtons = ({
 }: InteractionButtonsProps) => {
   return (
     <div className="flex flex-col gap-4">
+      <Image
+        src={cast.author.pfp_url ?? ""}
+        alt={cast.author.display_name ?? ""}
+        width={36}
+        height={36}
+        className="rounded-full object-cover cursor-pointer"
+      />
       <div className="flex flex-col items-center">
         <HeartIcon
           className={`size-9 cursor-pointer ${
@@ -28,7 +38,7 @@ export const InteractionButtons = ({
             e.stopPropagation();
           }}
         />
-        <span className="text-white text-sm">0</span>
+        <span className="text-white text-sm">{cast.reactions.likes_count}</span>
       </div>
       <div className="flex flex-col items-center">
         <ArrowPathIcon
@@ -43,7 +53,7 @@ export const InteractionButtons = ({
             e.stopPropagation();
           }}
         />
-        <span className="text-white text-sm">0</span>
+        <span className="text-white text-sm">{cast.reactions.recasts_count}</span>
       </div>
     </div>
   );
