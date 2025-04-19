@@ -14,7 +14,7 @@ export const InteractionButtons = ({
   setRecasted,
 }: InteractionButtonsProps) => {
   return (
-    <div className="absolute right-4 flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col items-center">
         <HeartIcon
           className={`size-9 cursor-pointer ${
