@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { MediaPlayer, MediaProvider } from "@vidstack/react";
-import { PlayIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
+import { PlayIcon } from "@heroicons/react/24/solid";
 import { InteractionButtons } from "./interaction-buttons";
 import { useInView } from "react-intersection-observer";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/api";
-import sdk from "@farcaster/frame-sdk";
+import Image from "next/image";
 
 interface VideoPlayerProps {
   cast: CastWithInteractions;
@@ -19,8 +19,12 @@ export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
   const [liked, setLiked] = useState(false);
   const [recasted, setRecasted] = useState(false);
   const [playTimeout, setPlayTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [paused, setPaused] = useState(true);
+  const [paused, setPaused] = useState(false);
   const [isTextExpanded, setIsTextExpanded] = useState(false);
+
+  const idle = useMemo(() => {
+    return !inView || !isActive;
+  }, [inView, isActive]);
 
   const src = cast.embeds
     .filter((embed: any) => {
@@ -45,14 +49,6 @@ export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
     setPlayTimeout(timeout);
   };
 
-  useEffect(() => {
-    if (inView && isActive) {
-      setPaused(false);
-    } else {
-      setPaused(true);
-    }
-  }, [inView, isActive]);
-
   return (
     <div
       ref={ref}
@@ -69,7 +65,7 @@ export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
         playsInline
         loop
         autoPlay={false}
-        paused={paused}
+        paused={idle || paused}
       >
         <MediaProvider className="w-full h-full" />
       </MediaPlayer>
@@ -87,26 +83,30 @@ export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
           setRecasted={setRecasted}
         />
       </div>
-      <div className="absolute bottom-0 left-0 right-0 p-4 mr-16">
-        <div className="flex items-start gap-2">
-          <div className="flex-1">
-            <div className="text-white font-semibold">
-              {cast.author.display_name}
-            </div>
-            <div className="text-white/90 text-sm mt-1 flex items-end gap-1">
-              <div
-                className={`flex-1 ${
-                  !isTextExpanded ? "line-clamp-2" : ""
-                } cursor-pointer`}
-                onClick={() => setIsTextExpanded(!isTextExpanded)}
-              >
-                {cast.text}
-                {cast.text.split("\n").length > 2 && (
-                  <span className="text-white/70 hover:text-white ml-1">
-                    {isTextExpanded ? "Show less" : "Show more"}
-                  </span>
-                )}
-              </div>
+      <div className="absolute bottom-0 left-0 right-0 px-6 py-8 mr-16 w-full overflow-hidden">
+        <div className="flex flex-col w-full">
+          <div className="text-white font-semibold truncate">
+            {cast.author.display_name}
+          </div>
+          <div className="text-white/90 text-sm mt-1 flex items-end gap-1 w-full">
+            <div
+              className={`flex-1 break-words overflow-hidden ${
+                !isTextExpanded ? "line-clamp-2" : ""
+              } cursor-pointer`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsTextExpanded(!isTextExpanded);
+              }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              {cast.text}
+              {cast.text.split("\n").length > 2 && (
+                <span className="text-white/70 hover:text-white ml-1">
+                  {isTextExpanded ? "Show less" : "Show more"}
+                </span>
+              )}
             </div>
           </div>
         </div>
