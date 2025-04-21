@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { VideoPlayer } from "./components/video-player";
 
 import { casts } from "./test/data";

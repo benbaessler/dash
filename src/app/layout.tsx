@@ -11,11 +11,13 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 });
 
+if (!process.env.NEXT_PUBLIC_FRAME_NAME || !process.env.NEXT_PUBLIC_FRAME_DESCRIPTION) {
+  throw new Error("NEXT_PUBLIC_FRAME_NAME and NEXT_PUBLIC_FRAME_DESCRIPTION must be set");
+}
+
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_FRAME_NAME || "Frames v2 Demo",
-  description:
-    process.env.NEXT_PUBLIC_FRAME_DESCRIPTION ||
-    "A Farcaster Frames v2 demo app",
+  title: process.env.NEXT_PUBLIC_FRAME_NAME,
+  description: process.env.NEXT_PUBLIC_FRAME_DESCRIPTION,
 };
 
 export default async function RootLayout({
