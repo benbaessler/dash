@@ -102,11 +102,6 @@ export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
               }}
             >
               {cast.text}
-              {cast.text.split("\n").length > 2 && (
-                <span className="text-white/70 hover:text-white ml-1">
-                  {isTextExpanded ? "Show less" : "Show more"}
-                </span>
-              )}
             </div>
           </div>
         </div>

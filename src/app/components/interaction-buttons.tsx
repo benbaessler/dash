@@ -25,7 +25,8 @@ export const InteractionButtons = ({
         width={38}
         height={38}
         className="w-10 h-10 rounded-full object-cover cursor-pointer"
-        onClick={async () => {
+        onClick={async (e) => {
+          e.stopPropagation();
           await sdk.actions.viewProfile({ fid: cast.author.fid });
         }}
       />
