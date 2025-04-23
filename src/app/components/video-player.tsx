@@ -5,7 +5,6 @@ import { PlayIcon } from "@heroicons/react/24/solid";
 import { InteractionButtons } from "./interaction-buttons";
 import { useInView } from "react-intersection-observer";
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/api";
-import Image from "next/image";
 
 interface VideoPlayerProps {
   cast: CastWithInteractions;

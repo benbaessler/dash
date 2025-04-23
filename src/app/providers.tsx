@@ -2,7 +2,7 @@
 
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
-import { FrameProvider } from "~/providers/FrameProvider";
+import { FrameProvider } from "@/providers/FrameProvider";
 
 export function Providers({
   session,
