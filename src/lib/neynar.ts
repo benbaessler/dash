@@ -1,21 +1,11 @@
-import { NeynarAPIClient, Configuration } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 
-let neynarClient: NeynarAPIClient | null = null;
-
-// Example usage:
-// const client = getNeynarClient();
-// const user = await client.lookupUserByFid(fid); 
-export function getNeynarClient() {
-  if (!neynarClient) {
-    const apiKey = process.env.NEYNAR_API_KEY;
-    if (!apiKey) {
-      throw new Error('NEYNAR_API_KEY not configured');
-    }
-    const config = new Configuration({ apiKey });
-    neynarClient = new NeynarAPIClient(config);
-  }
-  return neynarClient;
+const apiKey = process.env.NEYNAR_API_KEY;
+if (!apiKey) {
+  throw new Error("NEYNAR_API_KEY not configured");
 }
+
+export const neynar: NeynarAPIClient = new NeynarAPIClient({ apiKey });
 
 type SendFrameNotificationResult =
   | {
@@ -36,7 +26,6 @@ export async function sendNeynarFrameNotification({
   body: string;
 }): Promise<SendFrameNotificationResult> {
   try {
-    const client = getNeynarClient();
     const targetFids = [fid];
     const notification = {
       title,
@@ -44,9 +33,9 @@ export async function sendNeynarFrameNotification({
       target_url: process.env.NEXT_PUBLIC_URL!,
     };
 
-    const result = await client.publishFrameNotifications({ 
-      targetFids, 
-      notification 
+    const result = await neynar.publishFrameNotifications({
+      targetFids,
+      notification,
     });
 
     if (result.notification_deliveries.length > 0) {
@@ -59,4 +48,4 @@ export async function sendNeynarFrameNotification({
   } catch (error) {
     return { state: "error", error };
   }
-} 
+}
