@@ -30,11 +30,15 @@ export const InteractionButtons = ({
           await sdk.actions.viewProfile({ fid: cast.author.fid });
         }}
       />
-      <div className="flex flex-col items-center">
+      <div
+        className={`flex flex-col items-center ${
+          liked ? "text-red-400" : "text-white"
+        }`}
+      >
         <HeartIcon
-          className={`size-9 cursor-pointer ${
-            liked ? "text-red-400" : "text-white"
-          } ${liked ? "opacity-100" : "opacity-80"}`}
+          className={`size-9 cursor-pointer  ${
+            liked ? "opacity-100" : "opacity-80"
+          }`}
           onClick={(e) => {
             e.stopPropagation();
             setLiked(!liked);
@@ -43,13 +47,17 @@ export const InteractionButtons = ({
             e.stopPropagation();
           }}
         />
-        <span className="text-white text-sm">{cast.reactions.likes_count}</span>
+        <span className="text-sm">{cast.reactions.likes_count}</span>
       </div>
-      <div className="flex flex-col items-center">
+      <div
+        className={`flex flex-col items-center ${
+          recasted ? "text-green-400" : "text-white"
+        }`}
+      >
         <ArrowPathIcon
           className={`size-9 cursor-pointer ${
-            recasted ? "text-green-400" : "text-white"
-          } ${recasted ? "opacity-100" : "opacity-80"}`}
+            recasted ? "opacity-100" : "opacity-80"
+          }`}
           onClick={(e) => {
             e.stopPropagation();
             setRecasted(!recasted);
@@ -58,9 +66,7 @@ export const InteractionButtons = ({
             e.stopPropagation();
           }}
         />
-        <span className="text-white text-sm">
-          {cast.reactions.recasts_count}
-        </span>
+        <span className="text-sm">{cast.reactions.recasts_count}</span>
       </div>
       <div
         className="w-9 h-9 opacity-80 hover:opacity-100 cursor-pointer rounded-full"
