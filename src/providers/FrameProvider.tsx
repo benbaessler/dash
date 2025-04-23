@@ -1,22 +1,30 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import sdk, { type Context, type FrameNotificationDetails, AddFrame } from "@farcaster/frame-sdk";
+import sdk, {
+  type Context,
+  type FrameNotificationDetails,
+  AddFrame,
+} from "@farcaster/frame-sdk";
 import { createStore } from "mipd";
 import React from "react";
+import { Loader2 } from "lucide-react";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
   context: Context.FrameContext | undefined;
 }
 
-const FrameContext = React.createContext<FrameContextType | undefined>(undefined);
+const FrameContext = React.createContext<FrameContextType | undefined>(
+  undefined
+);
 
 export function useFrame() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext>();
   const [added, setAdded] = useState(false);
-  const [notificationDetails, setNotificationDetails] = useState<FrameNotificationDetails | null>(null);
+  const [notificationDetails, setNotificationDetails] =
+    useState<FrameNotificationDetails | null>(null);
   const [lastEvent, setLastEvent] = useState("");
   const [addFrameResult, setAddFrameResult] = useState("");
 
@@ -111,14 +119,26 @@ export function useFrame() {
     }
   }, [isSDKLoaded]);
 
-  return { isSDKLoaded, context, added, notificationDetails, lastEvent, addFrame, addFrameResult };
+  return {
+    isSDKLoaded,
+    context,
+    added,
+    notificationDetails,
+    lastEvent,
+    addFrame,
+    addFrameResult,
+  };
 }
 
 export function FrameProvider({ children }: { children: React.ReactNode }) {
   const { isSDKLoaded, context } = useFrame();
 
   if (!isSDKLoaded) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -126,4 +146,4 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
       {children}
     </FrameContext.Provider>
   );
-} 
+}
