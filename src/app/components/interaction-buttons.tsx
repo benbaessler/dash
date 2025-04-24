@@ -1,6 +1,8 @@
 import { ArrowPathIcon, HeartIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import sdk from "@farcaster/frame-sdk";
+import { useState } from "react";
+
 interface InteractionButtonsProps {
   post: Post;
   liked: boolean;
@@ -14,19 +16,29 @@ export const InteractionButtons = ({
   recasted,
   handleInteraction,
 }: InteractionButtonsProps) => {
+  const [isImageLoading, setIsImageLoading] = useState(true);
+  
   return (
     <div className="flex flex-col gap-4 items-center">
-      <Image
-        src={post.author.pfpUrl ?? ""}
-        alt={post.author.displayName ?? ""}
-        width={38}
-        height={38}
-        className="w-10 h-10 rounded-full object-cover cursor-pointer"
-        onClick={async (e) => {
-          e.stopPropagation();
-          await sdk.actions.viewProfile({ fid: post.author.fid });
-        }}
-      />
+      <div className="relative w-10 h-10">
+        {isImageLoading && (
+          <div className="absolute inset-0 w-10 h-10 rounded-full bg-white animate-pulse" />
+        )}
+        <Image
+          src={post.author.pfpUrl ?? ""}
+          alt={post.author.displayName ?? ""}
+          width={38}
+          height={38}
+          className={`w-10 h-10 rounded-full object-cover cursor-pointer ${
+            isImageLoading ? "opacity-0" : "opacity-100"
+          }`}
+          onLoadingComplete={() => setIsImageLoading(false)}
+          onClick={async (e) => {
+            e.stopPropagation();
+            await sdk.actions.viewProfile({ fid: post.author.fid });
+          }}
+        />
+      </div>
       <div
         className={`flex flex-col items-center ${
           liked ? "text-red-400" : "text-white"

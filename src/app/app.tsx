@@ -4,6 +4,7 @@ import { VideoPlayer } from "./components/video-player";
 import { ApproveSignerDialog } from "./components/approve-signer-dialog";
 import { useSigner } from "@/hooks/useSigner";
 import { useFrame } from "@/providers/FrameProvider";
+import { InteractionButtons } from "./components/interaction-buttons";
 
 export default function App() {
   const { isSDKLoaded, context } = useFrame();
@@ -13,6 +14,9 @@ export default function App() {
   const [feed, setFeed] = useState<Post[]>([]);
   const [scrollCount, setScrollCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [recastedPosts, setRecastedPosts] = useState<Set<string>>(new Set());
+  const [expandedTexts, setExpandedTexts] = useState<Set<string>>(new Set());
 
   const handleApproveSigner = async () => {
     setLoading(true);
@@ -47,6 +51,76 @@ export default function App() {
     setFeed((prevFeed) => [...prevFeed, ...data]);
   };
 
+  const handleInteraction = async (
+    e: React.MouseEvent,
+    type: "like" | "recast",
+    postId: string
+  ) => {
+    e.stopPropagation();
+    if (!signer || signer.status !== "approved") {
+      await handleApproveSigner();
+      return;
+    }
+
+    const isLiked = likedPosts.has(postId);
+    const isRecasted = recastedPosts.has(postId);
+    const isRemoving =
+      (type === "like" && isLiked) || (type === "recast" && isRecasted);
+
+    // Optimistic update
+    if (type === "like") {
+      setLikedPosts((prev) => {
+        const newSet = new Set(prev);
+        if (isLiked) newSet.delete(postId);
+        else newSet.add(postId);
+        return newSet;
+      });
+    } else {
+      setRecastedPosts((prev) => {
+        const newSet = new Set(prev);
+        if (isRecasted) newSet.delete(postId);
+        else newSet.add(postId);
+        return newSet;
+      });
+    }
+
+    try {
+      const endpoint = isRemoving ? "/api/reactions/delete" : "/api/reactions/publish";
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          castHash: postId,
+          type,
+          signerUuid: signer.signer_uuid,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update reaction");
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      if (type === "like") {
+        setLikedPosts((prev) => {
+          const newSet = new Set(prev);
+          if (isLiked) newSet.add(postId);
+          else newSet.delete(postId);
+          return newSet;
+        });
+      } else {
+        setRecastedPosts((prev) => {
+          const newSet = new Set(prev);
+          if (isRecasted) newSet.add(postId);
+          else newSet.delete(postId);
+          return newSet;
+        });
+      }
+      console.error("Failed to update reaction:", error);
+    }
+  };
+
   useEffect(() => {
     if (isSDKLoaded && context?.user.fid) {
       fetchFeed();
@@ -59,13 +133,59 @@ export default function App() {
       onScroll={handleScroll}
     >
       {feed.map((post, index) => (
-        <div key={index} className="h-screen w-screen snap-start">
-          <VideoPlayer 
-            post={post} 
-            isActive={index === activeVideoIndex} 
-            handleApproveSigner={handleApproveSigner}
+        <div
+          key={index}
+          className="h-screen w-screen snap-start relative"
+          onDoubleClick={(e) => {
+            if (!likedPosts.has(post.id)) {
+              handleInteraction(e, "like", post.id);
+            }
+          }}
+        >
+          <VideoPlayer
+            post={post}
+            isActive={index === activeVideoIndex}
             loading={loading}
           />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <InteractionButtons
+              post={post}
+              liked={likedPosts.has(post.id)}
+              recasted={recastedPosts.has(post.id)}
+              handleInteraction={(e, type) =>
+                handleInteraction(e, type, post.id)
+              }
+            />
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 px-6 py-8 mr-16 w-full overflow-hidden">
+            <div className="flex flex-col w-full">
+              <div className="text-white font-semibold truncate">
+                {post.author.displayName}
+              </div>
+              <div className="text-white/90 text-sm mt-1 flex items-end gap-1 w-full">
+                <div
+                  className={`flex-1 break-words overflow-hidden ${
+                    !expandedTexts.has(post.id) ? "line-clamp-2" : ""
+                  } cursor-pointer`}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedTexts((prev) => {
+                      const newSet = new Set(prev);
+                      if (expandedTexts.has(post.id)) {
+                        newSet.delete(post.id);
+                      } else {
+                        newSet.add(post.id);
+                      }
+                      return newSet;
+                    });
+                  }}
+                >
+                  {post.text}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       ))}
       <ApproveSignerDialog
