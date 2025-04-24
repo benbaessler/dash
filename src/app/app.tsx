@@ -2,20 +2,23 @@
 import { useEffect, useState } from "react";
 import { VideoPlayer } from "./components/video-player";
 import { ApproveSignerButton } from "./components/approve-signer-button";
-import { SignerModal } from "./components/signer-modal";
-import { useUser } from "@/hooks/useUser";
+import { ApproveSignerDialog } from "./components/approve-signer-dialog";
+import { useSigner } from "@/hooks/useSigner";
 import { useFrame } from "@/providers/FrameProvider";
 
 export default function App() {
   const { isSDKLoaded, context } = useFrame();
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [showSignerDialog, setShowSignerDialog] = useState(false);
-  const { signer, handleSignIn, loading } = useUser();
+  const { signer, createSigner } = useSigner();
   const [feed, setFeed] = useState<Post[]>([]);
+  const [scrollCount, setScrollCount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const handleSignInClick = async () => {
+  const handleApproveSigner = async () => {
+    setLoading(true);
     if (!signer) {
-      await handleSignIn();
+      await createSigner();
     }
     setShowSignerDialog(true);
   };
@@ -28,13 +31,21 @@ export default function App() {
 
     if (newIndex !== activeVideoIndex) {
       setActiveVideoIndex(newIndex);
+      setScrollCount((prev) => prev + 1);
+
+      // Fetch more content when user has scrolled through 5 videos
+      if ((scrollCount + 1) % 5 === 0) {
+        fetchFeed(5);
+      }
     }
   };
 
-  const fetchFeed = async () => {
-    const response = await fetch(`/api/feed/${context?.user.fid}`);
+  const fetchFeed = async (limit: number = 10) => {
+    const response = await fetch(
+      `/api/feed/${context?.user.fid}?limit=${limit}`
+    );
     const { data } = await response.json();
-    setFeed(data);
+    setFeed((prevFeed) => [...prevFeed, ...data]);
   };
 
   useEffect(() => {
@@ -48,17 +59,20 @@ export default function App() {
       className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory relative"
       onScroll={handleScroll}
     >
-      {signer?.status !== "approved" && (
-        <ApproveSignerButton onClick={handleSignInClick} loading={loading} />
-      )}
       {feed.map((post, index) => (
         <div key={index} className="h-screen w-screen snap-start">
-          <VideoPlayer post={post} isActive={index === activeVideoIndex} />
+          <VideoPlayer 
+            post={post} 
+            isActive={index === activeVideoIndex} 
+            handleApproveSigner={handleApproveSigner}
+            loading={loading}
+          />
         </div>
       ))}
-      <SignerModal
-        showDialog={showSignerDialog}
-        setShowDialog={setShowSignerDialog}
+      <ApproveSignerDialog
+        open={showSignerDialog}
+        onOpenChange={setShowSignerDialog}
+        setLoading={setLoading}
       />
     </main>
   );

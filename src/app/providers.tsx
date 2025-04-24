@@ -3,6 +3,7 @@
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { FrameProvider } from "@/providers/FrameProvider";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 export function Providers({
   session,
@@ -13,7 +14,14 @@ export function Providers({
 }) {
   return (
     <SessionProvider session={session}>
-      <FrameProvider>{children}</FrameProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        forcedTheme="dark"
+        disableTransitionOnChange
+      >
+        <FrameProvider>{children}</FrameProvider>
+      </ThemeProvider>
     </SessionProvider>
   );
 }

@@ -4,35 +4,16 @@ import sdk from "@farcaster/frame-sdk";
 interface InteractionButtonsProps {
   post: Post;
   liked: boolean;
-  setLiked: (liked: boolean) => void;
   recasted: boolean;
-  setRecasted: (recasted: boolean) => void;
+  handleInteraction: (e: React.MouseEvent, type: "like" | "recast") => void;
 }
 
 export const InteractionButtons = ({
   post,
   liked,
-  setLiked,
   recasted,
-  setRecasted,
+  handleInteraction,
 }: InteractionButtonsProps) => {
-
-  const handleInteraction = async (
-    e: React.MouseEvent,
-    type: "like" | "recast"
-  ) => {
-    e.stopPropagation();
-    // if (!signer || signer.status !== "approved") {
-    //   await handleSignIn();
-    // }
-
-    if (type === "like") {
-      setLiked(!liked);
-    } else if (type === "recast") {
-      setRecasted(!recasted);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-4 items-center">
       <Image

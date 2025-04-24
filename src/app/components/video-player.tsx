@@ -4,14 +4,22 @@ import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { InteractionButtons } from "./interaction-buttons";
 import { useInView } from "react-intersection-observer";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/api";
+import { Loader2 } from "lucide-react";
+import { useSigner } from "@/hooks/useSigner";
 
 interface VideoPlayerProps {
-  cast: CastWithInteractions;
+  post: Post;
   isActive: boolean;
+  handleApproveSigner: () => Promise<void>;
+  loading: boolean;
 }
 
-export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
+export function VideoPlayer({
+  post,
+  isActive,
+  handleApproveSigner,
+  loading,
+}: VideoPlayerProps) {
   const [ref, inView] = useInView({
     threshold: 0.9,
   });
@@ -20,18 +28,28 @@ export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
   const [playTimeout, setPlayTimeout] = useState<NodeJS.Timeout | null>(null);
   const [paused, setPaused] = useState(false);
   const [isTextExpanded, setIsTextExpanded] = useState(false);
+  const { signer } = useSigner();
 
   const idle = useMemo(() => {
-    return !inView || !isActive;
-  }, [inView, isActive]);
+    return !inView || !isActive || loading;
+  }, [inView, isActive, loading]);
 
-  const src = cast.embeds
-    .filter((embed: any) => {
-      return embed.metadata?.content_type === "application/x-mpegurl";
-    })
-    .map((embed: any) => {
-      return embed.url!;
-    })[0];
+  const handleInteraction = async (
+    e: React.MouseEvent,
+    type: "like" | "recast"
+  ) => {
+    e.stopPropagation();
+    if (!signer || signer.status !== "approved") {
+      await handleApproveSigner();
+      return;
+    }
+
+    if (type === "like") {
+      setLiked(!liked);
+    } else if (type === "recast") {
+      setRecasted(!recasted);
+    }
+  };
 
   const handleClick = () => {
     if (playTimeout) {
@@ -53,12 +71,12 @@ export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
       ref={ref}
       className="relative w-full h-full"
       onClick={handleClick}
-      onDoubleClick={() => setLiked(true)}
+      onDoubleClick={(e) => handleInteraction(e, "like")}
     >
       <MediaPlayer
         className="w-full h-full"
         aspectRatio="9 / 16"
-        src={src}
+        src={post.video_url}
         streamType="on-demand"
         load="eager"
         playsInline
@@ -73,19 +91,23 @@ export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
           <PlayIcon className="size-12 text-white opacity-70 cursor-pointer" />
         </div>
       )}
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+          <Loader2 className="animate-spin" />
+        </div>
+      )}
       <div className="absolute right-4 top-1/2 -translate-y-1/2">
         <InteractionButtons
-          cast={cast}
+          post={post}
           liked={liked}
-          setLiked={setLiked}
           recasted={recasted}
-          setRecasted={setRecasted}
+          handleInteraction={handleInteraction}
         />
       </div>
       <div className="absolute bottom-0 left-0 right-0 px-6 py-8 mr-16 w-full overflow-hidden">
         <div className="flex flex-col w-full">
           <div className="text-white font-semibold truncate">
-            {cast.author.display_name}
+            {post.author.displayName}
           </div>
           <div className="text-white/90 text-sm mt-1 flex items-end gap-1 w-full">
             <div
@@ -100,7 +122,7 @@ export function VideoPlayer({ cast, isActive }: VideoPlayerProps) {
                 e.stopPropagation();
               }}
             >
-              {cast.text}
+              {post.text}
             </div>
           </div>
         </div>

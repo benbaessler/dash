@@ -42,9 +42,7 @@ const generate_signature = async function (
   const account = mnemonicToAccount(FARCASTER_DEVELOPER_MNEMONIC);
   const appAccountKey = new ViemLocalEip712Signer(account);
 
-  // Generates an expiration date for the signature (24 hours from now).
-  // Update to 1 week
-  const deadline = Math.floor(Date.now() / 1000) + 86400;
+  const deadline = Math.floor(Date.now() / 1000) + 86400 * 356; // 1 year
 
   const uintAddress = hexToBytes(public_key as `0x${string}`);
 
