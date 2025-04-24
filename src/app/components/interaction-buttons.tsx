@@ -1,9 +1,8 @@
 import { ArrowPathIcon, HeartIcon } from "@heroicons/react/24/solid";
-import { CastWithInteractions } from "@neynar/nodejs-sdk/build/api";
 import Image from "next/image";
 import sdk from "@farcaster/frame-sdk";
 interface InteractionButtonsProps {
-  cast: CastWithInteractions;
+  post: Post;
   liked: boolean;
   setLiked: (liked: boolean) => void;
   recasted: boolean;
@@ -11,23 +10,40 @@ interface InteractionButtonsProps {
 }
 
 export const InteractionButtons = ({
-  cast,
+  post,
   liked,
   setLiked,
   recasted,
   setRecasted,
 }: InteractionButtonsProps) => {
+
+  const handleInteraction = async (
+    e: React.MouseEvent,
+    type: "like" | "recast"
+  ) => {
+    e.stopPropagation();
+    // if (!signer || signer.status !== "approved") {
+    //   await handleSignIn();
+    // }
+
+    if (type === "like") {
+      setLiked(!liked);
+    } else if (type === "recast") {
+      setRecasted(!recasted);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 items-center">
       <Image
-        src={cast.author.pfp_url ?? ""}
-        alt={cast.author.display_name ?? ""}
+        src={post.author.pfpUrl ?? ""}
+        alt={post.author.displayName ?? ""}
         width={38}
         height={38}
         className="w-10 h-10 rounded-full object-cover cursor-pointer"
         onClick={async (e) => {
           e.stopPropagation();
-          await sdk.actions.viewProfile({ fid: cast.author.fid });
+          await sdk.actions.viewProfile({ fid: post.author.fid });
         }}
       />
       <div
@@ -39,15 +55,10 @@ export const InteractionButtons = ({
           className={`size-9 cursor-pointer  ${
             liked ? "opacity-100" : "opacity-80"
           }`}
-          onClick={(e) => {
-            e.stopPropagation();
-            setLiked(!liked);
-          }}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-          }}
+          onClick={(e) => handleInteraction(e, "like")}
+          onDoubleClick={(e) => e.stopPropagation()}
         />
-        <span className="text-sm">{cast.reactions.likes_count}</span>
+        <span className="text-sm">{post.likeCount}</span>
       </div>
       <div
         className={`flex flex-col items-center ${
@@ -58,21 +69,16 @@ export const InteractionButtons = ({
           className={`size-9 cursor-pointer ${
             recasted ? "opacity-100" : "opacity-80"
           }`}
-          onClick={(e) => {
-            e.stopPropagation();
-            setRecasted(!recasted);
-          }}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-          }}
+          onClick={(e) => handleInteraction(e, "recast")}
+          onDoubleClick={(e) => e.stopPropagation()}
         />
-        <span className="text-sm">{cast.reactions.recasts_count}</span>
+        <span className="text-sm">{post.recastCount}</span>
       </div>
       <div
         className="w-9 h-9 opacity-80 hover:opacity-100 cursor-pointer rounded-full"
         onClick={() => {
           sdk.actions.openUrl(
-            `https://warpcast.com/${cast.author.username}/${cast.hash}`
+            `https://warpcast.com/${post.author.username}/${post.id}`
           );
         }}
       >
