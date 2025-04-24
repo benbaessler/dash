@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { VideoPlayer } from "./components/video-player";
-import { ApproveSignerButton } from "./components/approve-signer-button";
 import { ApproveSignerDialog } from "./components/approve-signer-dialog";
 import { useSigner } from "@/hooks/useSigner";
 import { useFrame } from "@/providers/FrameProvider";
