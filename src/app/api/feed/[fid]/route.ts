@@ -5,6 +5,8 @@ export async function GET(
   { params }: { params: { fid: string } }
 ) {
   const { fid } = await params;
+  const searchParams = request.nextUrl.searchParams;
+  const limit = Number(searchParams.get("limit")) || 10;
 
   if (!Number(fid)) {
     return NextResponse.json({ error: "Missing FID" }, { status: 400 });
@@ -25,6 +27,8 @@ export async function GET(
         user_id: fid.toString(),
         feed_id: "feed_466",
         return_metadata: true,
+        top_k: limit,
+        // impression_count: limit,
       }),
     });
     const data = await res.json();
