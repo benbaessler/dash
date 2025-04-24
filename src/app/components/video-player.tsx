@@ -1,11 +1,12 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { InteractionButtons } from "./interaction-buttons";
 import { useInView } from "react-intersection-observer";
 import { Loader2 } from "lucide-react";
 import { useSigner } from "@/hooks/useSigner";
+import { ReactionType } from "@neynar/nodejs-sdk/build/api";
 
 interface VideoPlayerProps {
   post: Post;
@@ -29,25 +30,68 @@ export function VideoPlayer({
   const [paused, setPaused] = useState(false);
   const [isTextExpanded, setIsTextExpanded] = useState(false);
   const { signer } = useSigner();
+  const [, setForceUpdate] = useState(0);
+
+  // Add effect to monitor signer changes
+  useEffect(() => {
+    if (signer?.status === "approved") {
+      setForceUpdate((prev) => prev + 1);
+    }
+  }, [signer]);
 
   const idle = useMemo(() => {
     return !inView || !isActive || loading;
   }, [inView, isActive, loading]);
 
-  const handleInteraction = async (
-    e: React.MouseEvent,
-    type: "like" | "recast"
-  ) => {
+  const handleInteraction = async (e: React.MouseEvent, type: ReactionType) => {
     e.stopPropagation();
     if (!signer || signer.status !== "approved") {
       await handleApproveSigner();
       return;
     }
 
+    const castHash = post.id;
+    const previousLiked = liked;
+    const previousRecasted = recasted;
+
+    // Update local state
     if (type === "like") {
       setLiked(!liked);
     } else if (type === "recast") {
       setRecasted(!recasted);
+    }
+
+    try {
+      const isRemoving =
+        (type === "like" && previousLiked) ||
+        (type === "recast" && previousRecasted);
+      const endpoint = isRemoving
+        ? "/api/reactions/delete"
+        : "/api/reactions/publish";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          castHash,
+          type,
+          signerUuid: signer.signer_uuid,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update reaction");
+      }
+    } catch (error) {
+      // Revert state if API call fails
+      if (type === "like") {
+        setLiked(previousLiked);
+      } else if (type === "recast") {
+        setRecasted(previousRecasted);
+      }
+      console.error("Failed to update reaction:", error);
     }
   };
 
@@ -71,7 +115,9 @@ export function VideoPlayer({
       ref={ref}
       className="relative w-full h-full"
       onClick={handleClick}
-      onDoubleClick={(e) => handleInteraction(e, "like")}
+      onDoubleClick={(e) => {
+        if (!liked) handleInteraction(e, "like");
+      }}
     >
       <MediaPlayer
         className="w-full h-full"
