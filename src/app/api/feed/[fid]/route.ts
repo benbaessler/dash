@@ -24,11 +24,12 @@ export async function GET(
         authorization: `Bearer ${process.env.MBD_API_KEY}`,
       },
       body: JSON.stringify({
+        filters: { publication_types: ["video"] },
         user_id: fid.toString(),
         feed_id: "feed_466",
         return_metadata: true,
         top_k: limit,
-        // impression_count: limit,
+        impression_count: limit,
       }),
     });
     const data = await res.json();
@@ -36,7 +37,9 @@ export async function GET(
       return {
         id: item.item_id,
         text: item.metadata.text,
-        video_url: item.metadata.embed_items[0],
+        video_url: item.metadata.embed_items.find((url: string) =>
+          url.includes("video")
+        ),
         likeCount: item.metadata.likes_count,
         recastCount: item.metadata.shares_count,
         author: {
