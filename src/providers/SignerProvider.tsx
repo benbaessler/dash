@@ -1,10 +1,17 @@
-import { useEffect, useRef } from "react";
-
-import { useState } from "react";
-import { useFrame } from "@/providers/FrameProvider";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Signer } from "@neynar/nodejs-sdk/build/api";
+import { useFrame } from "@/providers/FrameProvider";
 
-export const useSigner = () => {
+interface SignerContextType {
+  signer: Signer | null;
+  createSigner: () => Promise<void>;
+  startPolling: () => void;
+  stopPolling: () => void;
+}
+
+const SignerContext = createContext<SignerContextType | undefined>(undefined);
+
+export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isSDKLoaded, context } = useFrame();
   const [signer, setSigner] = useState<Signer | null>(null);
   const intervalRef = useRef<NodeJS.Timeout>();
@@ -72,12 +79,18 @@ export const useSigner = () => {
     }
   }
 
-  return {
+  const signerValue = {
     signer,
     createSigner,
     startPolling,
     stopPolling,
   };
+  
+  return (
+    <SignerContext.Provider value={signerValue}>
+      {children}
+    </SignerContext.Provider>
+  );
 };
 
 const storeUser = async (data: Signer) => {
@@ -102,4 +115,14 @@ const storeUser = async (data: Signer) => {
   } catch (error) {
     console.error("Error storing signer in database:", error);
   }
+};
+
+export const useSigner = (): SignerContextType => {
+  const context = useContext(SignerContext);
+  
+  if (context === undefined) {
+    throw new Error("useSignerContext must be used within a SignerProvider");
+  }
+  
+  return context;
 };

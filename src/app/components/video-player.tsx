@@ -4,7 +4,7 @@ import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useInView } from "react-intersection-observer";
 import { Loader2 } from "lucide-react";
-import { useSigner } from "@/hooks/useSigner";
+import { useSigner } from "@/providers/SignerProvider";
 
 interface VideoPlayerProps {
   post: Post;
@@ -12,11 +12,7 @@ interface VideoPlayerProps {
   loading: boolean;
 }
 
-export function VideoPlayer({
-  post,
-  isActive,
-  loading,
-}: VideoPlayerProps) {
+export function VideoPlayer({ post, isActive, loading }: VideoPlayerProps) {
   const [ref, inView] = useInView({
     threshold: 0.9,
   });
@@ -52,11 +48,7 @@ export function VideoPlayer({
   };
 
   return (
-    <div
-      ref={ref}
-      className="relative w-full h-full"
-      onClick={handleClick}
-    >
+    <div ref={ref} className="relative w-full h-full" onClick={handleClick}>
       <MediaPlayer
         className="w-full h-full"
         aspectRatio="9 / 16"

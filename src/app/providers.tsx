@@ -4,6 +4,7 @@ import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { FrameProvider } from "@/providers/FrameProvider";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { SignerProvider } from "@/providers/SignerProvider";
 
 export function Providers({
   session,
@@ -20,7 +21,9 @@ export function Providers({
         forcedTheme="dark"
         disableTransitionOnChange
       >
-        <FrameProvider>{children}</FrameProvider>
+        <FrameProvider>
+          <SignerProvider>{children}</SignerProvider>
+        </FrameProvider>
       </ThemeProvider>
     </SessionProvider>
   );

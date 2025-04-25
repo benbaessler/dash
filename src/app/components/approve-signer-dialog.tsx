@@ -1,4 +1,3 @@
-import { useSigner } from "@/hooks/useSigner";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +7,11 @@ import {
 } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowRightCircleIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
-import sdk from "@farcaster/frame-sdk";
+import { useSigner } from "@/providers/SignerProvider";
+// import { Button } from "@/components/ui/button";
+// import { ArrowRightCircleIcon } from "@heroicons/react/24/outline";
+// import Link from "next/link";
+// import sdk from "@farcaster/frame-sdk";
 
 interface SignerModalProps {
   open: boolean;
@@ -33,7 +33,14 @@ export const ApproveSignerDialog = ({
       stopPolling();
       setLoading(false);
     }
-  }, [open]);
+  }, [open, signer]);
+
+  useEffect(() => {
+    console.log({ signer });
+    if (signer?.status === "approved") {
+      onOpenChange(false);
+    }
+  }, [signer]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

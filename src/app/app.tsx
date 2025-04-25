@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { VideoPlayer } from "./components/video-player";
 import { ApproveSignerDialog } from "./components/approve-signer-dialog";
-import { useSigner } from "@/hooks/useSigner";
+import { useSigner } from "@/providers/SignerProvider";
 import { useFrame } from "@/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
 
