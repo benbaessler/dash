@@ -1,60 +1,51 @@
 import { useEffect, useRef } from "react";
 
 import { useState } from "react";
-import { User } from "@neynar/nodejs-sdk/build/api";
-import { LOCAL_STORAGE_KEYS } from "@/constants";
-
-interface Signer {
-  signer_uuid: string;
-  public_key: string;
-  status: string;
-  signer_approval_url?: string;
-  fid?: number;
-}
+import { useFrame } from "@/providers/FrameProvider";
+import { Signer } from "@neynar/nodejs-sdk/build/api";
 
 export const useSigner = () => {
+  const { isSDKLoaded, context } = useFrame();
   const [signer, setSigner] = useState<Signer | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   const intervalRef = useRef<NodeJS.Timeout>();
 
+  const fid = context?.user.fid;
+
   useEffect(() => {
-    const storedData = localStorage.getItem(LOCAL_STORAGE_KEYS.FARCASTER_USER);
-    if (storedData && storedData !== "undefined") {
-      const updateSigner = async (signer_uuid: string) => {
-        const response = await fetch(`/api/signer?signer_uuid=${signer_uuid}`);
-        const data = await response.json();
-        if (data.status === "revoked") {
-          localStorage.removeItem(LOCAL_STORAGE_KEYS.FARCASTER_USER);
+    if (!isSDKLoaded || !context) return;
+
+    const checkSigner = async () => {
+      try {
+        let response = await fetch(`/api/user/${fid}`);
+        const { dbUser } = await response.json();
+
+        response = await fetch(`/api/signer?signer_uuid=${dbUser.signerUuid}`);
+        const signerData = await response.json();
+
+        if (signerData.status === "revoked") {
+          console.log("Signer revoked");
           setSigner(null);
         } else {
-          setSigner(data as Signer);
+          console.log({ signerData });
+          setSigner(signerData);
         }
-      };
+      } catch {}
+    };
 
-      const user: Signer = JSON.parse(storedData);
-      updateSigner(user.signer_uuid);
-    }
-  }, []);
+    checkSigner();
+  }, [isSDKLoaded, context]);
 
   const startPolling = () => {
-    console.log("Starting polling");
+    console.log("Starting polling", { signer });
     intervalRef.current = setInterval(async () => {
       try {
-        const response = await fetch(
-          `/api/signer?signer_uuid=${signer?.signer_uuid}`
-        );
+        const response = await fetch(`/api/signer?signer_uuid=${signer?.signer_uuid}`);
         const data = await response.json();
-        const user = data as Signer;
 
-        if (user?.status === "approved") {
-          // store the user in local storage
-          localStorage.setItem(
-            LOCAL_STORAGE_KEYS.FARCASTER_USER,
-            JSON.stringify(user)
-          );
-
-          setSigner(user);
+        if (data.status === "approved") {
           clearInterval(intervalRef.current);
+          setSigner(data);
+          await storeUser(data);
         }
       } catch (error) {
         console.error("Error during polling", error);
@@ -69,45 +60,13 @@ export const useSigner = () => {
     }
   };
 
-  useEffect(() => {
-    if (signer && signer.status === "revoked") {
-      localStorage.removeItem(LOCAL_STORAGE_KEYS.FARCASTER_USER);
-      setSigner(null);
-    }
-  }, [signer]);
-
-  const fetchUser = async () => {
-    try {
-      const response = await fetch(`/api/user?fid=${signer?.fid}`);
-      const data = await response.json();
-      setUser(data);
-    } catch (error) {
-      console.error("Could not fetch the user", error);
-    }
-  };
-
-  useEffect(() => {
-    if (signer?.status === "approved") {
-      fetchUser();
-    }
-  }, [signer]);
-
   async function createSigner() {
     try {
       const response = await fetch("/api/signer", {
         method: "POST",
       });
-      if (response.status === 200) {
-        const data = await response.json();
-        localStorage.setItem(
-          LOCAL_STORAGE_KEYS.FARCASTER_USER,
-          JSON.stringify(data)
-        );
-        setSigner(data);
-        startPolling();
-
-        // await sdk.actions.openUrl(data.signer_approval_url);
-      }
+      const data = await response.json();
+      setSigner(data);
     } catch (error) {
       console.error("API Call failed", error);
     }
@@ -115,9 +74,32 @@ export const useSigner = () => {
 
   return {
     signer,
-    user,
     createSigner,
     startPolling,
     stopPolling,
   };
+};
+
+const storeUser = async (data: Signer) => {
+  try {
+    const response = await fetch(`/api/user/${data.fid}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        expiresAt: new Date(
+          Date.now() + 365 * 24 * 60 * 60 * 1000
+        ).toISOString(), // 1 year from now
+        signerUuid: data.signer_uuid,
+        publicKey: data.public_key,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to store signer in database");
+    }
+  } catch (error) {
+    console.error("Error storing signer in database:", error);
+  }
 };
