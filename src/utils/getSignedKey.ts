@@ -30,7 +30,7 @@ export const getSignedKey = async (is_sponsored: boolean) => {
 
 const generate_signature = async function (
   public_key: string,
-  is_sponsored = false
+  is_sponsored = true
 ) {
   if (typeof process.env.FARCASTER_DEVELOPER_MNEMONIC === "undefined") {
     throw new Error("FARCASTER_DEVELOPER_MNEMONIC is not defined");
