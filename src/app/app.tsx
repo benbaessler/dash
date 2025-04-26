@@ -7,7 +7,7 @@ import { useFrame } from "@/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
 
 export default function App() {
-  const { isSDKLoaded, context, sessionToken, fid, signIn } = useFrame();
+  const { isSDKLoaded, context, sessionToken, signIn } = useFrame();
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [showSignerDialog, setShowSignerDialog] = useState(false);
   const { valid, signer, createSigner, loading: authLoading } = useSigner();
@@ -93,16 +93,18 @@ export default function App() {
     }
 
     try {
-      const endpoint = isRemoving ? "/api/reactions/delete" : "/api/reactions/publish";
+      const endpoint = isRemoving
+        ? "/api/reactions/delete"
+        : "/api/reactions/publish";
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({
           castHash: postId,
           type,
-          fid: context?.user.fid,
         }),
       });
       if (!response.ok) {
