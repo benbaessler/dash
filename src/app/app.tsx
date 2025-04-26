@@ -5,13 +5,14 @@ import { ApproveSignerDialog } from "./components/approve-signer-dialog";
 import { useSigner } from "@/providers/SignerProvider";
 import { useFrame } from "@/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
+import { Loading } from "./components/loading";
 
 export default function App() {
   const { isSDKLoaded, context, sessionToken, signIn } = useFrame();
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [showSignerDialog, setShowSignerDialog] = useState(false);
   const { valid, signer, createSigner, loading: authLoading } = useSigner();
-  const [feed, setFeed] = useState<Post[]>([]);
+  const [feed, setFeed] = useState<Post[] | null>(null);
   const [scrollCount, setScrollCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
@@ -48,7 +49,7 @@ export default function App() {
       `/api/feed/${context?.user.fid}?limit=${limit}`
     );
     const { data } = await response.json();
-    setFeed((prevFeed) => [...prevFeed, ...data]);
+    setFeed((prevFeed) => [...(prevFeed || []), ...data]);
   };
 
   const handleInteraction = async (
@@ -136,6 +137,8 @@ export default function App() {
       fetchFeed();
     }
   }, [isSDKLoaded, context]);
+
+  if (!feed) return <Loading />;
 
   return (
     <main
