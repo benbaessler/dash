@@ -39,13 +39,21 @@ export function AddFramePage() {
       </div>
 
       <div className="flex flex-col items-center justify-center gap-4 font-regular">
-        <p className="text-lg">
-          {`Add the mini app to Warpcast so you don't miss out on updates! 👀`}
-        </p>
+        {added ? (
+          <p className="text-lg">
+            Consider sharing the mini app with your friends!
+          </p>
+        ) : (
+          <>
+            <p className="text-lg">
+              {`Add the mini app to Warpcast so you don't miss out on updates! 👀`}
+            </p>
 
-        <p className="text-gray-400 text-md">
-          {`Don't worry, notifications will be kept to a minimum.`}
-        </p>
+            <p className="text-gray-400 text-md">
+              {`Don't worry, notifications will be kept to a minimum.`}
+            </p>
+          </>
+        )}
       </div>
 
       <div className="flex flex-grow w-full justify-center items-center">
