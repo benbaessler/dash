@@ -189,6 +189,12 @@ export default function App() {
           // Adjust isActive check to account for inserted ShareFrame
           isActive={getPostIndex(activeVideoIndex) === index}
           loading={loading}
+          shouldPreload={
+            // Preload current video and next 2 videos
+            index === getPostIndex(activeVideoIndex) || 
+            index === getPostIndex(activeVideoIndex) + 1 || 
+            index === getPostIndex(activeVideoIndex) + 2
+          }
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2">
           <InteractionButtons
