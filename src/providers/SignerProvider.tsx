@@ -22,7 +22,7 @@ const SignerContext = createContext<SignerContextType | undefined>(undefined);
 export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { isSDKLoaded, context } = useFrame();
+  const { isSDKLoaded, context, sessionToken } = useFrame();
   const [signer, setSigner] = useState<Signer | null>(null);
   const [valid, setValid] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -83,6 +83,31 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }
 
+  const storeUser = async (data: Signer) => {
+    try {
+      const response = await fetch(`/api/verify/signer/${data.fid}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          expiresAt: new Date(
+            Date.now() + 365 * 24 * 60 * 60 * 1000
+          ).toISOString(), // 1 year from now
+          signerUuid: data.signer_uuid,
+          publicKey: data.public_key,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to store signer in database");
+      }
+    } catch (error) {
+      console.error("Error storing signer in database:", error);
+    }
+  };
+
   const signerValue = {
     valid,
     signer,
@@ -96,30 +121,6 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
     </SignerContext.Provider>
   );
-};
-
-const storeUser = async (data: Signer) => {
-  try {
-    const response = await fetch(`/api/user/${data.fid}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        expiresAt: new Date(
-          Date.now() + 365 * 24 * 60 * 60 * 1000
-        ).toISOString(), // 1 year from now
-        signerUuid: data.signer_uuid,
-        publicKey: data.public_key,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to store signer in database");
-    }
-  } catch (error) {
-    console.error("Error storing signer in database:", error);
-  }
 };
 
 export const useSigner = (): SignerContextType => {

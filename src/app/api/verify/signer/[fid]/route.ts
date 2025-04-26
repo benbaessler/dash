@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { neynar } from "@/lib/neynar";
+import { jwtVerify } from "jose";
+import { authSecret } from "@/constants";
 
 export async function GET(
   req: Request,
@@ -50,9 +52,36 @@ export async function POST(
   { params }: { params: Promise<{ fid: string }> }
 ) {
   try {
+    const { fid } = await params;
     const body = await request.json();
     const data = userSchema.parse(body);
-    const { fid } = await params;
+
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Unauthorized: Missing or invalid Authorization header." },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7); // Remove "Bearer " prefix
+    let payload;
+    const secretKey = new TextEncoder().encode(authSecret);
+
+    try {
+      const { payload: verifiedPayload } = await jwtVerify(token, secretKey, {
+        algorithms: ["HS256"],
+      });
+      payload = verifiedPayload;
+      const authFid = Number(payload.fid);
+      if (authFid !== Number(fid)) throw new Error();
+    } catch (err) {
+      console.error("JWT Verification Error:", err);
+      return NextResponse.json(
+        { error: "Unauthorized: Invalid or expired token." },
+        { status: 401 }
+      );
+    }
 
     const signer = await neynar.lookupSigner({ signerUuid: data.signerUuid });
 
