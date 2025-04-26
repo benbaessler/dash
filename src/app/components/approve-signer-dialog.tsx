@@ -6,13 +6,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useSigner } from "@/providers/SignerProvider";
 import { ArrowRightCircleIcon } from "@heroicons/react/24/solid";
 import { Button } from "@/components/ui/button";
 import sdk from "@farcaster/frame-sdk";
 import { Loader2 } from "lucide-react";
 import { useFrame } from "@/providers/FrameProvider";
+import { appUrl } from "@/constants";
 interface SignerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -27,10 +28,23 @@ export const ApproveSignerDialog = ({
   const { mobile } = useFrame();
   const { valid, signer, startPolling, stopPolling } = useSigner();
 
+  const mobileUrl = useMemo(() => {
+    if (signer && signer?.signer_approval_url) {
+      const url = new URL(signer.signer_approval_url);
+      const appDomain = new URL(appUrl!).hostname;
+      url.searchParams.append(
+        "redirectUrl",
+        `https://client.warpcast.com/deeplinks/~/frames/launch?domain=${appDomain}`
+      );
+      return url.toString();
+    }
+    return "";
+  }, [signer]);
+
   useEffect(() => {
     if (open) {
-      if (mobile && signer && signer?.signer_approval_url ) {
-        sdk.actions.openUrl(signer.signer_approval_url);
+      if (mobile && signer && signer?.signer_approval_url) {
+        sdk.actions.openUrl(mobileUrl);
       }
       startPolling();
     } else {
@@ -62,7 +76,7 @@ export const ApproveSignerDialog = ({
               variant="action"
               className="w-64"
               onClick={() =>
-                sdk.actions.openUrl(signer?.signer_approval_url || "")
+                sdk.actions.openUrl(mobileUrl)
               }
             >
               Already on mobile?
