@@ -15,7 +15,7 @@ export const metadata: Metadata = {
       version: "next",
       imageUrl: `${appUrl}/opengraph-image.png`,
       button: {
-        title: "Launch",
+        title: "Launch 📲",
         action: {
           type: "launch_frame",
           name: "Dash",

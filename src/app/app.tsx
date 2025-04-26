@@ -165,7 +165,7 @@ export default function App() {
 
   feed.forEach((post, index) => {
     // Insert ShareFrame at the configured position
-    if (index === SHARE_FRAME_POSITION) {
+    if (index === SHARE_FRAME_POSITION && !context?.client.added) {
       feedWithShareFrame.push(
         <div key="share-frame" className="h-screen w-screen snap-start">
           <AddFramePage />

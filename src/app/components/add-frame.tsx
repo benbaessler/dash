@@ -17,7 +17,7 @@ export function AddFramePage() {
   });
 
   const castIntent = generateCastIntentURL(
-    "Explore videos on Farcaster with Dash! 📲",
+    "Scroll your feed TikTok-style on Dash! ⚡️",
     appUrl!
   );
 
@@ -35,7 +35,7 @@ export function AddFramePage() {
       <div className="flex flex-col items-center justify-center mb-14 gap-2">
         <Image src="/icon.png" alt="Dash Logo" width={90} height={90} />
 
-        <h1 className="text-3xl font-medium">{`Enjoying Dash?`}</h1>
+        <h1 className="text-3xl font-semibold">{`Enjoying Dash?`}</h1>
       </div>
 
       <div className="flex flex-col items-center justify-center gap-4 font-regular">
