@@ -13,11 +13,18 @@ interface FrameMetadata {
     name: string;
     iconUrl: string;
     homeUrl: string;
-    imageUrl: string;
-    buttonTitle: string;
     splashImageUrl: string;
     splashBackgroundColor: string;
     webhookUrl: string;
+    subtitle: string;
+    description: string;
+    primaryCategory: string;
+    heroImageUrl: string;
+    tags: string[];
+    tagline: string;
+    ogTitle: string;
+    ogDescription: string;
+    ogImageUrl: string;
   };
 }
 
@@ -103,14 +110,21 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
     accountAssociation,
     frame: {
       version: "1",
-      name: process.env.NEXT_PUBLIC_FRAME_NAME || "Frames v2 Demo",
-      iconUrl: `${appUrl}/icon.png`,
+      name: "Dash",
+      iconUrl: `${appUrl}/logo.png`,
       homeUrl: appUrl,
-      imageUrl: `${appUrl}/opengraph-image`,
-      buttonTitle: process.env.NEXT_PUBLIC_FRAME_BUTTON_TEXT || "Launch Frame",
       splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#f7f7f7",
+      splashBackgroundColor: "#000000",
       webhookUrl,
+      subtitle: "Explore videos on Farcaster",
+      description: "A Farcaster client as a mini app, tailored for short-form video content.",
+      primaryCategory: "entertainment",
+      heroImageUrl: `${appUrl}/hero.png`,
+      tags: ["video", "watch", "tiktok", "reels", "shorts"],
+      tagline: "Watch. Scroll. Repeat.",
+      ogTitle: "Dash",
+      ogDescription: "Explore videos on Farcaster",
+      ogImageUrl: `${appUrl}/hero.png`
     },
   };
 }
