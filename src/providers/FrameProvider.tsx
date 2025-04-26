@@ -180,14 +180,6 @@ export function useFrame() {
 export function FrameProvider({ children }: { children: React.ReactNode }) {
   const { isSDKLoaded, context } = useFrame();
 
-  if (!isSDKLoaded) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <FrameContext.Provider value={{ isSDKLoaded, context }}>
       {children}
