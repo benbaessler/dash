@@ -10,6 +10,7 @@ import { createStore } from "mipd";
 import React from "react";
 import { Loader2 } from "lucide-react";
 import { getCsrfToken } from "next-auth/react";
+import { isMobile } from "@/utils/isMobile";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
@@ -60,6 +61,8 @@ export function useFrame() {
   }, []);
 
   const signIn = useCallback(async () => {
+    if (sessionToken) return;
+
     const nonce = await getCsrfToken();
     if (!nonce) throw new Error("Unable to generate nonce");
     const result = await sdk.actions.signIn({ nonce });
@@ -80,6 +83,17 @@ export function useFrame() {
     setFid(fid);
 
     console.log("Signed in", { fid, token });
+  }, []);
+
+  useEffect(() => {
+    const triggerSignInOnMobile = async () => {
+      const onMobile = await isMobile();
+      if (onMobile) await signIn();
+    };
+
+    if (!sessionToken) {
+      triggerSignInOnMobile();
+    }
   }, []);
 
   useEffect(() => {
