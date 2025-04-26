@@ -24,8 +24,8 @@ export default async function RootLayout({
   const session = await getSession();
 
   return (
-    <html lang="en">
-      <body lang="en" className={dmSans.variable}>
+    <html lang="en" className="bg-black">
+      <body lang="en" className={`${dmSans.variable} bg-black`}>
         <Providers session={session}>{children}</Providers>
       </body>
     </html>

@@ -16,17 +16,17 @@ export function Loading() {
   }, []);
 
   return (
-    <div className="flex justify-center items-center h-screen w-screen bg-black">
-      <div className="flex flex-col justify-center items-center gap-2">
+    <div className="fixed inset-0 flex items-center justify-center bg-black">
+      <div className="flex flex-col items-center -mt-[55px]">
         <Image 
-          src="/icon.png" 
+          src="/splash.png" 
           alt="logo" 
-          width={120} 
-          height={120} 
+          width={85} 
+          height={85} 
           className="animate-pulse"
         />
-        <div className="text-gray-400 text-sm w-[200px] text-center whitespace-nowrap">
-          Creating a tailored feed for you{loadingDots}
+        <div className="mt-2 text-gray-400 text-sm w-[218px] text-center whitespace-nowrap">
+          Generating a tailored feed for you{loadingDots}
         </div>
       </div>
     </div>
