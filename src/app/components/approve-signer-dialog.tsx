@@ -8,11 +8,11 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect } from "react";
 import { useSigner } from "@/providers/SignerProvider";
-// import { Button } from "@/components/ui/button";
-// import { ArrowRightCircleIcon } from "@heroicons/react/24/outline";
-// import Link from "next/link";
-// import sdk from "@farcaster/frame-sdk";
-
+import { ArrowRightCircleIcon } from "@heroicons/react/24/solid";
+import { Button } from "@/components/ui/button";
+import sdk from "@farcaster/frame-sdk";
+import { Loader2 } from "lucide-react";
+import { useFrame } from "@/providers/FrameProvider";
 interface SignerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -24,16 +24,20 @@ export const ApproveSignerDialog = ({
   onOpenChange,
   setLoading,
 }: SignerModalProps) => {
-  const { valid, signer,startPolling, stopPolling } = useSigner();
+  const { mobile } = useFrame();
+  const { valid, signer, startPolling, stopPolling } = useSigner();
 
   useEffect(() => {
     if (open) {
+      if (mobile && signer && signer?.signer_approval_url ) {
+        sdk.actions.openUrl(signer.signer_approval_url);
+      }
       startPolling();
     } else {
       stopPolling();
       setLoading(false);
     }
-  }, [open]);
+  }, [open, signer]);
 
   useEffect(() => {
     if (valid) {
@@ -47,18 +51,32 @@ export const ApproveSignerDialog = ({
         <DialogHeader>
           <DialogTitle>Scan to connect</DialogTitle>
           <DialogDescription>
-            Registering a signer key allows you to like and recast videos on
+            Registering a signer key enables you to interact with videos on
             Dash.
           </DialogDescription>
-          <div className="flex items-center justify-center py-4">
-            <div className="flex p-3 bg-white rounded items-center justify-center">
-              <QRCodeSVG value={signer?.signer_approval_url || ""} size={200} />
+          <div className="flex flex-col items-center justify-center gap-4 pt-4">
+            <div className="flex p-3 bg-white rounded items-center justify-center mb-2">
+              <QRCodeSVG value={signer?.signer_approval_url || ""} size={230} />
+            </div>
+            <Button
+              variant="action"
+              className="w-64"
+              onClick={() =>
+                sdk.actions.openUrl(signer?.signer_approval_url || "")
+              }
+            >
+              Already on mobile?
+              <ArrowRightCircleIcon
+                className="w-4 h-4"
+                width={50}
+                height={50}
+              />
+            </Button>
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <p className="text-sm">Awaiting approval...</p>
             </div>
           </div>
-          {/* <Button onClick={() => sdk.actions.openUrl(signer?.signer_approval_url || "")}>
-            Already on mobile?
-            <ArrowRightCircleIcon className="w-4 h-4" width={50} height={50} />
-          </Button> */}
         </DialogHeader>
       </DialogContent>
     </Dialog>

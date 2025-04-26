@@ -31,6 +31,7 @@ export function useFrame() {
   const [addFrameResult, setAddFrameResult] = useState("");
 
   const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [mobile, setMobile] = useState<boolean>(false);
   const [fid, setFid] = useState<number | null>(null);
 
   const addFrame = useCallback(async () => {
@@ -87,8 +88,9 @@ export function useFrame() {
 
   useEffect(() => {
     const triggerSignInOnMobile = async () => {
-      const onMobile = await isMobile();
-      if (onMobile) await signIn();
+      const mobile = await isMobile();
+      setMobile(mobile);
+      if (mobile) await signIn();
     };
 
     if (!sessionToken) {
@@ -170,6 +172,7 @@ export function useFrame() {
     addFrameResult,
     sessionToken,
     fid,
+    mobile,
     signIn,
   };
 }
