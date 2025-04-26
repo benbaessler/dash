@@ -59,7 +59,7 @@ export function VideoPlayer({ post, isActive, loading, shouldPreload = false }: 
           aspectRatio="9 / 16"
           src={post.video_url}
           streamType="on-demand"
-          load={inView || shouldPreload ? "visible" : "idle"}
+          load={inView || shouldPreload ? "eager" : "idle"}
           preload={shouldPreload && !isActive ? "metadata" : "auto"}
           playsInline
           loop
