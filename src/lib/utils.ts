@@ -1,6 +1,6 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-import { mnemonicToAccount } from 'viem/accounts';
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { mnemonicToAccount } from "viem/accounts";
 
 interface FrameMetadata {
   accountAssociation?: {
@@ -35,7 +35,7 @@ export function cn(...inputs: ClassValue[]) {
 export function getSecretEnvVars() {
   const seedPhrase = process.env.SEED_PHRASE;
   const fid = process.env.FID;
-  
+
   if (!seedPhrase || !fid) {
     return null;
   }
@@ -48,25 +48,27 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
   if (process.env.FRAME_METADATA) {
     try {
       const metadata = JSON.parse(process.env.FRAME_METADATA);
-      console.log('Using pre-signed frame metadata from environment');
+      console.log("Using pre-signed frame metadata from environment");
       return metadata;
     } catch (error) {
-      console.warn('Failed to parse FRAME_METADATA from environment:', error);
+      console.warn("Failed to parse FRAME_METADATA from environment:", error);
     }
   }
 
   const appUrl = process.env.NEXT_PUBLIC_URL;
   if (!appUrl) {
-    throw new Error('NEXT_PUBLIC_URL not configured');
+    throw new Error("NEXT_PUBLIC_URL not configured");
   }
 
   // Get the domain from the URL (without https:// prefix)
   const domain = new URL(appUrl).hostname;
-  console.log('Using domain for manifest:', domain);
+  console.log("Using domain for manifest:", domain);
 
   const secretEnvVars = getSecretEnvVars();
   if (!secretEnvVars) {
-    console.warn('No seed phrase or FID found in environment variables -- generating unsigned metadata');
+    console.warn(
+      "No seed phrase or FID found in environment variables -- generating unsigned metadata"
+    );
   }
 
   let accountAssociation;
@@ -77,37 +79,51 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
 
     const header = {
       fid: parseInt(secretEnvVars.fid),
-      type: 'custody',
+      type: "custody",
       key: custodyAddress,
     };
-    const encodedHeader = Buffer.from(JSON.stringify(header), 'utf-8').toString('base64');
+    const encodedHeader = Buffer.from(JSON.stringify(header), "utf-8").toString(
+      "base64"
+    );
 
     const payload = {
-      domain
+      domain,
     };
-    const encodedPayload = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64url');
+    const encodedPayload = Buffer.from(
+      JSON.stringify(payload),
+      "utf-8"
+    ).toString("base64url");
 
-    const signature = await account.signMessage({ 
-      message: `${encodedHeader}.${encodedPayload}`
+    const signature = await account.signMessage({
+      message: `${encodedHeader}.${encodedPayload}`,
     });
-    const encodedSignature = Buffer.from(signature, 'utf-8').toString('base64url');
+    const encodedSignature = Buffer.from(signature, "utf-8").toString(
+      "base64url"
+    );
 
     accountAssociation = {
       header: encodedHeader,
       payload: encodedPayload,
-      signature: encodedSignature
+      signature: encodedSignature,
     };
   }
 
   // Determine webhook URL based on whether Neynar is enabled
   const neynarApiKey = process.env.NEYNAR_API_KEY;
   const neynarClientId = process.env.NEYNAR_CLIENT_ID;
-  const webhookUrl = neynarApiKey && neynarClientId 
-    ? `https://api.neynar.com/f/app/${neynarClientId}/event`
-    : `${appUrl}/api/webhook`;
+  const webhookUrl =
+    neynarApiKey && neynarClientId
+      ? `https://api.neynar.com/f/app/${neynarClientId}/event`
+      : `${appUrl}/api/webhook`;
 
   return {
-    accountAssociation,
+    accountAssociation: {
+      header:
+        "eyJmaWQiOjE5MTI5NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDExNEQzYzE3MzMyNWNmYTQ1MDY1MDllZmYyQzJBNUFFY2NFODI0M2UifQ",
+      payload: "eyJkb21haW4iOiJkYXNoLmJuYnMuZGV2In0",
+      signature:
+        "MHg4MTJjMTFiZTQ1NDVkZjU0ZWZhMzFhYzVjOGI2YWE3YzM3MzM1NGQzY2NmYjRlNTA0NjI0YzcxNzEzYTk5OTU1MzJhM2M0NTY1MWU1ZGMyNmMwYjBkYjJiMDYxYWRlOGQ5ZDAxY2ZmMjg2YTBkNGY4ZGRiNmU0OGVmYzM3YzgyMzFi",
+    },
     frame: {
       version: "1",
       name: "Dash",
@@ -117,14 +133,15 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
       splashBackgroundColor: "#000000",
       webhookUrl,
       subtitle: "Explore videos on Farcaster",
-      description: "A Farcaster client as a mini app, tailored for short-form video content.",
+      description:
+        "A Farcaster client as a mini app, tailored for short-form video content.",
       primaryCategory: "entertainment",
       heroImageUrl: `${appUrl}/hero.png`,
       tags: ["video", "watch", "tiktok", "reels", "shorts"],
       tagline: "Watch. Scroll. Repeat.",
       ogTitle: "Dash",
       ogDescription: "Explore videos on Farcaster",
-      ogImageUrl: `${appUrl}/hero.png`
+      ogImageUrl: `${appUrl}/hero.png`,
     },
   };
 }

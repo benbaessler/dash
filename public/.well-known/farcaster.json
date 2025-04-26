@@ -1,4 +1,9 @@
 {
+  "accountAssociation": {
+    "header": "eyJmaWQiOjE5MTI5NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDExNEQzYzE3MzMyNWNmYTQ1MDY1MDllZmYyQzJBNUFFY2NFODI0M2UifQ",
+    "payload": "eyJkb21haW4iOiJkYXNoLmJuYnMuZGV2In0",
+    "signature": "MHg4MTJjMTFiZTQ1NDVkZjU0ZWZhMzFhYzVjOGI2YWE3YzM3MzM1NGQzY2NmYjRlNTA0NjI0YzcxNzEzYTk5OTU1MzJhM2M0NTY1MWU1ZGMyNmMwYjBkYjJiMDYxYWRlOGQ5ZDAxY2ZmMjg2YTBkNGY4ZGRiNmU0OGVmYzM3YzgyMzFi"
+  },
   "frame": {
     "version": "1",
     "name": "Dash",
