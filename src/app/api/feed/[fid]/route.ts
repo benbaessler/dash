@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { fid: string } }
+  {
+    params,
+  }: {
+    params: Promise<{
+      fid: string;
+    }>;
+  }
 ) {
   const { fid } = await params;
-  const searchParams = request.nextUrl.searchParams;
+  const { searchParams } = new URL(request.url);
   const limit = Number(searchParams.get("limit")) || 10;
 
   if (!Number(fid)) {

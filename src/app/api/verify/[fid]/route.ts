@@ -5,9 +5,9 @@ import { neynar } from "@/lib/neynar";
 
 export async function GET(
   req: Request,
-  { params }: { params: { fid: string } }
+  { params }: { params: Promise<{ fid: string }> }
 ) {
-  const fid = Number(params.fid);
+  const { fid } = await params;
 
   if (!fid) {
     return NextResponse.json({ error: "fid is required" }, { status: 400 });
@@ -15,7 +15,7 @@ export async function GET(
 
   try {
     const data = await prisma.user.findUnique({
-      where: { fid: params.fid },
+      where: { fid },
     });
 
     if (!data) {
@@ -26,7 +26,7 @@ export async function GET(
 
     if (signer.status === "revoked") {
       await prisma.user.delete({
-        where: { fid: params.fid },
+        where: { fid },
       });
 
       return NextResponse.json({ verified: false }, { status: 200 });
@@ -47,16 +47,16 @@ const userSchema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: { fid: string } }
+  { params }: { params: Promise<{ fid: string }> }
 ) {
   try {
     const body = await request.json();
     const data = userSchema.parse(body);
-    const fid = Number(params.fid);
+    const { fid } = await params;
 
     const signer = await neynar.lookupSigner({ signerUuid: data.signerUuid });
 
-    if (signer.status !== "approved" || signer.fid !== fid) {
+    if (signer.status !== "approved" || signer.fid !== Number(fid)) {
       return NextResponse.json({ error: "Invalid signer" }, { status: 400 });
     }
 

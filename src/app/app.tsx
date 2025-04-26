@@ -5,13 +5,15 @@ import { ApproveSignerDialog } from "./components/approve-signer-dialog";
 import { useSigner } from "@/providers/SignerProvider";
 import { useFrame } from "@/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
+import { testFeed } from "@/test/data";
+import sdk from "@farcaster/frame-sdk";
 
 export default function App() {
   const { isSDKLoaded, context } = useFrame();
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [showSignerDialog, setShowSignerDialog] = useState(false);
   const { valid, signer, createSigner, loading: authLoading } = useSigner();
-  const [feed, setFeed] = useState<Post[]>(testFeed);
+  const [feed, setFeed] = useState<Post[]>([]);
   const [scrollCount, setScrollCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());

@@ -11,13 +11,9 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 });
 
-if (!process.env.NEXT_PUBLIC_FRAME_DESCRIPTION) {
-  throw new Error("NEXT_PUBLIC_FRAME_DESCRIPTION must be set");
-}
-
 export const metadata: Metadata = {
   title: "Dash",
-  description: process.env.NEXT_PUBLIC_FRAME_DESCRIPTION,
+  description: "Explore videos on Farcaster.",
 };
 
 export default async function RootLayout({

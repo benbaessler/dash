@@ -47,7 +47,7 @@ export function VideoPlayer({ post, isActive, loading }: VideoPlayerProps) {
         load="eager"
         playsInline
         loop
-        autoPlay={false}
+        autoPlay
         paused={idle || paused}
       >
         <MediaProvider className="w-full h-full" />
