@@ -5,8 +5,6 @@ import { ApproveSignerDialog } from "./components/approve-signer-dialog";
 import { useSigner } from "@/providers/SignerProvider";
 import { useFrame } from "@/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
-import { testFeed } from "@/test/data";
-import sdk from "@farcaster/frame-sdk";
 
 export default function App() {
   const { isSDKLoaded, context } = useFrame();
