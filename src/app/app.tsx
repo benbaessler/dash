@@ -10,8 +10,8 @@ export default function App() {
   const { isSDKLoaded, context } = useFrame();
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [showSignerDialog, setShowSignerDialog] = useState(false);
-  const { valid, signer, createSigner } = useSigner();
-  const [feed, setFeed] = useState<Post[]>([]);
+  const { valid, signer, createSigner, loading: authLoading } = useSigner();
+  const [feed, setFeed] = useState<Post[]>(testFeed);
   const [scrollCount, setScrollCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
@@ -57,6 +57,7 @@ export default function App() {
     postId: string
   ) => {
     e.stopPropagation();
+    if (authLoading) return;
     if (!valid) return await handleApproveSigner();
 
     const isLiked = likedPosts.has(postId);

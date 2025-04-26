@@ -14,6 +14,7 @@ interface SignerContextType {
   createSigner: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
+  loading: boolean;
 }
 
 const SignerContext = createContext<SignerContextType | undefined>(undefined);
@@ -24,6 +25,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
   const { isSDKLoaded, context } = useFrame();
   const [signer, setSigner] = useState<Signer | null>(null);
   const [valid, setValid] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const intervalRef = useRef<NodeJS.Timeout>();
 
   const fid = context?.user.fid;
@@ -38,6 +40,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     checkSigner();
+    setLoading(false);
   }, [isSDKLoaded, context]);
 
   const startPolling = () => {
@@ -86,6 +89,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     createSigner,
     startPolling,
     stopPolling,
+    loading,
   };
   return (
     <SignerContext.Provider value={signerValue}>

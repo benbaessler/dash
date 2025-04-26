@@ -2,6 +2,7 @@ import { ArrowPathIcon, HeartIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import sdk from "@farcaster/frame-sdk";
 import { useState } from "react";
+import { useSigner } from "@/providers/SignerProvider";
 
 interface InteractionButtonsProps {
   post: Post;
@@ -16,8 +17,9 @@ export const InteractionButtons = ({
   recasted,
   handleInteraction,
 }: InteractionButtonsProps) => {
+  const { loading } = useSigner();
   const [isImageLoading, setIsImageLoading] = useState(true);
-  
+
   return (
     <div className="flex flex-col gap-4 items-center">
       <div className="relative w-10 h-10">
@@ -39,29 +41,21 @@ export const InteractionButtons = ({
           }}
         />
       </div>
-      <div
-        className={`flex flex-col items-center ${
-          liked ? "text-red-400" : "text-white"
-        }`}
-      >
+      <div className="flex flex-col items-center text-white">
         <HeartIcon
           className={`size-9 cursor-pointer  ${
-            liked ? "opacity-100" : "opacity-80"
-          }`}
+            loading ? "opacity-50" : liked ? "opacity-100" : "opacity-80"
+          } ${liked ? "text-red-500" : ""}`}
           onClick={(e) => handleInteraction(e, "like")}
           onDoubleClick={(e) => e.stopPropagation()}
         />
         <span className="text-sm">{post.likeCount}</span>
       </div>
-      <div
-        className={`flex flex-col items-center ${
-          recasted ? "text-green-400" : "text-white"
-        }`}
-      >
+      <div className="flex flex-col items-center text-white">
         <ArrowPathIcon
           className={`size-9 cursor-pointer ${
-            recasted ? "opacity-100" : "opacity-80"
-          }`}
+            loading ? "opacity-50" : recasted ? "opacity-100" : "opacity-80"
+          } ${recasted ? "text-green-500" : ""}`}
           onClick={(e) => handleInteraction(e, "recast")}
           onDoubleClick={(e) => e.stopPropagation()}
         />
