@@ -6,7 +6,7 @@ import { useSigner } from "@/providers/SignerProvider";
 import { useFrame } from "@/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
 import { Loading } from "./components/loading";
-import { ShareFrame } from "./components/share-frame";
+import { AddFramePage } from "./components/add-frame";
 
 export default function App() {
   const { isSDKLoaded, context, sessionToken, signIn } = useFrame();
@@ -168,7 +168,7 @@ export default function App() {
     if (index === SHARE_FRAME_POSITION) {
       feedWithShareFrame.push(
         <div key="share-frame" className="h-screen w-screen snap-start">
-          <ShareFrame />
+          <AddFramePage />
         </div>
       );
     }
