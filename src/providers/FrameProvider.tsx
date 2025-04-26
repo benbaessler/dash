@@ -9,6 +9,7 @@ import sdk, {
 import { createStore } from "mipd";
 import React from "react";
 import { Loader2 } from "lucide-react";
+import { getCsrfToken } from "next-auth/react";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
@@ -27,6 +28,9 @@ export function useFrame() {
     useState<FrameNotificationDetails | null>(null);
   const [lastEvent, setLastEvent] = useState("");
   const [addFrameResult, setAddFrameResult] = useState("");
+
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [fid, setFid] = useState<number | null>(null);
 
   const addFrame = useCallback(async () => {
     try {
@@ -53,6 +57,29 @@ export function useFrame() {
 
       setAddFrameResult(`Error: ${error}`);
     }
+  }, []);
+
+  const signIn = useCallback(async () => {
+    const nonce = await getCsrfToken();
+    if (!nonce) throw new Error("Unable to generate nonce");
+    const result = await sdk.actions.signIn({ nonce });
+    const response = await fetch("api/verify", {
+      method: "POST",
+      body: JSON.stringify({
+        message: result.message,
+        signature: result.signature,
+        nonce,
+      }),
+    });
+
+    const { success, fid, token } = await response.json();
+
+    if (!success) throw new Error("Failed to sign in");
+
+    setSessionToken(token);
+    setFid(fid);
+
+    console.log("Signed in", { fid, token });
   }, []);
 
   useEffect(() => {
@@ -127,6 +154,9 @@ export function useFrame() {
     lastEvent,
     addFrame,
     addFrameResult,
+    sessionToken,
+    fid,
+    signIn,
   };
 }
 

@@ -7,7 +7,7 @@ import { useFrame } from "@/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
 
 export default function App() {
-  const { isSDKLoaded, context } = useFrame();
+  const { isSDKLoaded, context, sessionToken, fid, signIn } = useFrame();
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [showSignerDialog, setShowSignerDialog] = useState(false);
   const { valid, signer, createSigner, loading: authLoading } = useSigner();
@@ -57,6 +57,16 @@ export default function App() {
     postId: string
   ) => {
     e.stopPropagation();
+
+    if (!sessionToken) {
+      try {
+        await signIn();
+      } catch (error) {
+        console.error("Failed to sign in", error);
+        return;
+      }
+    }
+
     if (authLoading) return;
     if (!valid) return await handleApproveSigner();
 
