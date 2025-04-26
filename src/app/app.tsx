@@ -39,7 +39,7 @@ export default function App() {
 
       // Don't process further if we're on the share frame
       // This prevents video loading/autoplay issues when on the share frame
-      if (newIndex === SHARE_FRAME_POSITION) return;
+      if (newIndex === promotionPageIndex) return;
 
       // Get the real post index (accounting for share frame)
       const realPostIndex = getPostIndex(newIndex);
@@ -152,7 +152,7 @@ export default function App() {
   if (!feed) return <Loading />;
 
   // Share frame position in the feed (0-based index)
-  const SHARE_FRAME_POSITION = 10;
+  const promotionPageIndex = Number(process.env.NEXT_PUBLIC_PROMOTION_PAGE_INDEX) || 10;
   
   // Prepare feed items with ShareFrame inserted
   const feedWithShareFrame: React.ReactNode[] = [];
@@ -160,12 +160,12 @@ export default function App() {
   // Map to track the real index of posts with ShareFrame inserted
   const getPostIndex = (virtualIndex: number): number => {
     // If we're past the share frame
-    return virtualIndex > SHARE_FRAME_POSITION ? virtualIndex - 1 : virtualIndex;
+    return virtualIndex > promotionPageIndex ? virtualIndex - 1 : virtualIndex;
   };
 
   feed.forEach((post, index) => {
     // Insert ShareFrame at the configured position
-    if (index === SHARE_FRAME_POSITION && !context?.client.added) {
+    if (promotionPageIndex !== 0 && index === promotionPageIndex && !context?.client.added) {
       feedWithShareFrame.push(
         <div key="share-frame" className="h-screen w-screen snap-start">
           <AddFramePage />
