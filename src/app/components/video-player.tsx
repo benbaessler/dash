@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useInView } from "react-intersection-observer";
@@ -36,6 +36,10 @@ export function VideoPlayer({ post, isActive, loading }: VideoPlayerProps) {
 
     setPlayTimeout(timeout);
   };
+
+  useEffect(() => {
+    if (!inView) setPaused(false);
+  }, [inView, paused]);
 
   return (
     <div ref={ref} className="relative w-full h-full" onClick={handleClick}>
