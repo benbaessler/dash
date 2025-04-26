@@ -37,9 +37,9 @@ export default function App() {
       setActiveVideoIndex(newIndex);
       setScrollCount((prev) => prev + 1);
 
-      // Fetch more content when user has scrolled through 5 videos
-      if ((scrollCount + 1) % 5 === 0) {
-        fetchFeed(5);
+      // Fetch more content when user has scrolled through 5 videos or near the end of the feed
+      if ((scrollCount + 1) % 5 === 0 || activeVideoIndex >= (feed?.length || 0) - 3) {
+        fetchFeed(10);
       }
     }
   };

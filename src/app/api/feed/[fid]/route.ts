@@ -39,23 +39,28 @@ export async function GET(
       }),
     });
     const data = await res.json();
-    const posts: Post[] = data.body.map((item: any) => {
-      return {
-        id: item.item_id,
-        text: item.metadata.text,
-        video_url: item.metadata.embed_items.find((url: string) =>
-          url.includes("video")
-        ),
-        likeCount: item.metadata.likes_count,
-        recastCount: item.metadata.shares_count,
-        author: {
-          fid: item.metadata.author.user_id,
-          displayName: item.metadata.author.display_name,
-          username: item.metadata.author.username,
-          pfpUrl: item.metadata.author.pfp_url,
-        },
-      };
-    });
+    
+    const posts: Post[] = data.body
+      .filter((item: any) =>
+        item.metadata.embed_items.find((url: string) => url.includes("video"))
+      )
+      .map((item: any) => {
+        return {
+          id: item.item_id,
+          text: item.metadata.text,
+          video_url: item.metadata.embed_items.find((url: string) =>
+            url.includes("video")
+          ),
+          likeCount: item.metadata.likes_count,
+          recastCount: item.metadata.shares_count,
+          author: {
+            fid: item.metadata.author.user_id,
+            displayName: item.metadata.author.display_name,
+            username: item.metadata.author.username,
+            pfpUrl: item.metadata.author.pfp_url,
+          },
+        };
+      });
 
     return NextResponse.json({
       success: true,
