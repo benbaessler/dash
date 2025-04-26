@@ -1,10 +1,9 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useInView } from "react-intersection-observer";
 import { Loader2 } from "lucide-react";
-import { useSigner } from "@/providers/SignerProvider";
 
 interface VideoPlayerProps {
   post: Post;
@@ -18,15 +17,6 @@ export function VideoPlayer({ post, isActive, loading }: VideoPlayerProps) {
   });
   const [playTimeout, setPlayTimeout] = useState<NodeJS.Timeout | null>(null);
   const [paused, setPaused] = useState(false);
-  const { signer } = useSigner();
-  const [, setForceUpdate] = useState(0);
-
-  // Add effect to monitor signer changes
-  useEffect(() => {
-    if (signer?.status === "approved") {
-      setForceUpdate((prev) => prev + 1);
-    }
-  }, [signer]);
 
   const idle = useMemo(() => {
     return !inView || !isActive || loading;

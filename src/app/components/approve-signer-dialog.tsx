@@ -24,7 +24,7 @@ export const ApproveSignerDialog = ({
   onOpenChange,
   setLoading,
 }: SignerModalProps) => {
-  const { signer, startPolling, stopPolling } = useSigner();
+  const { valid, signer,startPolling, stopPolling } = useSigner();
 
   useEffect(() => {
     if (open) {
@@ -33,14 +33,13 @@ export const ApproveSignerDialog = ({
       stopPolling();
       setLoading(false);
     }
-  }, [open, signer]);
+  }, [open]);
 
   useEffect(() => {
-    console.log({ signer });
-    if (signer?.status === "approved") {
+    if (valid) {
       onOpenChange(false);
     }
-  }, [signer]);
+  }, [valid]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -1,20 +1,29 @@
 import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import { ReactionType } from "@neynar/nodejs-sdk/build/api";
+import prisma from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const { castHash, type, signerUuid } = await request.json();
+    const { castHash, type, fid } = await request.json();
 
-    if (!castHash || !type || !signerUuid) {
+    if (!castHash || !type || !fid) {
       return NextResponse.json(
         { error: "Missing required parameters" },
         { status: 400 }
       );
     }
 
+    const user = await prisma.user.findUnique({
+      where: { fid: fid.toString() },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     const result = await neynar.publishReaction({
-      signerUuid,
+      signerUuid: user.signerUuid,
       reactionType: type as ReactionType,
       target: castHash,
     });

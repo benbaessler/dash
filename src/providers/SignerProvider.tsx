@@ -1,8 +1,15 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Signer } from "@neynar/nodejs-sdk/build/api";
 import { useFrame } from "@/providers/FrameProvider";
 
 interface SignerContextType {
+  valid: boolean;
   signer: Signer | null;
   createSigner: () => Promise<void>;
   startPolling: () => void;
@@ -11,9 +18,12 @@ interface SignerContextType {
 
 const SignerContext = createContext<SignerContextType | undefined>(undefined);
 
-export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { isSDKLoaded, context } = useFrame();
   const [signer, setSigner] = useState<Signer | null>(null);
+  const [valid, setValid] = useState<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout>();
 
   const fid = context?.user.fid;
@@ -22,21 +32,9 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!isSDKLoaded || !context) return;
 
     const checkSigner = async () => {
-      try {
-        let response = await fetch(`/api/user/${fid}`);
-        const { dbUser } = await response.json();
-
-        response = await fetch(`/api/signer?signer_uuid=${dbUser.signerUuid}`);
-        const signerData = await response.json();
-
-        if (signerData.status === "revoked") {
-          console.log("Signer revoked");
-          setSigner(null);
-        } else {
-          console.log({ signerData });
-          setSigner(signerData);
-        }
-      } catch {}
+      const response = await fetch(`/api/verify/${fid}`);
+      const { verified } = await response.json();
+      setValid(verified);
     };
 
     checkSigner();
@@ -46,12 +44,15 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     console.log("Starting polling", { signer });
     intervalRef.current = setInterval(async () => {
       try {
-        const response = await fetch(`/api/signer?signer_uuid=${signer?.signer_uuid}`);
+        const response = await fetch(
+          `/api/signer?signer_uuid=${signer?.signer_uuid}`
+        );
         const data = await response.json();
 
         if (data.status === "approved") {
           clearInterval(intervalRef.current);
-          setSigner(data);
+          setValid(true);
+          setSigner(null);
           await storeUser(data);
         }
       } catch (error) {
@@ -80,12 +81,12 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }
 
   const signerValue = {
+    valid,
     signer,
     createSigner,
     startPolling,
     stopPolling,
   };
-  
   return (
     <SignerContext.Provider value={signerValue}>
       {children}
@@ -119,10 +120,10 @@ const storeUser = async (data: Signer) => {
 
 export const useSigner = (): SignerContextType => {
   const context = useContext(SignerContext);
-  
+
   if (context === undefined) {
     throw new Error("useSignerContext must be used within a SignerProvider");
   }
-  
+
   return context;
 };
