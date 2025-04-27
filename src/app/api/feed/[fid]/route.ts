@@ -1,3 +1,4 @@
+import { appUrl } from "@/constants";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -24,8 +25,8 @@ export async function GET(
       method: "POST",
       headers: {
         accept: "application/json",
-        // 'HTTP-Referer': 'https://dash.bnbs.dev',
-        // 'X-Title': 'Dash',
+        'HTTP-Referer': appUrl || "",
+        'X-Title': 'Dash',
         "content-type": "application/json",
         authorization: `Bearer ${process.env.MBD_API_KEY}`,
       },
