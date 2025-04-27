@@ -30,13 +30,10 @@ export const ApproveSignerDialog = ({
 
   const mobileUrl = useMemo(() => {
     if (signer && signer?.signer_approval_url) {
-      const url = new URL(signer.signer_approval_url);
-      const appDomain = new URL(appUrl!).hostname;
-      url.searchParams.append(
-        "redirectUrl",
-        `https://client.warpcast.com/deeplinks/~/frames/launch?domain=${appDomain}`
+      return signer.signer_approval_url.replace(
+        "https://client.warpcast.com/deeplinks/",
+        "farcaster://"
       );
-      return url.toString();
     }
     return "";
   }, [signer]);
@@ -75,9 +72,7 @@ export const ApproveSignerDialog = ({
             <Button
               variant="action"
               className="w-64"
-              onClick={() =>
-                sdk.actions.openUrl(mobileUrl)
-              }
+              onClick={() => sdk.actions.openUrl(mobileUrl)}
             >
               Already on mobile?
               <ArrowRightCircleIcon
