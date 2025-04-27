@@ -87,7 +87,7 @@ export default function App() {
     const isRemoving =
       (type === "like" && isLiked) || (type === "recast" && isRecasted);
 
-    // Optimistic update
+    // Optimistic update for both state and counts
     if (type === "like") {
       setLikedPosts((prev) => {
         const newSet = new Set(prev);
@@ -95,12 +95,36 @@ export default function App() {
         else newSet.add(postId);
         return newSet;
       });
+      setFeed((prevFeed) => {
+        if (!prevFeed) return prevFeed;
+        return prevFeed.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1,
+            };
+          }
+          return post;
+        });
+      });
     } else {
       setRecastedPosts((prev) => {
         const newSet = new Set(prev);
         if (isRecasted) newSet.delete(postId);
         else newSet.add(postId);
         return newSet;
+      });
+      setFeed((prevFeed) => {
+        if (!prevFeed) return prevFeed;
+        return prevFeed.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              recastCount: isRecasted ? post.recastCount - 1 : post.recastCount + 1,
+            };
+          }
+          return post;
+        });
       });
     }
 
@@ -123,7 +147,7 @@ export default function App() {
         throw new Error("Failed to update reaction");
       }
     } catch (error) {
-      // Revert optimistic update on error
+      // Revert both state and counts on error
       if (type === "like") {
         setLikedPosts((prev) => {
           const newSet = new Set(prev);
@@ -131,12 +155,36 @@ export default function App() {
           else newSet.delete(postId);
           return newSet;
         });
+        setFeed((prevFeed) => {
+          if (!prevFeed) return prevFeed;
+          return prevFeed.map((post) => {
+            if (post.id === postId) {
+              return {
+                ...post,
+                likeCount: isLiked ? post.likeCount + 1 : post.likeCount - 1,
+              };
+            }
+            return post;
+          });
+        });
       } else {
         setRecastedPosts((prev) => {
           const newSet = new Set(prev);
           if (isRecasted) newSet.add(postId);
           else newSet.delete(postId);
           return newSet;
+        });
+        setFeed((prevFeed) => {
+          if (!prevFeed) return prevFeed;
+          return prevFeed.map((post) => {
+            if (post.id === postId) {
+              return {
+                ...post,
+                recastCount: isRecasted ? post.recastCount + 1 : post.recastCount - 1,
+              };
+            }
+            return post;
+          });
         });
       }
       console.error("Failed to update reaction:", error);
