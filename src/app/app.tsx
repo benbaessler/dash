@@ -72,7 +72,7 @@ export default function App() {
 
     if (!sessionToken) {
       try {
-        await signIn();
+        return await signIn();
       } catch (error) {
         console.error("Failed to sign in", error);
         return;
