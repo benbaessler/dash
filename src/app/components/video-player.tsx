@@ -65,6 +65,7 @@ export function VideoPlayer({ post, isActive, loading, shouldPreload = false }: 
           loop
           autoPlay={inView && isActive}
           paused={idle || paused}
+          onAutoPlayFail={() => setPaused(true)}
         >
           <MediaProvider className="w-full h-full" />
         </MediaPlayer>
