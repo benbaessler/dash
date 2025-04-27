@@ -256,10 +256,10 @@ export default function App() {
         </div>
         <div className="absolute bottom-0 left-0 right-0 px-6 py-8 mr-16 w-full overflow-hidden">
           <div className="flex flex-col w-full">
-            <div className="text-white font-semibold truncate">
+            <div className="text-slate-200 font-semibold truncate">
               {post.author.displayName}
             </div>
-            <div className="text-white/90 text-sm mt-1 flex items-end gap-1 w-full">
+            <div className="text-slate-200/90 text-sm mt-1 flex items-end gap-1 w-full">
               <div
                 className={`flex-1 break-words overflow-hidden ${
                   !expandedTexts.has(post.id) ? "line-clamp-2" : ""

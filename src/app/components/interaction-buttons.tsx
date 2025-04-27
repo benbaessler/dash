@@ -3,6 +3,7 @@ import Image from "next/image";
 import sdk from "@farcaster/frame-sdk";
 import { useState } from "react";
 import { useSigner } from "@/providers/SignerProvider";
+import { FarcasterIcon } from "@/assets/icons";
 
 interface InteractionButtonsProps {
   post: Post;
@@ -41,7 +42,7 @@ export const InteractionButtons = ({
           }}
         />
       </div>
-      <div className="flex flex-col items-center text-white">
+      <div className="flex flex-col items-center text-slate-200">
         <HeartIcon
           className={`size-9 cursor-pointer  ${
             loading ? "opacity-50" : liked ? "opacity-100" : "opacity-80"
@@ -51,7 +52,7 @@ export const InteractionButtons = ({
         />
         <span className="text-sm">{post.likeCount}</span>
       </div>
-      <div className="flex flex-col items-center text-white">
+      <div className="flex flex-col items-center text-slate-200">
         <ArrowPathIcon
           className={`size-9 cursor-pointer ${
             loading ? "opacity-50" : recasted ? "opacity-100" : "opacity-80"
@@ -69,13 +70,7 @@ export const InteractionButtons = ({
           );
         }}
       >
-        <Image
-          src="/icons/farcaster.png"
-          alt="View cast"
-          className="w-full h-full object-cover rounded-full"
-          width={30}
-          height={30}
-        />
+        <FarcasterIcon className="size-9" />
       </div>
     </div>
   );
