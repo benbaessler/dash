@@ -215,7 +215,7 @@ export default function App() {
     // Insert ShareFrame at the configured position
     if (promotionPageIndex !== 0 && index === promotionPageIndex) {
       feedWithShareFrame.push(
-        <div key="share-frame" className="h-screen w-screen snap-start">
+        <div key="share-frame" className="h-screen w-screen snap-start snap-always">
           <AddFramePage />
         </div>
       );
@@ -225,7 +225,7 @@ export default function App() {
     feedWithShareFrame.push(
       <div
         key={`post-${index}`}
-        className="h-screen w-screen snap-start relative"
+        className="h-screen w-screen snap-start snap-always relative"
         onDoubleClick={(e) => {
           if (!likedPosts.has(post.id)) {
             handleInteraction(e, "like", post.id);
