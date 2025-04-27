@@ -6,7 +6,6 @@ import { appUrl } from "@/constants";
 import sdk from "@farcaster/frame-sdk";
 import { useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
-import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import { useFrame } from "@/providers/FrameProvider";
 
 export function AddFramePage() {
@@ -30,12 +29,11 @@ export function AddFramePage() {
   return (
     <div
       ref={ref}
-      className="bg-black text-white min-h-screen flex flex-col items-center py-16 px-12 text-center"
+      className="bg-black text-white min-h-screen flex flex-col items-center justify-center px-12 text-center gap-12"
     >
-      <div className="flex flex-col items-center justify-center mb-14 gap-2">
+      <div className="flex flex-col items-center justify-center gap-2">
         <Image src="/icon.png" alt="Dash Logo" width={90} height={90} />
-
-        <h1 className="text-3xl font-semibold">{`Enjoying Dash?`}</h1>
+        <h1 className="text-3xl font-semibold">Enjoying Dash?</h1>
       </div>
 
       <div className="flex flex-col items-center justify-center gap-4 font-regular">
@@ -56,28 +54,14 @@ export function AddFramePage() {
         )}
       </div>
 
-      <div className="flex flex-grow w-full justify-center items-center">
-        <div className="flex flex-col gap-4 w-full">
-          {!added && (
-            <Button
-              variant="ghost"
-              className="w-full text-md [&_svg]:!size-5 gap-2"
-              onClick={() => sdk.actions.addFrame()}
-            >
-              <PlusCircleIcon />
-              Add Mini App
-            </Button>
-          )}
-          <Button
-            variant="action"
-            className="w-full text-md [&_svg]:!size-5 gap-2"
-            onClick={() => sdk.actions.openUrl(castIntent)}
-          >
-            <FarcasterIcon />
-            Share to support
-          </Button>
-        </div>
-      </div>
+      <Button
+        variant="action"
+        className="w-full text-md [&_svg]:!size-5 gap-2"
+        onClick={() => sdk.actions.openUrl(castIntent)}
+      >
+        <FarcasterIcon />
+        Share to support
+      </Button>
     </div>
   );
 }
