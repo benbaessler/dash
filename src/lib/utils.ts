@@ -127,7 +127,7 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
     frame: {
       version: "1",
       name: "Dash",
-      iconUrl: `${appUrl}/logo.png`,
+      iconUrl: `${appUrl}/icon.png`,
       homeUrl: appUrl,
       splashImageUrl: `${appUrl}/splash.png`,
       splashBackgroundColor: "#000000",
