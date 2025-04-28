@@ -44,9 +44,9 @@ export const InteractionButtons = ({
       </div>
       <div className="flex flex-col items-center text-slate-200">
         <HeartIcon
-          className={`size-9 cursor-pointer  ${
+          className={`size-9 cursor-pointer ${
             loading ? "opacity-50" : liked ? "opacity-100" : "opacity-80"
-          } ${liked ? "text-red-500" : ""}`}
+          } ${liked ? "text-red-500 animate-heartbeat" : ""}`}
           onClick={(e) => handleInteraction(e, "like")}
           onDoubleClick={(e) => e.stopPropagation()}
         />
@@ -56,7 +56,7 @@ export const InteractionButtons = ({
         <ArrowPathIcon
           className={`size-9 cursor-pointer ${
             loading ? "opacity-50" : recasted ? "opacity-100" : "opacity-80"
-          } ${recasted ? "text-green-500" : ""}`}
+          } ${recasted ? "text-green-500 animate-heartbeat" : ""}`}
           onClick={(e) => handleInteraction(e, "recast")}
           onDoubleClick={(e) => e.stopPropagation()}
         />
