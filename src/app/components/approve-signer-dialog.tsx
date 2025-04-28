@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import sdk from "@farcaster/frame-sdk";
 import { Loader2 } from "lucide-react";
 import { useFrame } from "@/providers/FrameProvider";
-import { appUrl } from "@/constants";
 interface SignerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

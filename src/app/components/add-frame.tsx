@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { FarcasterIcon } from "@/assets/icons";
-import { generateCastIntentURL } from "@/utils/generateCastIntent";
 import { appUrl } from "@/constants";
 import sdk from "@farcaster/frame-sdk";
 import { useEffect, useMemo } from "react";
@@ -14,11 +13,6 @@ export function AddFramePage() {
   const [ref, inView] = useInView({
     threshold: 1,
   });
-
-  const castIntent = generateCastIntentURL(
-    "Scroll your feed TikTok-style on Dash! ⚡️",
-    appUrl!
-  );
 
   useEffect(() => {
     if (inView && !added) {
@@ -57,7 +51,12 @@ export function AddFramePage() {
       <Button
         variant="action"
         className="w-full text-md [&_svg]:!size-5 gap-2"
-        onClick={() => sdk.actions.openUrl(castIntent)}
+        onClick={() =>
+          sdk.actions.composeCast({
+            text: "Scroll your feed TikTok-style on Dash! ⚡️",
+            embeds: [appUrl!],
+          })
+        }
       >
         <FarcasterIcon />
         Share to support
