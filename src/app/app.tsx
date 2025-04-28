@@ -7,6 +7,7 @@ import { useFrame } from "@/providers/FrameProvider";
 import { InteractionButtons } from "./components/interaction-buttons";
 import { Loading } from "./components/loading";
 import { AddFramePage } from "./components/add-frame";
+import { formatTimeAgo } from "@/utils/formatTimeAgo";
 
 export default function App() {
   const { isSDKLoaded, context, sessionToken, signIn } = useFrame();
@@ -256,8 +257,9 @@ export default function App() {
         </div>
         <div className="absolute bottom-0 left-0 right-0 px-6 py-8 mr-16 w-full overflow-hidden">
           <div className="flex flex-col w-full">
-            <div className="text-slate-200 font-semibold truncate">
-              {post.author.displayName}
+            <div className="flex gap-2 items-center">
+              <span className="text-slate-200 font-semibold truncate">{post.author.displayName}</span>
+              <span className="text-slate-200/80 text-sm">{formatTimeAgo(post.timestamp)}</span>
             </div>
             <div className="text-slate-200/90 text-sm mt-1 flex items-end gap-1 w-full">
               <div

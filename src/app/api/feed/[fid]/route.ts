@@ -54,6 +54,7 @@ export async function GET(
           ),
           likeCount: item.metadata.likes_count,
           recastCount: item.metadata.shares_count,
+          timestamp: item.metadata.timestamp,
           author: {
             fid: item.metadata.author.user_id,
             displayName: item.metadata.author.display_name,
