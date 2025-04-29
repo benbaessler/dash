@@ -25,8 +25,8 @@ export function Loading() {
           height={85} 
           className="animate-pulse"
         />
-        <div className="mt-2 text-gray-400 text-sm w-[218px] text-center whitespace-nowrap">
-          Generating a tailored feed for you{loadingDots}
+        <div className="mt-2 text-gray-400 text-sm w-[232px] text-center whitespace-nowrap">
+          Creating a personalized feed for you{loadingDots}
         </div>
       </div>
     </div>
