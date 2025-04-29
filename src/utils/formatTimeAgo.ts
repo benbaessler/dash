@@ -20,22 +20,27 @@ export const formatTimeAgo = (unixTimestamp: number): string => {
   } else if (diffMs < MS_PER_HOUR) {
     // Less than 1 hour
     const minutes = Math.floor(diffMs / MS_PER_MINUTE);
+    if (!minutes) return "";
     return `${minutes}m ago`;
   } else if (diffMs < MS_PER_DAY) {
     // Less than 1 day
     const hours = Math.floor(diffMs / MS_PER_HOUR);
+    if (!hours) return "";
     return `${hours}h ago`;
   } else if (diffMs < MS_PER_MONTH) {
     // Less than ~1 month
     const days = Math.floor(diffMs / MS_PER_DAY);
+    if (!days) return "";
     return `${days}d ago`;
   } else if (diffMs < MS_PER_YEAR) {
     // Less than ~1 year
     const months = Math.floor(diffMs / MS_PER_MONTH);
+    if (!months) return "";
     return `${months}mo ago`;
   } else {
     // 1 year or more
     const years = Math.floor(diffMs / MS_PER_YEAR);
+    if (!years) return "";
     return `${years}y ago`;
   }
 };
