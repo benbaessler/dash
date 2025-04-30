@@ -18,6 +18,7 @@ interface FrameMetadata {
     webhookUrl: string;
     subtitle: string;
     description: string;
+    screenshotUrls: string[];
     primaryCategory: string;
     heroImageUrl: string;
     tags: string[];
@@ -135,6 +136,10 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
       subtitle: "Explore videos on Farcaster",
       description:
         "A Farcaster client as a mini app, tailored for short-form video content.",
+      screenshotUrls: [
+        `${appUrl}/screenshots/1.png`,
+        `${appUrl}/screenshots/2.png`,
+      ],
       primaryCategory: "entertainment",
       heroImageUrl: `${appUrl}/hero.png`,
       tags: ["video", "watch", "tiktok", "reels", "shorts"],
