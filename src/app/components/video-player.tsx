@@ -66,6 +66,8 @@ export function VideoPlayer({ post, isActive, loading, shouldPreload = false }: 
           autoPlay={inView && isActive}
           paused={idle || paused}
           onAutoPlayFail={() => setPaused(true)}
+          fullscreenOrientation="none"
+          autoFocus={false}
         >
           <MediaProvider className="w-full h-full" />
         </MediaPlayer>
