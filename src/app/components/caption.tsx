@@ -15,7 +15,7 @@ interface CaptionProps {
 
 export function Caption({ post, expandedTexts, toggleExpandText }: CaptionProps) {
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-6 mr-16 w-full overflow-hidden">
+    <div className="absolute bottom-0 left-0 right-0 p-6 mr-16 w-[calc(100%-16rem)] overflow-hidden">
       <div className="flex flex-col">
         <div className="flex gap-2 items-center">
           <span className="text-slate-200 font-semibold truncate">
