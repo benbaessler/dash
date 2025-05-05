@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import App from "./app";
-import { appUrl } from "@/constants";
+import { appUrl, backgroundColor } from "@/constants";
 
 export const revalidate = 300;
 
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
           url: appUrl,
           splashImageUrl: `${appUrl}/splash.png`,
           iconUrl: `${appUrl}/icon.png`,
-          splashBackgroundColor: "#000000",
+          splashBackgroundColor: backgroundColor,
         },
       },
     }),

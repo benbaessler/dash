@@ -5,6 +5,7 @@ import "@/app/globals.css";
 import "@vidstack/react/player/styles/base.css";
 import { Providers } from "@/app/providers";
 import { DM_Sans } from "next/font/google";
+import { backgroundColor } from "@/constants";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -24,8 +25,8 @@ export default async function RootLayout({
   const session = await getSession();
 
   return (
-    <html lang="en" className="bg-black">
-      <body lang="en" className={`${dmSans.variable} bg-black`}>
+    <html lang="en" className={`bg-[${backgroundColor}]`}>
+      <body lang="en" className={`${dmSans.variable} bg-${backgroundColor}`}>
         <Providers session={session}>{children}</Providers>
       </body>
     </html>
