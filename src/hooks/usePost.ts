@@ -1,0 +1,187 @@
+"use client";
+
+import { useState } from "react";
+import { useFrame } from "@/providers/FrameProvider";
+import { useSigner } from "@/providers/SignerProvider";
+
+interface UsePostOptions {
+  onApproveSignerRequest?: () => Promise<void>;
+  feed?: Post[] | null;
+  setFeed?: React.Dispatch<React.SetStateAction<Post[] | null>>;
+}
+
+interface UsePostResult {
+  likedPosts: Set<string>;
+  recastedPosts: Set<string>;
+  expandedTexts: Set<string>;
+  handleInteraction: (
+    e: React.MouseEvent,
+    type: "like" | "recast",
+    postId: string
+  ) => Promise<void>;
+  toggleExpandText: (postId: string) => void;
+  isTextExpanded: (postId: string) => boolean;
+}
+
+export function usePost({ 
+  onApproveSignerRequest,
+  feed,
+  setFeed
+}: UsePostOptions = {}): UsePostResult {
+  const { sessionToken, signIn } = useFrame();
+  const { valid, loading: authLoading } = useSigner();
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [recastedPosts, setRecastedPosts] = useState<Set<string>>(new Set());
+  const [expandedTexts, setExpandedTexts] = useState<Set<string>>(new Set());
+
+  // Handle interaction (like or recast)
+  const handleInteraction = async (
+    e: React.MouseEvent,
+    type: "like" | "recast",
+    postId: string
+  ) => {
+    e.stopPropagation();
+
+    // Check authentication
+    if (!sessionToken) {
+      try {
+        await signIn();
+        return; // Return after sign-in flow to prevent further execution
+      } catch (error) {
+        console.error("Failed to sign in", error);
+        return;
+      }
+    }
+
+    if (authLoading) return;
+    if (!valid) {
+      if (onApproveSignerRequest) {
+        await onApproveSignerRequest();
+      }
+      return;
+    }
+
+    const isLiked = likedPosts.has(postId);
+    const isRecasted = recastedPosts.has(postId);
+    const isRemoving =
+      (type === "like" && isLiked) || (type === "recast" && isRecasted);
+
+    // Optimistic update for state
+    if (type === "like") {
+      setLikedPosts((prev) => {
+        const newSet = new Set(prev);
+        if (isLiked) newSet.delete(postId);
+        else newSet.add(postId);
+        return newSet;
+      });
+    } else {
+      setRecastedPosts((prev) => {
+        const newSet = new Set(prev);
+        if (isRecasted) newSet.delete(postId);
+        else newSet.add(postId);
+        return newSet;
+      });
+    }
+
+    // Update feed directly in the App component by finding the post and updating it
+    if (feed && feed.length > 0) {
+      const updatedPost = feed.find(post => post.id === postId);
+      if (updatedPost) {
+        if (type === "like") {
+          updatedPost.likeCount = isLiked ? updatedPost.likeCount - 1 : updatedPost.likeCount + 1;
+        } else {
+          updatedPost.recastCount = isRecasted ? updatedPost.recastCount - 1 : updatedPost.recastCount + 1;
+        }
+        // Force re-render by creating a new array
+        const updatedFeed = [...feed];
+        if (setFeed) {
+          setFeed(updatedFeed);
+        }
+      }
+    }
+
+    try {
+      const endpoint = isRemoving
+        ? "/api/reactions/delete"
+        : "/api/reactions/publish";
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          castHash: postId,
+          type,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to update reaction");
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      if (type === "like") {
+        setLikedPosts((prev) => {
+          const newSet = new Set(prev);
+          if (isLiked) newSet.add(postId);
+          else newSet.delete(postId);
+          return newSet;
+        });
+      } else {
+        setRecastedPosts((prev) => {
+          const newSet = new Set(prev);
+          if (isRecasted) newSet.add(postId);
+          else newSet.delete(postId);
+          return newSet;
+        });
+      }
+
+      // Revert feed updates on error
+      if (feed && feed.length > 0) {
+        const updatedPost = feed.find(post => post.id === postId);
+        if (updatedPost) {
+          if (type === "like") {
+            updatedPost.likeCount = isLiked ? updatedPost.likeCount + 1 : updatedPost.likeCount - 1;
+          } else {
+            updatedPost.recastCount = isRecasted ? updatedPost.recastCount + 1 : updatedPost.recastCount - 1;
+          }
+          // Force re-render by creating a new array
+          const updatedFeed = [...feed];
+          if (setFeed) {
+            setFeed(updatedFeed);
+          }
+        }
+      }
+      
+      console.error("Failed to update reaction:", error);
+    }
+  };
+
+  // Toggle text expansion for a post
+  const toggleExpandText = (postId: string) => {
+    setExpandedTexts((prev) => {
+      const newSet = new Set(prev);
+      if (expandedTexts.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+
+  // Check if text is expanded for a post
+  const isTextExpanded = (postId: string): boolean => {
+    return expandedTexts.has(postId);
+  };
+
+  return {
+    likedPosts,
+    recastedPosts,
+    expandedTexts,
+    handleInteraction,
+    toggleExpandText,
+    isTextExpanded,
+  };
+}
