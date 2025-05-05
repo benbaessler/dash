@@ -5,6 +5,10 @@ import prisma from "@/lib/prisma";
 import { authSecret } from "@/constants";
 import { jwtVerify } from "jose";
 
+// Valid reaction types
+const VALID_REACTION_TYPES = ["like", "recast"] as const;
+type ValidReactionType = typeof VALID_REACTION_TYPES[number];
+
 export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get("Authorization");
@@ -38,6 +42,14 @@ export async function POST(request: Request) {
     if (!castHash || !type) {
       return NextResponse.json(
         { error: "Missing required parameters" },
+        { status: 400 }
+      );
+    }
+
+    // Validate reaction type
+    if (!VALID_REACTION_TYPES.includes(type as ValidReactionType)) {
+      return NextResponse.json(
+        { error: "Invalid reaction type" },
         { status: 400 }
       );
     }
