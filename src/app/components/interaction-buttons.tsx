@@ -4,6 +4,7 @@ import sdk from "@farcaster/frame-sdk";
 import { useState } from "react";
 import { useSigner } from "@/providers/SignerProvider";
 import { FarcasterIcon } from "@/assets/icons";
+import { CommentSection } from "./comment-section";
 
 interface InteractionButtonsProps {
   post: Post;
@@ -63,13 +64,14 @@ export const InteractionButtons = ({
         <span className="text-sm font-medium">{post.recastCount}</span>
       </div>
       <div className="flex flex-col items-center text-slate-200">
-        <ChatBubbleOvalLeftIcon
-          className={`size-9 cursor-pointer hover:opacity-100 ${
-            loading ? "opacity-50" : recasted ? "opacity-100" : "opacity-80"
-          } ${recasted ? "text-green-500 animate-heartbeat" : ""}`}
-          onClick={(e) => handleInteraction(e, "recast")}
-          onDoubleClick={(e) => e.stopPropagation()}
-        />
+        <CommentSection postId={post.id}>
+          <ChatBubbleOvalLeftIcon
+            className={`size-9 cursor-pointer hover:opacity-100 ${
+              loading ? "opacity-50" : "opacity-80"
+            }`}
+            onDoubleClick={(e) => e.stopPropagation()}
+          />
+        </CommentSection>
         <span className="text-sm font-medium">{post.commentCount}</span>
       </div>
       <div
