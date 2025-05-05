@@ -1,4 +1,4 @@
-import { ArrowPathIcon, HeartIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon, HeartIcon, ChatBubbleOvalLeftIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import sdk from "@farcaster/frame-sdk";
 import { useState } from "react";
@@ -22,7 +22,7 @@ export const InteractionButtons = ({
   const [isImageLoading, setIsImageLoading] = useState(true);
 
   return (
-    <div className="flex flex-col gap-4 items-center">
+    <div className="flex flex-col gap-5 items-center">
       <div className="relative w-10 h-10">
         {isImageLoading && (
           <div className="absolute inset-0 w-10 h-10 rounded-full bg-white animate-pulse" />
@@ -44,23 +44,33 @@ export const InteractionButtons = ({
       </div>
       <div className="flex flex-col items-center text-slate-200">
         <HeartIcon
-          className={`size-9 cursor-pointer ${
+          className={`size-9 cursor-pointer hover:opacity-100 ${
             loading ? "opacity-50" : liked ? "opacity-100" : "opacity-80"
           } ${liked ? "text-red-500 animate-heartbeat" : ""}`}
           onClick={(e) => handleInteraction(e, "like")}
           onDoubleClick={(e) => e.stopPropagation()}
         />
-        <span className="text-sm">{post.likeCount}</span>
+        <span className="text-sm font-medium">{post.likeCount}</span>
       </div>
       <div className="flex flex-col items-center text-slate-200">
         <ArrowPathIcon
-          className={`size-9 cursor-pointer ${
+          className={`size-9 cursor-pointer hover:opacity-100 ${
             loading ? "opacity-50" : recasted ? "opacity-100" : "opacity-80"
           } ${recasted ? "text-green-500 animate-heartbeat" : ""}`}
           onClick={(e) => handleInteraction(e, "recast")}
           onDoubleClick={(e) => e.stopPropagation()}
         />
-        <span className="text-sm">{post.recastCount}</span>
+        <span className="text-sm font-medium">{post.recastCount}</span>
+      </div>
+      <div className="flex flex-col items-center text-slate-200">
+        <ChatBubbleOvalLeftIcon
+          className={`size-9 cursor-pointer hover:opacity-100 ${
+            loading ? "opacity-50" : recasted ? "opacity-100" : "opacity-80"
+          } ${recasted ? "text-green-500 animate-heartbeat" : ""}`}
+          onClick={(e) => handleInteraction(e, "recast")}
+          onDoubleClick={(e) => e.stopPropagation()}
+        />
+        <span className="text-sm font-medium">{post.commentCount}</span>
       </div>
       <div
         className="w-9 h-9 opacity-80 hover:opacity-100 cursor-pointer rounded-full"

@@ -4,6 +4,7 @@ interface Post {
   video_url: string;
   likeCount: number;
   recastCount: number;
+  commentCount: number;
   timestamp: number;
   author: {
     fid: number;
