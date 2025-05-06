@@ -75,7 +75,8 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
-      if (scrollHeight - scrollTop <= clientHeight * 1.5) { // 1.5 times clientHeight buffer
+      if (scrollHeight - scrollTop <= clientHeight * 1.5) {
+        // 1.5 times clientHeight buffer
         if (nextCursor && !loading) {
           loadMoreComments();
         }
@@ -89,36 +90,41 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
   }, [nextCursor, loading, loadMoreComments]);
 
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerTrigger asChild>{children}</DrawerTrigger>
-      <DrawerContent className="h-[70vh]">
-        <DrawerHeader>
-          <DrawerTitle>Comments</DrawerTitle>
-        </DrawerHeader>
-        <div ref={scrollableContainerRef} className="p-4 overflow-y-auto h-full">
-          {loading && comments.length === 0 ? (
-            <div className="flex justify-center py-4">
-              <Loader className="size-4 animate-spin" />
-            </div>
-          ) : comments && comments.length > 0 ? (
-            <div className="space-y-4 pb-4">
-              {comments.map((comment) => (
-                <Comment key={comment.hash} comment={comment} />
-              ))}
+    <div onDoubleClick={(e) => e.stopPropagation()}>
+      <Drawer open={isOpen} onOpenChange={setIsOpen}>
+        <DrawerTrigger asChild>{children}</DrawerTrigger>
+        <DrawerContent className="h-[70vh]">
+          <DrawerHeader>
+            <DrawerTitle>Comments</DrawerTitle>
+          </DrawerHeader>
+          <div
+            ref={scrollableContainerRef}
+            className="p-4 overflow-y-auto h-full"
+          >
+            {loading && comments.length === 0 ? (
+              <div className="flex justify-center py-4">
+                <Loader className="size-4 animate-spin" />
+              </div>
+            ) : comments && comments.length > 0 ? (
+              <div className="space-y-4 pb-4">
+                {comments.map((comment) => (
+                  <Comment key={comment.hash} comment={comment} />
+                ))}
 
-              {loading && comments.length > 0 && (
-                <div className="flex justify-center py-4">
-                  <Loader className="size-4 animate-spin" />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="py-8 text-center">
-              <p className="text-gray-500">No comments yet.</p>
-            </div>
-          )}
-        </div>
-      </DrawerContent>
-    </Drawer>
+                {loading && comments.length > 0 && (
+                  <div className="flex justify-center py-4">
+                    <Loader className="size-4 animate-spin" />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <p className="text-gray-500">No comments yet.</p>
+              </div>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </div>
   );
 };

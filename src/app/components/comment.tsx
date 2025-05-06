@@ -1,9 +1,12 @@
 import Image from "next/image";
-import { Heart } from "lucide-react";
+import { HeartIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
 import sdk from "@farcaster/frame-sdk";
+import { useState } from 'react';
 
-export const Comment = ({ comment }: { comment: any }) => {
+export const Comment = ({ comment, isReplyItem = false }: { comment: any, isReplyItem?: boolean }) => {
+  const [showReplies, setShowReplies] = useState(false);
+
   return (
     <div className="flex gap-3">
       <div
@@ -28,16 +31,42 @@ export const Comment = ({ comment }: { comment: any }) => {
         </div>
         <p className="mb-1 text-sm">{comment.text}</p>
         <div className="flex items-center justify-between text-slate-500 w-full mt-1">
-          <span className="text-xs">
+          <span className="text-xs text-slate-500 font-normal">
             {formatTimeAgo(
               Math.floor(new Date(comment.timestamp).getTime() / 1000)
             )}
           </span>
           <div className="flex items-center gap-1 cursor-pointer text-slate-400 hover:text-slate-200">
-            <Heart size={14} />
+            <HeartIcon className="size-4" />
             <span className="text-xs">{comment.reactions.likes_count}</span>
           </div>
         </div>
+        {comment.replies.count > 0 && !showReplies && !isReplyItem && (
+          <div
+            className="text-xs text-slate-400 mt-2 cursor-pointer hover:text-slate-300 flex items-center"
+            onClick={() => setShowReplies(!showReplies)}
+          >
+            <ChevronDownIcon className="size-3 mr-1" />
+            View {comment.replies.count}{" "}
+            {comment.replies.count === 1 ? "reply" : "replies"}
+          </div>
+        )}
+        {showReplies && comment.direct_replies && comment.direct_replies.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {comment.direct_replies.slice(0, 5).map((reply: any) => (
+              <Comment key={reply.hash} comment={reply} isReplyItem={true} />
+            ))}
+          </div>
+        )}
+        {comment.replies.count > 0 && showReplies && !isReplyItem && (
+          <div
+            className="text-xs text-slate-400 mt-2 cursor-pointer hover:text-slate-300 flex items-center"
+            onClick={() => setShowReplies(!showReplies)}
+          >
+            <ChevronUpIcon className="size-3 mr-1" />
+            Hide
+          </div>
+        )}
       </div>
     </div>
   );
