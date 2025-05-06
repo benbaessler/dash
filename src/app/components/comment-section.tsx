@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Drawer,
   DrawerContent,
@@ -19,6 +19,7 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
   const [loading, setLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const scrollableContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchComments = async (cursor?: string) => {
     setLoading(true);
@@ -68,6 +69,25 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
     }
   };
 
+  useEffect(() => {
+    const container = scrollableContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      if (scrollHeight - scrollTop <= clientHeight * 1.5) { // 1.5 times clientHeight buffer
+        if (nextCursor && !loading) {
+          loadMoreComments();
+        }
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [nextCursor, loading, loadMoreComments]);
+
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
@@ -75,7 +95,7 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
         <DrawerHeader>
           <DrawerTitle>Comments</DrawerTitle>
         </DrawerHeader>
-        <div className="p-4 overflow-y-auto h-full">
+        <div ref={scrollableContainerRef} className="p-4 overflow-y-auto h-full">
           {loading && comments.length === 0 ? (
             <div className="flex justify-center py-4">
               <Loader className="size-4 animate-spin" />
@@ -86,27 +106,15 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
                 <Comment key={comment.hash} comment={comment} />
               ))}
 
-              {nextCursor && (
-                <div className="py-4 text-center">
-                  <button
-                    onClick={loadMoreComments}
-                    disabled={loading}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:opacity-50"
-                  >
-                    {loading ? "Loading more..." : "Load more comments"}
-                  </button>
+              {loading && comments.length > 0 && (
+                <div className="flex justify-center py-4">
+                  <Loader className="size-4 animate-spin" />
                 </div>
               )}
             </div>
           ) : (
             <div className="py-8 text-center">
               <p className="text-gray-500">No comments yet.</p>
-            </div>
-          )}
-
-          {loading && comments.length > 0 && !nextCursor && (
-            <div className="py-4 text-center">
-              <p>Loading more comments...</p>
             </div>
           )}
         </div>
