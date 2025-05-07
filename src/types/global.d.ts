@@ -13,3 +13,21 @@ interface Post {
     pfpUrl: string;
   };
 }
+
+interface Comment {
+  hash: string;
+  author: {
+    fid: number;
+    pfp_url: string;
+    display_name: string;
+  };
+  timestamp: string;
+  text: string;
+  reactions: {
+    likes_count: number;
+  };
+  replies: {
+    count: number;
+  };
+  direct_replies?: Comment[];
+}

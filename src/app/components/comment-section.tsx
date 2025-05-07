@@ -11,6 +11,8 @@ import { ArrowUpRightIcon } from "@heroicons/react/24/solid";
 import { Loader } from "lucide-react";
 import { Comment } from "./comment";
 import { Input } from "@/components/ui/input";
+import { useSigner } from "@/providers/SignerProvider";
+import { Avatar } from "./avatar";
 
 interface CommentSectionProps {
   children: React.ReactNode;
@@ -18,13 +20,14 @@ interface CommentSectionProps {
 }
 
 export const CommentSection = ({ children, postId }: CommentSectionProps) => {
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [commentText, setCommentText] = useState("");
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
+  const { user } = useSigner();
 
   const fetchComments = async (cursor?: string) => {
     setLoading(true);
@@ -129,25 +132,28 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
             )}
           </div>
           <div className="p-4 flex items-center space-x-2">
-            <div className="relative flex-grow">
-              <Input
-                placeholder="Add comment..."
-                className="flex-grow rounded font- pr-10"
-                value={commentText}
-                onFocus={() => setIsInputFocused(true)}
-                onBlur={() => setIsInputFocused(false)}
-                onChange={(e) => setCommentText(e.target.value)}
-              />
-              {isInputFocused && commentText.length > 0 && (
-                <Button
-                  variant="action"
-                  type="submit"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full w-8 h-8 font-bold p-0"
-                >
-                  <ArrowUpRightIcon className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+            <Avatar
+              imageUrl={user?.pfp_url ?? ""}
+              altText={user?.display_name ?? ""}
+              className="w-8 h-8"
+            />
+            <Input
+              placeholder="Add comment..."
+              className="flex-grow rounded font- pr-10"
+              value={commentText}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
+              onChange={(e) => setCommentText(e.target.value)}
+            />
+            {isInputFocused && commentText.length > 0 && (
+              <Button
+                variant="action"
+                type="submit"
+                className="rounded-full w-8 h-8 font-bold p-0"
+              >
+                <ArrowUpRightIcon className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </DrawerContent>
       </Drawer>
