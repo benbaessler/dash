@@ -26,10 +26,31 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [replyingTo, setReplyingTo] = useState<CommentData | null>(null);
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { user, sessionToken } = useFrame();
   const { checkAuth } = usePost();
+
+  const handleCommentSelect = (comment: CommentData) => {
+    inputRef.current?.focus();
+    setReplyingTo(comment);
+    const commentId = `comment-${comment.hash}`;
+    const commentElement = document.getElementById(commentId);
+    if (commentElement && scrollableContainerRef.current) {
+      // We want to scroll the item within the scrollableContainerRef
+      // such that the commentElement is at the top of the scrollableContainerRef's viewport.
+      const containerTop =
+        scrollableContainerRef.current.getBoundingClientRect().top;
+      const elementTop = commentElement.getBoundingClientRect().top;
+      const scrollTop = scrollableContainerRef.current.scrollTop;
+
+      scrollableContainerRef.current.scrollTo({
+        top: scrollTop + elementTop - containerTop,
+        behavior: "smooth",
+      });
+    }
+  };
 
   const fetchComments = useCallback(
     async (cursor?: string) => {
@@ -186,7 +207,12 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
             ) : comments && comments.length > 0 ? (
               <div className="space-y-5 pb-4">
                 {comments.map((comment) => (
-                  <CommentItem key={comment.hash} comment={comment} />
+                  <div
+                    key={comment.hash}
+                    onClick={() => handleCommentSelect(comment)}
+                  >
+                    <CommentItem comment={comment} />
+                  </div>
                 ))}
 
                 {loading && comments.length > 0 && nextCursor && (
@@ -210,10 +236,16 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
             <div className="relative flex-grow">
               <Input
                 ref={inputRef}
-                placeholder="Add comment..."
+                maxLength={255}
+                placeholder={
+                  replyingTo
+                    ? `Replying to ${replyingTo.author.display_name}...`
+                    : "Add comment..."
+                }
                 className="flex-grow rounded pr-10"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
+                onBlur={() => setReplyingTo(null)}
               />
               {commentText.length > 0 && (
                 <Button
