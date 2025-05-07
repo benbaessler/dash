@@ -11,6 +11,8 @@ import { useFrame } from "@/providers/FrameProvider";
 interface SignerContextType {
   valid: boolean;
   signer: Signer | null;
+  showDialog: boolean;
+  setShowDialog: (show: boolean) => void;
   createSigner: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
@@ -26,6 +28,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [signer, setSigner] = useState<Signer | null>(null);
   const [valid, setValid] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [showDialog, setShowDialog] = useState<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout>();
 
   const fid = context?.user?.fid;
@@ -114,7 +117,9 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     createSigner,
     startPolling,
     stopPolling,
-    loading
+    loading,
+    showDialog,
+    setShowDialog,
   };
   return (
     <SignerContext.Provider value={signerValue}>

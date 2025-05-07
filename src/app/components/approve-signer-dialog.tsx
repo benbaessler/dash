@@ -16,15 +16,13 @@ import { useFrame } from "@/providers/FrameProvider";
 interface SignerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  setLoading: (loading: boolean) => void;
 }
 
 export const ApproveSignerDialog = ({
   open,
   onOpenChange,
-  setLoading,
 }: SignerModalProps) => {
-  const { mobile } = useFrame();
+  const { mobile, setLoading } = useFrame();
   const { valid, signer, startPolling, stopPolling } = useSigner();
 
   const mobileUrl = useMemo(() => {

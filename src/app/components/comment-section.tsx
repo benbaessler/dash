@@ -13,6 +13,7 @@ import { CommentItem } from "./comment-item";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "./avatar";
 import { useFrame } from "@/providers/FrameProvider";
+import { usePost } from "@/hooks/usePost";
 
 interface CommentSectionProps {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { user, sessionToken } = useFrame();
+  const { checkAuth } = usePost();
 
   const fetchComments = useCallback(
     async (cursor?: string) => {
@@ -77,6 +79,9 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
       );
       return;
     }
+
+    const authorized = await checkAuth();
+    if (!authorized) return;
 
     const tempId = `temp-${Date.now()}`;
     const optimisticComment: CommentData = {

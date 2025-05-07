@@ -5,7 +5,6 @@ import { useFrame } from "@/providers/FrameProvider";
 import { useSigner } from "@/providers/SignerProvider";
 
 interface UsePostOptions {
-  onApproveSignerRequest?: () => Promise<void>;
   feed?: Post[] | null;
   setFeed?: React.Dispatch<React.SetStateAction<Post[] | null>>;
 }
@@ -19,20 +18,43 @@ interface UsePostResult {
     type: "like" | "recast",
     postId: string
   ) => Promise<void>;
+  checkAuth: () => Promise<boolean>;
   toggleExpandText: (postId: string) => void;
   isTextExpanded: (postId: string) => boolean;
 }
 
-export function usePost({ 
-  onApproveSignerRequest,
+export function usePost({
   feed,
-  setFeed
+  setFeed,
 }: UsePostOptions = {}): UsePostResult {
-  const { sessionToken, signIn } = useFrame();
-  const { valid, loading: authLoading } = useSigner();
+  const { sessionToken, signIn, setLoading } = useFrame();
+  const { valid, loading: authLoading, signer, createSigner, setShowDialog } = useSigner();
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [recastedPosts, setRecastedPosts] = useState<Set<string>>(new Set());
   const [expandedTexts, setExpandedTexts] = useState<Set<string>>(new Set());
+
+  const checkAuth = async () => {
+    if (!sessionToken) {
+      try {
+        await signIn();
+        return false; 
+      } catch (error) {
+        console.error("Failed to sign in", error);
+        return false;
+      }
+    }
+
+    if (authLoading) return false;
+    if (!valid) {
+      if (!signer) {
+        setLoading(true);
+        await createSigner();
+      }
+      setShowDialog(true);
+      return false;
+    }
+    return true;
+  };
 
   // Handle interaction (like or recast)
   const handleInteraction = async (
@@ -42,24 +64,8 @@ export function usePost({
   ) => {
     e.stopPropagation();
 
-    // Check authentication
-    if (!sessionToken) {
-      try {
-        await signIn();
-        return; // Return after sign-in flow to prevent further execution
-      } catch (error) {
-        console.error("Failed to sign in", error);
-        return;
-      }
-    }
-
-    if (authLoading) return;
-    if (!valid) {
-      if (onApproveSignerRequest) {
-        await onApproveSignerRequest();
-      }
-      return;
-    }
+    const authorized = await checkAuth();
+    if (!authorized) return;
 
     const isLiked = likedPosts.has(postId);
     const isRecasted = recastedPosts.has(postId);
@@ -85,12 +91,16 @@ export function usePost({
 
     // Update feed directly in the App component by finding the post and updating it
     if (feed && feed.length > 0) {
-      const updatedPost = feed.find(post => post.id === postId);
+      const updatedPost = feed.find((post) => post.id === postId);
       if (updatedPost) {
         if (type === "like") {
-          updatedPost.likeCount = isLiked ? updatedPost.likeCount - 1 : updatedPost.likeCount + 1;
+          updatedPost.likeCount = isLiked
+            ? updatedPost.likeCount - 1
+            : updatedPost.likeCount + 1;
         } else {
-          updatedPost.recastCount = isRecasted ? updatedPost.recastCount - 1 : updatedPost.recastCount + 1;
+          updatedPost.recastCount = isRecasted
+            ? updatedPost.recastCount - 1
+            : updatedPost.recastCount + 1;
         }
         // Force re-render by creating a new array
         const updatedFeed = [...feed];
@@ -115,7 +125,7 @@ export function usePost({
           type,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to update reaction");
       }
@@ -139,12 +149,16 @@ export function usePost({
 
       // Revert feed updates on error
       if (feed && feed.length > 0) {
-        const updatedPost = feed.find(post => post.id === postId);
+        const updatedPost = feed.find((post) => post.id === postId);
         if (updatedPost) {
           if (type === "like") {
-            updatedPost.likeCount = isLiked ? updatedPost.likeCount + 1 : updatedPost.likeCount - 1;
+            updatedPost.likeCount = isLiked
+              ? updatedPost.likeCount + 1
+              : updatedPost.likeCount - 1;
           } else {
-            updatedPost.recastCount = isRecasted ? updatedPost.recastCount + 1 : updatedPost.recastCount - 1;
+            updatedPost.recastCount = isRecasted
+              ? updatedPost.recastCount + 1
+              : updatedPost.recastCount - 1;
           }
           // Force re-render by creating a new array
           const updatedFeed = [...feed];
@@ -153,7 +167,7 @@ export function usePost({
           }
         }
       }
-      
+
       console.error("Failed to update reaction:", error);
     }
   };
@@ -181,6 +195,7 @@ export function usePost({
     recastedPosts,
     expandedTexts,
     handleInteraction,
+    checkAuth,
     toggleExpandText,
     isTextExpanded,
   };

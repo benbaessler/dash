@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { VideoPlayer } from "./components/video-player";
 import { ApproveSignerDialog } from "./components/approve-signer-dialog";
 import { useSigner } from "@/providers/SignerProvider";
@@ -8,17 +7,21 @@ import { Loading } from "./components/loading";
 import { AddFramePage } from "./components/add-frame";
 import { useFeed, usePost, useVideoNavigation } from "@/hooks";
 import { Caption } from "./components/caption";
+import { useFrame } from "@/providers/FrameProvider";
 
 export default function App() {
-  const [showSignerDialog, setShowSignerDialog] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { signer, createSigner } = useSigner();
+  const { loading } = useFrame();
+  const { showDialog, setShowDialog } = useSigner();
 
-  // Custom hook for handling feed
-  const { feed, setFeed, fetching, fetchFeed, getPostIndex, promotionPageIndex } =
-    useFeed();
+  const {
+    feed,
+    setFeed,
+    fetching,
+    fetchFeed,
+    getPostIndex,
+    promotionPageIndex,
+  } = useFeed();
 
-  // Custom hook for handling post interactions
   const {
     likedPosts,
     recastedPosts,
@@ -26,18 +29,10 @@ export default function App() {
     handleInteraction,
     toggleExpandText,
   } = usePost({
-    onApproveSignerRequest: async () => {
-      setLoading(true);
-      if (!signer) {
-        await createSigner();
-      }
-      setShowSignerDialog(true);
-    },
     feed,
     setFeed,
   });
 
-  // Custom hook for video navigation
   const { activeVideoIndex, handleScroll, shouldPreloadVideo } =
     useVideoNavigation({
       feedLength: feed?.length || 0,
@@ -118,9 +113,8 @@ export default function App() {
     >
       {feedWithShareFrame}
       <ApproveSignerDialog
-        open={showSignerDialog}
-        onOpenChange={setShowSignerDialog}
-        setLoading={setLoading}
+        open={showDialog}
+        onOpenChange={setShowDialog}
       />
     </main>
   );

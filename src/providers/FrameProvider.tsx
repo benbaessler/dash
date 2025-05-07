@@ -37,6 +37,7 @@ export function useFrame() {
     useState<FrameNotificationDetails | null>(null);
   const [lastEvent, setLastEvent] = useState("");
   const [addFrameResult, setAddFrameResult] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [mobile, setMobile] = useState<boolean>(false);
@@ -195,6 +196,8 @@ export function useFrame() {
     userLoading,
     mobile,
     signIn,
+    loading,
+    setLoading,
   };
 }
 
