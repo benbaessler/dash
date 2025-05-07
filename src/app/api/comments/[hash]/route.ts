@@ -21,6 +21,7 @@ export async function GET(
       identifier: hash,
       type: "hash",
       limit: 15,
+      sortType: "algorithmic",
       cursor,
     });
 

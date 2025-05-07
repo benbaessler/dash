@@ -6,8 +6,11 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
+import { ArrowUpRightIcon } from "@heroicons/react/24/solid";
 import { Loader } from "lucide-react";
 import { Comment } from "./comment";
+import { Input } from "@/components/ui/input";
 
 interface CommentSectionProps {
   children: React.ReactNode;
@@ -19,6 +22,8 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
   const [loading, setLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [commentText, setCommentText] = useState("");
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchComments = async (cursor?: string) => {
@@ -93,13 +98,13 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
     <div onDoubleClick={(e) => e.stopPropagation()}>
       <Drawer open={isOpen} onOpenChange={setIsOpen}>
         <DrawerTrigger asChild>{children}</DrawerTrigger>
-        <DrawerContent className="h-[70vh]">
+        <DrawerContent className="h-[70vh] w-full flex flex-col pb-4">
           <DrawerHeader>
             <DrawerTitle>Comments</DrawerTitle>
           </DrawerHeader>
           <div
             ref={scrollableContainerRef}
-            className="p-4 overflow-y-auto h-full"
+            className="p-4 overflow-y-auto flex-grow"
           >
             {loading && comments.length === 0 ? (
               <div className="flex justify-center py-4">
@@ -111,7 +116,7 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
                   <Comment key={comment.hash} comment={comment} />
                 ))}
 
-                {loading && comments.length > 0 && (
+                {loading && comments.length > 0 && nextCursor && (
                   <div className="flex justify-center py-4">
                     <Loader className="size-4 animate-spin" />
                   </div>
@@ -122,6 +127,27 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
                 <p className="text-gray-500">No comments yet.</p>
               </div>
             )}
+          </div>
+          <div className="p-4 flex items-center space-x-2">
+            <div className="relative flex-grow">
+              <Input
+                placeholder="Add comment..."
+                className="flex-grow rounded font- pr-10"
+                value={commentText}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                onChange={(e) => setCommentText(e.target.value)}
+              />
+              {isInputFocused && commentText.length > 0 && (
+                <Button
+                  variant="action"
+                  type="submit"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full w-8 h-8 font-bold p-0"
+                >
+                  <ArrowUpRightIcon className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </DrawerContent>
       </Drawer>
