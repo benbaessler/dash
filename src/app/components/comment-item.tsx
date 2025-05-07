@@ -1,8 +1,4 @@
-import {
-  HeartIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-} from "@heroicons/react/24/outline";
+import { HeartIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
 import { useState } from "react";
@@ -10,6 +6,12 @@ import { Avatar } from "./avatar";
 import { usePost } from "@/hooks/usePost";
 import { useFrame } from "@/providers/FrameProvider";
 import { sdk } from "@farcaster/frame-sdk";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const CommentItem = ({
   comment,
@@ -18,9 +20,11 @@ export const CommentItem = ({
   comment: CommentData;
   isReplyItem?: boolean;
 }) => {
-  const [showReplies, setShowReplies] = useState(false);
   const [isTextExpanded, setIsTextExpanded] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [accordionValue, setAccordionValue] = useState<string | undefined>(
+    undefined
+  );
   const { checkAuth } = usePost();
   const { sessionToken } = useFrame();
 
@@ -116,39 +120,46 @@ export const CommentItem = ({
         </div>
       </div>
       <div className="ml-10">
-        {comment.replies.count > 0 && !showReplies && !isReplyItem && (
-          <div
-            className="text-sm text-gray-400 cursor-pointer hover:text-gray-300 flex items-center font-medium"
-            onClick={() => setShowReplies(!showReplies)}
-          >
-            <ChevronDownIcon className="size-4 mr-1 font-bold" />
-            View {comment.replies.count}{" "}
-            {comment.replies.count === 1 ? "reply" : "replies"}
-          </div>
-        )}
-        {showReplies &&
-          comment.direct_replies &&
-          comment.direct_replies.length > 0 && (
-            <div className="space-y-2 mt-2">
-              {(comment.direct_replies as unknown as CommentData[])
-                .slice(0, 5)
-                .map((reply: CommentData) => (
-                  <CommentItem
-                    key={reply.hash}
-                    comment={reply}
-                    isReplyItem={true}
-                  />
-                ))}
-            </div>
-          )}
-        {comment.replies.count > 0 && showReplies && !isReplyItem && (
-          <div
-            className="text-sm text-gray-400 mt-2 cursor-pointer hover:text-gray-300 flex items-center font-medium"
-            onClick={() => setShowReplies(!showReplies)}
-          >
-            <ChevronUpIcon className="size-3 mr-1" />
-            Hide
-          </div>
+        {comment.replies.count > 0 && !isReplyItem && (
+          <>
+            <Accordion
+              type="single"
+              collapsible
+              className="border-0"
+              value={accordionValue}
+              onValueChange={setAccordionValue}
+            >
+              <AccordionItem
+                value={`replies-${comment.hash}`}
+                className="border-0"
+                id={`comment-${comment.hash}`}
+              >
+                <AccordionTrigger className="py-2 text-sm text-gray-400 hover:text-gray-300 font-medium">
+                  {accordionValue
+                    ? `Hide`
+                    : `View ${comment.replies.count} ${
+                        comment.replies.count === 1 ? "reply" : "replies"
+                      }`}
+                </AccordionTrigger>
+                <AccordionContent>
+                  {comment.direct_replies &&
+                    comment.direct_replies.length > 0 && (
+                      <div className="space-y-2">
+                        {(comment.direct_replies as unknown as CommentData[])
+                          .slice(0, 5)
+                          .map((reply: CommentData) => (
+                            <CommentItem
+                              key={reply.hash}
+                              comment={reply}
+                              isReplyItem={true}
+                            />
+                          ))}
+                      </div>
+                    )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </>
         )}
       </div>
     </div>
