@@ -12,16 +12,16 @@ export const Comment = ({
   comment,
   isReplyItem = false,
 }: {
-  comment: any;
+  comment: Comment;
   isReplyItem?: boolean;
 }) => {
   const [showReplies, setShowReplies] = useState(false);
   const [isTextExpanded, setIsTextExpanded] = useState(false);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 w-full">
       <div className="flex justify-between w-full">
-        <div className="flex gap-3">
+        <div className="flex gap-3 min-w-0">
           <div
             className="flex-shrink-0 w-8 h-8 cursor-pointer"
             onClick={() => {
@@ -38,12 +38,12 @@ export const Comment = ({
               height={28}
             />
           </div>
-          <div className="flex-grow text-xs">
+          <div className="flex-grow text-xs min-w-0">
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-slate-300">
-                {comment.author.display_name}
+              <div className="flex items-center gap-2 text-sm font-medium text-slate-300 truncate">
+                <span className="truncate">{comment.author.display_name}</span>
               </div>
-              <span className="text-xs text-gray-500 font-normal">
+              <span className="text-xs text-gray-500 font-normal flex-shrink-0">
                 {formatTimeAgo(
                   Math.floor(new Date(comment.timestamp).getTime() / 1000)
                 )}
@@ -59,7 +59,7 @@ export const Comment = ({
             </p>
           </div>
         </div>
-        <div className="flex flex-col items-center cursor-pointer text-gray-400 hover:text-gray-300">
+        <div className="flex flex-col ml-2 items-center cursor-pointer text-gray-400 hover:text-gray-300 flex-shrink-0">
           <HeartIcon className="size-4" />
           <span className="text-xs">{comment.reactions.likes_count}</span>
         </div>
@@ -79,7 +79,7 @@ export const Comment = ({
           comment.direct_replies &&
           comment.direct_replies.length > 0 && (
             <div className="space-y-2">
-              {comment.direct_replies.slice(0, 5).map((reply: any) => (
+              {comment.direct_replies.slice(0, 5).map((reply: Comment) => (
                 <Comment key={reply.hash} comment={reply} isReplyItem={true} />
               ))}
             </div>

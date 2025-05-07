@@ -16,7 +16,6 @@ export const Avatar = ({
   fid,
 }: AvatarProps) => {
   const [isImageLoading, setIsImageLoading] = useState(true);
-  if (!fid) console.log(imageUrl);
 
   return (
     <div className={`relative aspect-square ${className}`}>

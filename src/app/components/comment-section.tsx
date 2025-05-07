@@ -7,7 +7,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRightIcon } from "@heroicons/react/24/solid";
+import { ArrowUpIcon } from "@heroicons/react/24/solid";
 import { Loader } from "lucide-react";
 import { Comment } from "./comment";
 import { Input } from "@/components/ui/input";
@@ -107,7 +107,7 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
           </DrawerHeader>
           <div
             ref={scrollableContainerRef}
-            className="p-4 overflow-y-auto flex-grow"
+            className="p-4 overflow-y-auto flex-grow w-full"
           >
             {loading && comments.length === 0 ? (
               <div className="flex justify-center py-4">
@@ -137,23 +137,27 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
               altText={user?.display_name ?? ""}
               className="w-8 h-8"
             />
-            <Input
-              placeholder="Add comment..."
-              className="flex-grow rounded font- pr-10"
-              value={commentText}
-              onFocus={() => setIsInputFocused(true)}
-              onBlur={() => setIsInputFocused(false)}
-              onChange={(e) => setCommentText(e.target.value)}
-            />
-            {isInputFocused && commentText.length > 0 && (
-              <Button
-                variant="action"
-                type="submit"
-                className="rounded-full w-8 h-8 font-bold p-0"
-              >
-                <ArrowUpRightIcon className="h-4 w-4" />
-              </Button>
-            )}
+            <div className="relative flex-grow">
+              <Input
+                placeholder="Add comment..."
+                className="flex-grow rounded pr-10"
+                value={commentText}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                onChange={(e) => setCommentText(e.target.value)}
+              />
+              {commentText.length > 0 && (
+                <Button
+                  variant="action"
+                  onClick={() => {
+                    console.log("Comment text:", commentText);
+                  }}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-sm w-7 h-7 font-bold p-0"
+                >
+                  <ArrowUpIcon className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </DrawerContent>
       </Drawer>

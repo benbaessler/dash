@@ -25,8 +25,14 @@ export async function GET(
       cursor,
     });
 
+    // Filter out duplicate comments based on hash
+    const comments = conversation.cast.direct_replies.filter(
+      (reply, index, self) =>
+        index === self.findIndex((r) => r.hash === reply.hash)
+    );
+
     return NextResponse.json(
-      { comments: conversation.cast.direct_replies, cursor: next?.cursor },
+      { comments, cursor: next?.cursor },
       { status: 200 }
     );
   } catch (error) {
