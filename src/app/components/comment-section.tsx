@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Drawer,
   DrawerContent,
@@ -9,73 +9,139 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowUpIcon } from "@heroicons/react/24/solid";
 import { Loader } from "lucide-react";
-import { Comment } from "./comment";
+import { CommentItem } from "./comment-item";
 import { Input } from "@/components/ui/input";
-import { useSigner } from "@/providers/SignerProvider";
 import { Avatar } from "./avatar";
+import { useFrame } from "@/providers/FrameProvider";
 
 interface CommentSectionProps {
   children: React.ReactNode;
-  postId: string;
+  castHash: string;
 }
 
-export const CommentSection = ({ children, postId }: CommentSectionProps) => {
-  const [comments, setComments] = useState<Comment[]>([]);
+export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
+  const [comments, setComments] = useState<CommentData[]>([]);
   const [loading, setLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [isInputFocused, setIsInputFocused] = useState(false);
   const [commentText, setCommentText] = useState("");
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
-  const { user } = useSigner();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { user, sessionToken } = useFrame();
 
-  const fetchComments = async (cursor?: string) => {
-    setLoading(true);
+  const fetchComments = useCallback(
+    async (cursor?: string) => {
+      setLoading(true);
+
+      try {
+        const url = new URL(
+          `/api/comments/${castHash}`,
+          window.location.origin
+        );
+        if (cursor) {
+          url.searchParams.append("cursor", cursor);
+        }
+
+        const response = await fetch(url.toString());
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch comments");
+        }
+
+        const data = await response.json();
+        console.log("API Response:", data);
+
+        const commentData = data.comments || [];
+        console.log("Comment data:", commentData);
+
+        if (cursor) {
+          setComments((prev) => [...prev, ...commentData]);
+        } else {
+          setComments(commentData);
+        }
+
+        setNextCursor(data.cursor || null);
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [castHash]
+  );
+
+  const postComment = async (parentHash: string, textToPost: string) => {
+    if (!user || !user.fid) {
+      console.error(
+        "User data (including FID) is not available. Cannot post comment."
+      );
+      return;
+    }
+
+    const tempId = `temp-${Date.now()}`;
+    const optimisticComment: CommentData = {
+      hash: tempId,
+      author: {
+        fid: user.fid,
+        pfp_url: user.pfp_url ?? "",
+        display_name: user.display_name ?? "You",
+      },
+      timestamp: new Date().toISOString(),
+      text: textToPost,
+      reactions: {
+        likes_count: 0,
+      },
+      replies: {
+        count: 0,
+      },
+    };
+
+    setComments((prevComments) => [optimisticComment, ...prevComments]);
+    setCommentText("");
+    inputRef.current?.blur();
 
     try {
-      const url = new URL(`/api/comments/${postId}`, window.location.origin);
-      if (cursor) {
-        url.searchParams.append("cursor", cursor);
-      }
-
-      const response = await fetch(url.toString());
+      const response = await fetch(`/api/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          text: textToPost,
+          castHash: parentHash,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch comments");
+        let errorDetails = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorDetails = errorData.error || JSON.stringify(errorData);
+        } catch {
+          errorDetails = response.statusText || errorDetails;
+        }
+        throw new Error(`Failed to post comment: ${errorDetails}`);
       }
-
-      const data = await response.json();
-      console.log("API Response:", data);
-
-      const commentData = data.comments || [];
-      console.log("Comment data:", commentData);
-
-      if (cursor) {
-        setComments((prev) => [...prev, ...commentData]);
-      } else {
-        setComments(commentData);
-      }
-
-      setNextCursor(data.cursor || null);
     } catch (error) {
-      console.error("Error fetching comments:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error posting comment:", error);
+      setComments((prevComments) =>
+        prevComments.filter((c) => c.hash !== tempId)
+      );
     }
   };
 
   useEffect(() => {
     if (isOpen) {
       fetchComments();
-      console.log({});
     }
-  }, [isOpen, postId]);
+  }, [isOpen]);
 
-  const loadMoreComments = () => {
+  const loadMoreComments = useCallback(() => {
     if (nextCursor && !loading) {
       fetchComments(nextCursor);
     }
-  };
+  }, [nextCursor, loading, fetchComments]);
 
   useEffect(() => {
     const container = scrollableContainerRef.current;
@@ -84,7 +150,6 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
       if (scrollHeight - scrollTop <= clientHeight * 1.5) {
-        // 1.5 times clientHeight buffer
         if (nextCursor && !loading) {
           loadMoreComments();
         }
@@ -114,9 +179,9 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
                 <Loader className="size-4 animate-spin" />
               </div>
             ) : comments && comments.length > 0 ? (
-              <div className="space-y-4 pb-4">
+              <div className="space-y-5 pb-4">
                 {comments.map((comment) => (
-                  <Comment key={comment.hash} comment={comment} />
+                  <CommentItem key={comment.hash} comment={comment} />
                 ))}
 
                 {loading && comments.length > 0 && nextCursor && (
@@ -139,19 +204,16 @@ export const CommentSection = ({ children, postId }: CommentSectionProps) => {
             />
             <div className="relative flex-grow">
               <Input
+                ref={inputRef}
                 placeholder="Add comment..."
                 className="flex-grow rounded pr-10"
                 value={commentText}
-                onFocus={() => setIsInputFocused(true)}
-                onBlur={() => setIsInputFocused(false)}
                 onChange={(e) => setCommentText(e.target.value)}
               />
               {commentText.length > 0 && (
                 <Button
                   variant="action"
-                  onClick={() => {
-                    console.log("Comment text:", commentText);
-                  }}
+                  onClick={() => postComment(castHash, commentText)}
                   className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-sm w-7 h-7 font-bold p-0"
                 >
                   <ArrowUpIcon className="h-4 w-4" />

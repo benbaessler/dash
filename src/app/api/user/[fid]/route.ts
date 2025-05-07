@@ -3,16 +3,16 @@ import { neynar } from "@/lib/neynar";
 
 export async function GET(
   request: Request,
-  { params }: { params: { fid: string } }
+  { params }: { params: Promise<{ fid: string }> }
 ) {
-  const fid = Number(params.fid);
+  const { fid } = await params;
 
-  if (isNaN(fid)) {
+  if (isNaN(Number(fid))) {
     return NextResponse.json({ error: "Invalid FID" }, { status: 400 });
   }
 
   try {
-    const response = await neynar.fetchBulkUsers({ fids: [fid] });
+    const response = await neynar.fetchBulkUsers({ fids: [Number(fid)] });
     const user = response.users[0];
 
     if (!user) {

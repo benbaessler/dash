@@ -8,10 +8,10 @@ import sdk, {
 } from "@farcaster/frame-sdk";
 import { createStore } from "mipd";
 import React from "react";
-import { Loader2 } from "lucide-react";
 import { getCsrfToken } from "next-auth/react";
 import { isMobile } from "@/utils/isMobile";
-
+import useSWR, { SWRResponse } from "swr";
+import { User } from "@neynar/nodejs-sdk/build/api";
 interface FrameContextType {
   isSDKLoaded: boolean;
   context: Context.FrameContext | undefined;
@@ -20,6 +20,14 @@ interface FrameContextType {
 const FrameContext = React.createContext<FrameContextType | undefined>(
   undefined
 );
+
+const fetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) {
+      throw new Error("An error occurred while fetching the data.");
+    }
+    return res.json();
+  });
 
 export function useFrame() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
@@ -32,7 +40,18 @@ export function useFrame() {
 
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [mobile, setMobile] = useState<boolean>(false);
-  const [fid, setFid] = useState<number | null>(null);
+
+  const fid = context?.user?.fid;
+
+  const {
+    data: user,
+    error: userError,
+    isLoading: userLoading,
+  }: SWRResponse<User> = useSWR(fid ? `/api/user/${fid}` : null, fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: true,
+    errorRetryCount: 3,
+  });
 
   const addFrame = useCallback(async () => {
     try {
@@ -81,7 +100,6 @@ export function useFrame() {
     if (!success) throw new Error("Failed to sign in");
 
     setSessionToken(token);
-    setFid(fid);
 
     console.log("Signed in", { fid, token });
   }, []);
@@ -172,6 +190,9 @@ export function useFrame() {
     addFrameResult,
     sessionToken,
     fid,
+    user,
+    userError,
+    userLoading,
     mobile,
     signIn,
   };

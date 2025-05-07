@@ -26,6 +26,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`bg-[${backgroundColor}]`}>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      </head>
       <body lang="en" className={`${dmSans.variable} bg-${backgroundColor}`}>
         <Providers session={session}>{children}</Providers>
       </body>

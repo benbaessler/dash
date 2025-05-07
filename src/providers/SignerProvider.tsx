@@ -5,9 +5,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Signer, User } from "@neynar/nodejs-sdk/build/api";
+import { Signer } from "@neynar/nodejs-sdk/build/api";
 import { useFrame } from "@/providers/FrameProvider";
-import useSWR, { SWRResponse, useSWRConfig } from "swr";
 
 interface SignerContextType {
   valid: boolean;
@@ -16,20 +15,9 @@ interface SignerContextType {
   startPolling: () => void;
   stopPolling: () => void;
   loading: boolean;
-  user: User | null | undefined;
-  userLoading: boolean;
-  userError: Error | undefined;
 }
 
 const SignerContext = createContext<SignerContextType | undefined>(undefined);
-
-const fetcher = (url: string) =>
-  fetch(url).then((res) => {
-    if (!res.ok) {
-      throw new Error("An error occurred while fetching the data.");
-    }
-    return res.json();
-  });
 
 export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -39,19 +27,8 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [valid, setValid] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const intervalRef = useRef<NodeJS.Timeout>();
-  const { mutate } = useSWRConfig();
 
   const fid = context?.user?.fid;
-
-  const {
-    data: user,
-    error: userError,
-    isLoading: userLoading,
-  }: SWRResponse<User> = useSWR(fid ? `/api/user/${fid}` : null, fetcher, {
-    revalidateOnFocus: false,
-    shouldRetryOnError: true,
-    errorRetryCount: 3,
-  });
 
   useEffect(() => {
     if (!isSDKLoaded || !context) return;
@@ -80,9 +57,6 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
           setValid(true);
           setSigner(null);
           await storeUser(data);
-          if (data.fid) {
-            mutate(`/api/user/${data.fid}`);
-          }
         }
       } catch (error) {
         console.error("Error during polling", error);
@@ -140,10 +114,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     createSigner,
     startPolling,
     stopPolling,
-    loading,
-    user,
-    userLoading,
-    userError,
+    loading
   };
   return (
     <SignerContext.Provider value={signerValue}>

@@ -14,7 +14,7 @@ interface Post {
   };
 }
 
-interface Comment {
+interface CommentData {
   hash: string;
   author: {
     fid: number;

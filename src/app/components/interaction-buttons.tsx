@@ -53,7 +53,7 @@ export const InteractionButtons = ({
         <span className="text-sm font-medium">{post.recastCount}</span>
       </div>
       <div className="flex flex-col items-center text-slate-200">
-        <CommentSection postId={post.id}>
+        <CommentSection castHash={post.id}>
           <ChatBubbleOvalLeftIcon
             className={`size-9 cursor-pointer hover:opacity-100 ${
               loading ? "opacity-50" : "opacity-80"
