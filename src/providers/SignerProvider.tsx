@@ -57,7 +57,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!isSDKLoaded || !context) return;
 
     const checkSigner = async () => {
-      const response = await fetch(`/api/verify/signer/${fid}`);
+      const response = await fetch(`/api/verify/signer?fid=${fid}`);
       const { verified } = await response.json();
       setValid(verified);
     };
@@ -111,7 +111,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const storeUser = async (data: Signer) => {
     try {
-      const response = await fetch(`/api/verify/signer/${data.fid}`, {
+      const response = await fetch(`/api/verify/signer`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

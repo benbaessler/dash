@@ -2,41 +2,16 @@ import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import { ReactionType } from "@neynar/nodejs-sdk/build/api";
 import prisma from "@/lib/prisma";
-import { authSecret } from "@/constants";
-import { jwtVerify } from "jose";
+import { verifyToken } from "@/utils/auth";
 
 // Valid reaction types
 const VALID_REACTION_TYPES = ["like", "recast"] as const;
-type ValidReactionType = typeof VALID_REACTION_TYPES[number];
+type ValidReactionType = (typeof VALID_REACTION_TYPES)[number];
 
 export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Unauthorized: Missing or invalid Authorization header." },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7); // Remove "Bearer " prefix
-    let payload;
-    const secretKey = new TextEncoder().encode(authSecret);
-
-    try {
-      const { payload: verifiedPayload } = await jwtVerify(token, secretKey, {
-        algorithms: ["HS256"],
-      });
-      payload = verifiedPayload;
-    } catch (err) {
-      console.error("JWT Verification Error:", err);
-      return NextResponse.json(
-        { error: "Unauthorized: Invalid or expired token." },
-        { status: 401 }
-      );
-    }
-
-    const fid = Number(payload.fid);
+    const { fid } = (await verifyToken(authHeader)) as { fid: number };
     const { castHash, type } = await request.json();
 
     if (!castHash || !type) {
