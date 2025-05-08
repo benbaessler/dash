@@ -44,9 +44,9 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         block: "center",
         inline: "nearest",
       });
-
-      inputRef.current?.focus();
     }
+
+    inputRef.current?.focus();
   };
 
   const fetchComments = useCallback(

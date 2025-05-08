@@ -52,17 +52,17 @@ export const InteractionButtons = ({
         />
         <span className="text-sm font-medium">{post.recastCount}</span>
       </div>
-      <div className="flex flex-col items-center text-slate-200">
-        <CommentSection castHash={post.id}>
+      <CommentSection castHash={post.id}>
+        <div className="flex flex-col items-center text-slate-200">
           <ChatBubbleOvalLeftIcon
             className={`size-9 cursor-pointer hover:opacity-100 ${
               loading ? "opacity-50" : "opacity-80"
             }`}
             onDoubleClick={(e) => e.stopPropagation()}
           />
-        </CommentSection>
-        <span className="text-sm font-medium">{post.commentCount}</span>
-      </div>
+          <span className="text-sm font-medium">{post.commentCount}</span>
+        </div>
+      </CommentSection>
       <div
         className="w-9 h-9 opacity-80 hover:opacity-100 cursor-pointer rounded-full"
         onClick={() => {
