@@ -35,7 +35,9 @@ export const CommentItem = ({
     }
   }, [comment.isExpanded, comment.hash]);
 
-  const likeComment = async () => {
+  const likeComment = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    
     const authorized = await checkAuth();
     if (!authorized) return;
 
@@ -74,8 +76,13 @@ export const CommentItem = ({
     }
   };
 
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    likeComment();
+  };
+
   return (
-    <div className="flex flex-col gap-2 w-full" onDoubleClick={likeComment}>
+    <div className="flex flex-col gap-2 w-full" onDoubleClick={handleDoubleClick}>
       <div className="flex justify-between w-full">
         <div className="flex gap-3 min-w-0">
           <Avatar
@@ -99,14 +106,17 @@ export const CommentItem = ({
               className={`text-base w-full break-words ${
                 !isTextExpanded ? "line-clamp-3" : ""
               } cursor-pointer`}
-              onClick={() => setIsTextExpanded(!isTextExpanded)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsTextExpanded(!isTextExpanded);
+              }}
             >
               {comment.text}
             </p>
             <div className="flex items-center gap-3 mt-2">
               <div
                 className="flex items-center gap-1 text-gray-400 hover:text-gray-300 cursor-pointer"
-                onClick={likeComment}
+                onClick={(e) => likeComment(e)}
               >
                 {isLiked ? (
                   <HeartIconSolid className="size-5 text-red-500 animate-heartbeat" />
@@ -120,7 +130,10 @@ export const CommentItem = ({
               {!isReplyItem && (
                 <span
                   className="text-sm font-medium text-gray-400 hover:text-gray-300 cursor-pointer"
-                  onClick={handleSelectComment}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectComment?.();
+                  }}
                 >
                   Reply
                 </span>
