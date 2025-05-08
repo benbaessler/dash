@@ -246,7 +246,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
             className="p-4 overflow-y-auto flex-grow w-full"
           >
             {loading && comments.length === 0 ? (
-              <div className="space-y-4 py-2">
+              <div className="space-y-4">
                 <CommentSkeleton />
                 <CommentSkeleton />
                 <CommentSkeleton />

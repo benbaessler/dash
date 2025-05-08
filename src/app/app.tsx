@@ -8,6 +8,8 @@ import { AddFramePage } from "./components/add-frame";
 import { useFeed, usePost, useVideoNavigation } from "@/hooks";
 import { Caption } from "./components/caption";
 import { useFrame } from "@/providers/FrameProvider";
+import { Loader } from "lucide-react";
+import { createPortal } from "react-dom";
 
 export default function App() {
   const { loading } = useFrame();
@@ -61,7 +63,7 @@ export default function App() {
         loading={loading}
         shouldPreload={shouldPreloadVideo(index)}
       />
-      <div className="absolute right-4 bottom-6 z-10">
+      <div className="absolute right-4 bottom-6">
         <InteractionButtons
           post={post}
           liked={likedPosts.has(post.id)}
@@ -112,10 +114,17 @@ export default function App() {
       onScroll={handleScroll}
     >
       {feedWithShareFrame}
-      <ApproveSignerDialog
-        open={showDialog}
-        onOpenChange={setShowDialog}
-      />
+      <div className="z-[100]">
+        <ApproveSignerDialog open={showDialog} onOpenChange={setShowDialog} />
+      </div>
+      {loading &&
+        typeof window !== "undefined" &&
+        createPortal(
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[50]">
+            <Loader className="animate-spin" />
+          </div>,
+          document.body
+        )}
     </main>
   );
 }
