@@ -8,13 +8,13 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { ArrowUpIcon } from "@heroicons/react/24/solid";
-import { Loader } from "lucide-react";
 import { CommentItem } from "./comment-item";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "./avatar";
 import { useFrame } from "@/providers/FrameProvider";
 import { usePost } from "@/hooks/usePost";
 import { appUrl } from "@/constants";
+import { CommentSkeleton } from "./skeleton-loader";
 
 interface CommentSectionProps {
   children: React.ReactNode;
@@ -246,8 +246,11 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
             className="p-4 overflow-y-auto flex-grow w-full"
           >
             {loading && comments.length === 0 ? (
-              <div className="flex justify-center py-4">
-                <Loader className="size-4 animate-spin" />
+              <div className="space-y-4 py-2">
+                <CommentSkeleton />
+                <CommentSkeleton />
+                <CommentSkeleton />
+                <CommentSkeleton />
               </div>
             ) : comments && comments.length > 0 ? (
               <div className="space-y-5 pb-4">
@@ -260,8 +263,9 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
                 ))}
 
                 {loading && comments.length > 0 && nextCursor && (
-                  <div className="flex justify-center py-4">
-                    <Loader className="size-4 animate-spin" />
+                  <div className="py-4 space-y-4">
+                    <CommentSkeleton />
+                    <CommentSkeleton />
                   </div>
                 )}
               </div>
