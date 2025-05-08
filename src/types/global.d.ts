@@ -29,5 +29,6 @@ interface CommentData {
   replies: {
     count: number;
   };
-  direct_replies?: Comment[];
+  direct_replies?: CommentData[];
+  isExpanded?: boolean;
 }

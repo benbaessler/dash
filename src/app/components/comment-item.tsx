@@ -1,11 +1,10 @@
-import { HeartIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
+import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar } from "./avatar";
 import { usePost } from "@/hooks/usePost";
 import { useFrame } from "@/providers/FrameProvider";
-import { sdk } from "@farcaster/frame-sdk";
 import {
   Accordion,
   AccordionContent,
@@ -16,17 +15,25 @@ import {
 export const CommentItem = ({
   comment,
   isReplyItem = false,
+  handleSelectComment,
 }: {
   comment: CommentData;
   isReplyItem?: boolean;
+  handleSelectComment?: () => void;
 }) => {
   const [isTextExpanded, setIsTextExpanded] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [accordionValue, setAccordionValue] = useState<string | undefined>(
-    undefined
+    comment.isExpanded ? `replies-${comment.hash}` : undefined
   );
   const { checkAuth } = usePost();
   const { sessionToken } = useFrame();
+  
+  useEffect(() => {
+    if (comment.isExpanded) {
+      setAccordionValue(`replies-${comment.hash}`);
+    }
+  }, [comment.isExpanded, comment.hash]);
 
   const likeComment = async () => {
     const authorized = await checkAuth();
@@ -77,18 +84,11 @@ export const CommentItem = ({
             className={isReplyItem ? "w-6 h-6" : "w-8 h-8"}
             fid={comment.author.fid}
           />
-          <div className="flex-grow text-xs min-w-0">
+          <div className="flex-grow text-sm min-w-0">
             <div className="flex items-center gap-2">
-              <div
-                className="flex items-center gap-2 text-sm font-medium text-gray-300 truncate"
-                onClick={() => {
-                  sdk.actions.viewProfile({
-                    fid: comment.author.fid,
-                  });
-                }}
-              >
-                <span className="truncate">{comment.author.display_name}</span>
-              </div>
+              <span className="truncate font-semibold">
+                {comment.author.display_name}
+              </span>
               <span className="text-xs text-gray-500 font-normal flex-shrink-0">
                 {formatTimeAgo(
                   Math.floor(new Date(comment.timestamp).getTime() / 1000)
@@ -96,25 +96,35 @@ export const CommentItem = ({
               </span>
             </div>
             <p
-              className={`text-base break-words ${
+              className={`text-base w-full break-words ${
                 !isTextExpanded ? "line-clamp-3" : ""
               } cursor-pointer`}
               onClick={() => setIsTextExpanded(!isTextExpanded)}
             >
               {comment.text}
             </p>
-            <div
-              className="flex items-center gap-1 text-gray-400 hover:text-gray-300 cursor-pointer mt-2"
-              onClick={likeComment}
-            >
-              {isLiked ? (
-                <HeartIconSolid className="size-5 text-red-500 animate-heartbeat" />
-              ) : (
-                <HeartIcon className="size-5" />
+            <div className="flex items-center gap-3 mt-2">
+              <div
+                className="flex items-center gap-1 text-gray-400 hover:text-gray-300 cursor-pointer"
+                onClick={likeComment}
+              >
+                {isLiked ? (
+                  <HeartIconSolid className="size-5 text-red-500 animate-heartbeat" />
+                ) : (
+                  <HeartIcon className="size-5" />
+                )}
+                <span className="text-sm font-medium">
+                  {comment.reactions.likes_count}
+                </span>
+              </div>
+              {!isReplyItem && (
+                <span
+                  className="text-sm font-medium text-gray-400 hover:text-gray-300 cursor-pointer"
+                  onClick={handleSelectComment}
+                >
+                  Reply
+                </span>
               )}
-              <span className="text-sm font-medium">
-                {comment.reactions.likes_count}
-              </span>
             </div>
           </div>
         </div>
@@ -145,15 +155,16 @@ export const CommentItem = ({
                   {comment.direct_replies &&
                     comment.direct_replies.length > 0 && (
                       <div className="space-y-2">
-                        {(comment.direct_replies as unknown as CommentData[])
-                          .slice(0, 5)
-                          .map((reply: CommentData) => (
-                            <CommentItem
-                              key={reply.hash}
-                              comment={reply}
-                              isReplyItem={true}
-                            />
-                          ))}
+                        {(
+                          comment.direct_replies as unknown as CommentData[]
+                        ).map((reply: CommentData) => (
+                          <CommentItem
+                            key={reply.hash}
+                            comment={reply}
+                            isReplyItem={true}
+                            handleSelectComment={handleSelectComment}
+                          />
+                        ))}
                       </div>
                     )}
                 </AccordionContent>

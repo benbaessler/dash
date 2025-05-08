@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar } from "./avatar";
 import { useFrame } from "@/providers/FrameProvider";
 import { usePost } from "@/hooks/usePost";
+import { appUrl } from "@/constants";
 
 interface CommentSectionProps {
   children: React.ReactNode;
@@ -33,22 +34,18 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const { checkAuth } = usePost();
 
   const handleCommentSelect = (comment: CommentData) => {
-    inputRef.current?.focus();
     setReplyingTo(comment);
     const commentId = `comment-${comment.hash}`;
     const commentElement = document.getElementById(commentId);
-    if (commentElement && scrollableContainerRef.current) {
-      // We want to scroll the item within the scrollableContainerRef
-      // such that the commentElement is at the top of the scrollableContainerRef's viewport.
-      const containerTop =
-        scrollableContainerRef.current.getBoundingClientRect().top;
-      const elementTop = commentElement.getBoundingClientRect().top;
-      const scrollTop = scrollableContainerRef.current.scrollTop;
 
-      scrollableContainerRef.current.scrollTo({
-        top: scrollTop + elementTop - containerTop,
+    if (commentElement && scrollableContainerRef.current) {
+      commentElement.scrollIntoView({
         behavior: "smooth",
+        block: "center",
+        inline: "nearest",
       });
+
+      inputRef.current?.focus();
     }
   };
 
@@ -57,10 +54,8 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
       setLoading(true);
 
       try {
-        const url = new URL(
-          `/api/comments/${castHash}`,
-          window.location.origin
-        );
+        const url = new URL(`/api/comments`, appUrl);
+        url.searchParams.append("hash", castHash);
         if (cursor) {
           url.searchParams.append("cursor", cursor);
         }
@@ -122,9 +117,37 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
       },
     };
 
-    setComments((prevComments) => [optimisticComment, ...prevComments]);
     setCommentText("");
     inputRef.current?.blur();
+
+    if (parentHash === castHash) {
+      setComments((prevComments) => [optimisticComment, ...prevComments]);
+      if (scrollableContainerRef.current)
+        scrollableContainerRef.current.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+    } else {
+      const parentCast = comments.find((c) => c.hash === parentHash);
+      if (parentCast) {
+        parentCast.replies.count++;
+        if (!parentCast.direct_replies) {
+          parentCast.direct_replies = [];
+        }
+        parentCast.direct_replies = [
+          optimisticComment,
+          ...(parentCast.direct_replies || []),
+        ];
+
+        parentCast.isExpanded = true;
+
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.hash === parentHash ? parentCast : comment
+          )
+        );
+      }
+    }
 
     try {
       const response = await fetch(`/api/comments`, {
@@ -151,9 +174,30 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
       }
     } catch (error) {
       console.error("Error posting comment:", error);
-      setComments((prevComments) =>
-        prevComments.filter((c) => c.hash !== tempId)
-      );
+      if (parentHash === castHash) {
+        setComments((prevComments) =>
+          prevComments.filter((c) => c.hash !== tempId)
+        );
+      } else {
+        setComments((prevComments) =>
+          prevComments.map((comment) => {
+            if (comment.hash === parentHash) {
+              return {
+                ...comment,
+                replies: {
+                  ...comment.replies,
+                  count: comment.replies.count - 1,
+                },
+                direct_replies:
+                  comment.direct_replies?.filter(
+                    (reply) => reply.hash !== tempId
+                  ) || [],
+              };
+            }
+            return comment;
+          })
+        );
+      }
     }
   };
 
@@ -207,12 +251,11 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
             ) : comments && comments.length > 0 ? (
               <div className="space-y-5 pb-4">
                 {comments.map((comment) => (
-                  <div
+                  <CommentItem
+                    comment={comment}
                     key={comment.hash}
-                    onClick={() => handleCommentSelect(comment)}
-                  >
-                    <CommentItem comment={comment} />
-                  </div>
+                    handleSelectComment={() => handleCommentSelect(comment)}
+                  />
                 ))}
 
                 {loading && comments.length > 0 && nextCursor && (
@@ -239,18 +282,31 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
                 maxLength={255}
                 placeholder={
                   replyingTo
-                    ? `Replying to ${replyingTo.author.display_name}...`
+                    ? `Replying to ${replyingTo.author.display_name}`
                     : "Add comment..."
                 }
                 className="flex-grow rounded pr-10"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                onBlur={() => setReplyingTo(null)}
+                onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                  if (
+                    (e.relatedTarget as HTMLElement)?.id !==
+                    "send-comment-button"
+                  ) {
+                    setReplyingTo(null);
+                  }
+                }}
               />
               {commentText.length > 0 && (
                 <Button
+                  id="send-comment-button"
                   variant="action"
-                  onClick={() => postComment(castHash, commentText)}
+                  onClick={() =>
+                    postComment(
+                      replyingTo ? replyingTo.hash : castHash,
+                      commentText
+                    )
+                  }
                   className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-sm w-7 h-7 font-bold p-0"
                 >
                   <ArrowUpIcon className="h-4 w-4" />
