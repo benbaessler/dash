@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     const { conversation, next } = await neynar.lookupCastConversation({
       identifier: hash,
       type: "hash",
-      limit: 15,
+      limit: 10,
       fold: "above",
       sortType: "algorithmic",
       cursor,

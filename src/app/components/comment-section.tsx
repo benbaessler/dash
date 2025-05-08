@@ -15,16 +15,51 @@ import { useFrame } from "@/providers/FrameProvider";
 import { usePost } from "@/hooks/usePost";
 import { appUrl } from "@/constants";
 import { CommentSkeleton } from "./skeleton-loader";
+import useSWR from "swr";
 
 interface CommentSectionProps {
   children: React.ReactNode;
   castHash: string;
 }
 
+// Fetcher function for SWR
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Failed to fetch comments");
+  }
+  return response.json();
+};
+
+// Custom hook to fetch comments with SWR
+const useComments = (castHash: string, cursor?: string | null) => {
+  const url = new URL(`/api/comments`, appUrl);
+  url.searchParams.append("hash", castHash);
+  if (cursor) {
+    url.searchParams.append("cursor", cursor);
+  }
+
+  const { data, error, isLoading, mutate } = useSWR(
+    url.toString(),
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000, // 30 seconds
+    }
+  );
+
+  return {
+    comments: data?.comments || [],
+    nextCursor: data?.cursor || null,
+    isLoading,
+    error,
+    mutate,
+  };
+};
+
 export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const [comments, setComments] = useState<CommentData[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [currentCursor, setCurrentCursor] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [replyingTo, setReplyingTo] = useState<CommentData | null>(null);
@@ -32,6 +67,14 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { user, sessionToken } = useFrame();
   const { checkAuth } = usePost();
+  
+  // Use SWR hook to fetch comments
+  const { 
+    comments: swrComments, 
+    nextCursor, 
+    isLoading: loading, 
+    mutate 
+  } = useComments(castHash, currentCursor);
 
   const handleCommentSelect = (comment: CommentData) => {
     setReplyingTo(comment);
@@ -49,44 +92,23 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     inputRef.current?.focus();
   };
 
-  const fetchComments = useCallback(
-    async (cursor?: string) => {
-      setLoading(true);
-
-      try {
-        const url = new URL(`/api/comments`, appUrl);
-        url.searchParams.append("hash", castHash);
-        if (cursor) {
-          url.searchParams.append("cursor", cursor);
-        }
-
-        const response = await fetch(url.toString());
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch comments");
-        }
-
-        const data = await response.json();
-        console.log("API Response:", data);
-
-        const commentData = data.comments || [];
-        console.log("Comment data:", commentData);
-
-        if (cursor) {
-          setComments((prev) => [...prev, ...commentData]);
-        } else {
-          setComments(commentData);
-        }
-
-        setNextCursor(data.cursor || null);
-      } catch (error) {
-        console.error("Error fetching comments:", error);
-      } finally {
-        setLoading(false);
+  // Update comments state when SWR data changes
+  useEffect(() => {
+    if (swrComments.length > 0) {
+      if (currentCursor) {
+        setComments(prev => [...prev, ...swrComments]);
+      } else {
+        setComments(swrComments);
       }
-    },
-    [castHash]
-  );
+    }
+  }, [swrComments, currentCursor]);
+
+  // Load more comments function
+  const loadMoreComments = useCallback(() => {
+    if (nextCursor && !loading) {
+      setCurrentCursor(nextCursor);
+    }
+  }, [nextCursor, loading]);
 
   const postComment = async (parentHash: string, textToPost: string) => {
     if (!user || !user.fid) {
@@ -173,6 +195,9 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         }
         throw new Error(`Failed to post comment: ${errorDetails}`);
       }
+
+      // Revalidate the cache after posting a comment
+      mutate();
     } catch (error) {
       console.error("Error posting comment:", error);
       if (parentHash === castHash) {
@@ -202,17 +227,12 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     }
   };
 
+  // Fetch initial comments when drawer is opened
   useEffect(() => {
     if (isOpen) {
-      fetchComments();
+      setCurrentCursor(null);
     }
   }, [isOpen]);
-
-  const loadMoreComments = useCallback(() => {
-    if (nextCursor && !loading) {
-      fetchComments(nextCursor);
-    }
-  }, [nextCursor, loading, fetchComments]);
 
   useEffect(() => {
     const container = scrollableContainerRef.current;

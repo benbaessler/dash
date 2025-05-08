@@ -7,10 +7,16 @@ import { cn } from "@/lib/utils"
 
 const Drawer = ({
   shouldScaleBackground = true,
+  animationDuration = 500,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
+}: React.ComponentProps<typeof DrawerPrimitive.Root> & {
+  /** Animation duration in ms, default is 500ms */
+  animationDuration?: number
+}) => (
   <DrawerPrimitive.Root
     shouldScaleBackground={shouldScaleBackground}
+    // Pass animation duration to Vaul's root component
+    data-animation-duration={animationDuration}
     {...props}
   />
 )
@@ -28,7 +34,7 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50", className)}
+    className={cn("fixed inset-0 z-50 bg-background/80 backdrop-blur-sm", className)}
     {...props}
   />
 ))
@@ -36,23 +42,61 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DrawerPortal>
-    <DrawerOverlay />
-    <DrawerPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] bg-background focus:outline-none focus:ring-0",
-        className
-      )}
-      {...props}
-    >
-      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
-      {children}
-    </DrawerPrimitive.Content>
-  </DrawerPortal>
-))
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & {
+    /** Animation duration in ms */
+    animationDuration?: number
+  }
+>(({ className, children, animationDuration, ...props }, ref) => {
+  const internalRef = React.useRef<HTMLDivElement>(null);
+  
+  // Apply animation duration from parent or use provided one
+  React.useEffect(() => {
+    if (!internalRef.current) return;
+    
+    const drawer = internalRef.current.closest('[data-animation-duration]');
+    const duration = animationDuration || 
+      (drawer && drawer.getAttribute('data-animation-duration')) || 
+      500;
+    
+    internalRef.current.style.transitionDuration = `${duration}ms`;
+  }, [animationDuration]);
+
+  return (
+    <DrawerPortal>
+      <DrawerOverlay />
+      <DrawerPrimitive.Content
+        ref={node => {
+          // Update the internal ref ourselves
+          // @ts-expect-error - this is fine as we're working with DOM nodes 
+          internalRef.current = node;
+          
+          // Handle the forwarded ref
+          if (typeof ref === 'function') {
+            ref(node);
+          } else if (ref) {
+            ref.current = node;
+          }
+        }}
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] bg-background",
+          // Add hardware acceleration and optimize transitions
+          "will-change-transform transform-gpu",
+          // Use optimized animation curve from iOS for natural feeling
+          "transition-transform motion-reduce:transition-none focus:outline-none focus:ring-0",
+          className
+        )}
+        style={{
+          // Set default animation curve for smoother transitions
+          transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)"
+        }}
+        {...props}
+      >
+        <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+        {children}
+      </DrawerPrimitive.Content>
+    </DrawerPortal>
+  )
+})
 DrawerContent.displayName = "DrawerContent"
 
 const DrawerHeader = ({
