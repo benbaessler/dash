@@ -15,15 +15,21 @@ import { useFrame } from "@/providers/FrameProvider";
 import { usePost } from "@/hooks/usePost";
 import { appUrl } from "@/constants";
 import { CommentSkeleton } from "./skeleton-loader";
-import useSWR from "swr";
+import useSWRInfinite from "swr/infinite";
 
 interface CommentSectionProps {
   children: React.ReactNode;
   castHash: string;
 }
 
+// Define API response type
+interface CommentsResponse {
+  comments: CommentData[];
+  cursor?: string;
+}
+
 // Fetcher function for SWR
-const fetcher = async (url: string) => {
+const fetcher = async (url: string): Promise<CommentsResponse> => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error("Failed to fetch comments");
@@ -31,35 +37,8 @@ const fetcher = async (url: string) => {
   return response.json();
 };
 
-// Custom hook to fetch comments with SWR
-const useComments = (castHash: string, cursor?: string | null) => {
-  const url = new URL(`/api/comments`, appUrl);
-  url.searchParams.append("hash", castHash);
-  if (cursor) {
-    url.searchParams.append("cursor", cursor);
-  }
-
-  const { data, error, isLoading, mutate } = useSWR(
-    url.toString(),
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 30000, // 30 seconds
-    }
-  );
-
-  return {
-    comments: data?.comments || [],
-    nextCursor: data?.cursor || null,
-    isLoading,
-    error,
-    mutate,
-  };
-};
-
 export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const [comments, setComments] = useState<CommentData[]>([]);
-  const [currentCursor, setCurrentCursor] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [replyingTo, setReplyingTo] = useState<CommentData | null>(null);
@@ -68,14 +47,53 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const { user, sessionToken } = useFrame();
   const { checkAuth } = usePost();
   
-  // Use SWR hook to fetch comments
-  const { 
-    comments: swrComments, 
-    nextCursor, 
-    isLoading: loading, 
-    mutate 
-  } = useComments(castHash, currentCursor);
+  // Key generator function for SWR pagination
+  const getKey = (pageIndex: number, previousPageData: CommentsResponse | null) => {
+    // Create base URL for all requests
+    const url = new URL(`/api/comments`, appUrl);
+    url.searchParams.append("hash", castHash);
+    
+    // First page request
+    if (pageIndex === 0) {
+      return url.toString();
+    }
+    
+    // Stop fetching when we reach the end (no cursor returned)
+    if (previousPageData && !previousPageData.cursor) {
+      return null;
+    }
+    
+    // Subsequent page requests with cursor
+    url.searchParams.append("cursor", previousPageData?.cursor || "");
+    return url.toString();
+  };
 
+  const { 
+    data: pagesData,
+    setSize,
+    isLoading: loading,
+    isValidating,
+    mutate
+  } = useSWRInfinite(getKey, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 30000, // 30 seconds
+    revalidateIfStale: false,
+    revalidateOnReconnect: false,
+    persistSize: true,
+    revalidateAll: false,
+  });
+
+  // Extract comments and next cursor from SWR data, ensuring no duplicates
+  const allComments = pagesData 
+    ? Array.from(
+        new Map(
+          pagesData.flatMap(page => page.comments || [])
+            .map(comment => [comment.hash, comment])
+        ).values()
+      ) 
+    : [];
+  const nextCursor = pagesData?.[pagesData.length - 1]?.cursor;
+  
   const handleCommentSelect = (comment: CommentData) => {
     setReplyingTo(comment);
     const commentId = `comment-${comment.hash}`;
@@ -94,21 +112,24 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
 
   // Update comments state when SWR data changes
   useEffect(() => {
-    if (swrComments.length > 0) {
-      if (currentCursor) {
-        setComments(prev => [...prev, ...swrComments]);
-      } else {
-        setComments(swrComments);
+    if (allComments.length > 0) {
+      // Only update if there are actual changes (different comments)
+      const hashesChanged = JSON.stringify(allComments.map(c => c.hash)) !== 
+                           JSON.stringify(comments.map(c => c.hash));
+      
+      if (hashesChanged) {
+        setComments(allComments);
       }
     }
-  }, [swrComments, currentCursor]);
+  }, [allComments, comments]);
 
   // Load more comments function
   const loadMoreComments = useCallback(() => {
-    if (nextCursor && !loading) {
-      setCurrentCursor(nextCursor);
+    const canLoadMore = nextCursor && !loading && !isValidating;
+    if (canLoadMore) {
+      setSize(prevSize => prevSize + 1);
     }
-  }, [nextCursor, loading]);
+  }, [nextCursor, loading, isValidating, setSize]);
 
   const postComment = async (parentHash: string, textToPost: string) => {
     if (!user || !user.fid) {
@@ -143,29 +164,55 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     inputRef.current?.blur();
     setReplyingTo(null);
 
+    // Handle top-level comments
     if (parentHash === castHash) {
-      setComments((prevComments) => [optimisticComment, ...prevComments]);
-      if (scrollableContainerRef.current)
-        scrollableContainerRef.current.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
-    } else {
-      const parentCast = comments.find((c) => c.hash === parentHash);
-      if (parentCast) {
-        parentCast.replies.count++;
-        if (!parentCast.direct_replies) {
-          parentCast.direct_replies = [];
+      // Add the optimistic comment to the state, avoiding duplicates
+      setComments(prevComments => {
+        // Don't add if comment already exists
+        if (prevComments.some(c => c.hash === optimisticComment.hash)) {
+          return prevComments;
         }
+        return [optimisticComment, ...prevComments];
+      });
+      
+      // Scroll to top to show the new comment
+      scrollableContainerRef.current?.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    } 
+    // Handle replies to existing comments
+    else {
+      const parentCast = comments.find(c => c.hash === parentHash);
+      if (!parentCast) return;
+      
+      // Initialize direct_replies array if it doesn't exist
+      if (!parentCast.direct_replies) {
+        parentCast.direct_replies = [];
+      }
+      
+      // Check if reply already exists
+      const replyExists = parentCast.direct_replies.some(
+        reply => reply.hash === optimisticComment.hash
+      );
+      
+      // Only add reply if it doesn't already exist
+      if (!replyExists) {
+        // Increment reply count
+        parentCast.replies.count++;
+        
+        // Add the new reply to the beginning of the replies array
         parentCast.direct_replies = [
           optimisticComment,
-          ...(parentCast.direct_replies || []),
+          ...parentCast.direct_replies
         ];
-
+        
+        // Expand the comment to show replies
         parentCast.isExpanded = true;
-
-        setComments((prevComments) =>
-          prevComments.map((comment) =>
+        
+        // Update the comments state with the modified parent
+        setComments(prevComments =>
+          prevComments.map(comment =>
             comment.hash === parentHash ? parentCast : comment
           )
         );
@@ -200,24 +247,30 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
       mutate();
     } catch (error) {
       console.error("Error posting comment:", error);
+      // Handle error cleanup for top-level comments
       if (parentHash === castHash) {
-        setComments((prevComments) =>
-          prevComments.filter((c) => c.hash !== tempId)
+        // Remove the optimistic comment from the list
+        setComments(prevComments => 
+          prevComments.filter(c => c.hash !== tempId)
         );
-      } else {
-        setComments((prevComments) =>
-          prevComments.map((comment) => {
+      } 
+      // Handle error cleanup for replies
+      else {
+        setComments(prevComments =>
+          prevComments.map(comment => {
+            // Only update the parent comment
             if (comment.hash === parentHash) {
               return {
                 ...comment,
+                // Decrement reply count
                 replies: {
                   ...comment.replies,
-                  count: comment.replies.count - 1,
+                  count: Math.max(0, comment.replies.count - 1)
                 },
-                direct_replies:
-                  comment.direct_replies?.filter(
-                    (reply) => reply.hash !== tempId
-                  ) || [],
+                // Remove the temporary reply from direct_replies
+                direct_replies: comment.direct_replies?.filter(
+                  reply => reply.hash !== tempId
+                ) || []
               };
             }
             return comment;
@@ -227,31 +280,136 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     }
   };
 
-  // Fetch initial comments when drawer is opened
+  // Reset pagination and fetch initial comments when drawer is opened
   useEffect(() => {
     if (isOpen) {
-      setCurrentCursor(null);
+      // Use function form to avoid dependency on size
+      setSize(1);
     }
-  }, [isOpen]);
+  }, [isOpen, setSize]);
 
+  // Infinite scroll handler using Intersection Observer
   useEffect(() => {
     const container = scrollableContainerRef.current;
     if (!container) return;
 
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      if (scrollHeight - scrollTop <= clientHeight * 1.5) {
-        if (nextCursor && !loading) {
+    // Create and observe a sentinel element for infinite scrolling
+    const sentinel = document.createElement("div");
+    sentinel.id = "comments-sentinel";
+    sentinel.style.height = "20px";
+    sentinel.style.width = "100%";
+    
+    // Configure intersection observer
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const isIntersecting = entries[0].isIntersecting;
+        const canLoadMore = nextCursor && !loading && !isValidating;
+        
+        if (isIntersecting && canLoadMore) {
           loadMoreComments();
         }
-      }
-    };
-
-    container.addEventListener("scroll", handleScroll);
+      },
+      { root: container, threshold: 0.1, rootMargin: "150px" }
+    );
+    
+    // Add sentinel to container and observe it
+    container.appendChild(sentinel);
+    observer.observe(sentinel);
+    
+    // Cleanup function
     return () => {
-      container.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
+      container.removeChild(sentinel);
     };
-  }, [nextCursor, loading, loadMoreComments]);
+  }, [nextCursor, loading, isValidating, loadMoreComments]);
+
+  // Render comment skeletons for loading state
+  const renderSkeletons = (count = 4) => (
+    <div className="space-y-5">
+      {[...Array(count)].map((_, index) => (
+        <CommentSkeleton key={`skeleton-${index}`} />
+      ))}
+    </div>
+  );
+
+  // Render the main comment list
+  const renderCommentList = () => {
+    if (loading && comments.length === 0) {
+      return renderSkeletons();
+    }
+    
+    if (!comments || comments.length === 0) {
+      return (
+        <div className="py-8 text-center">
+          <p className="text-gray-500">No comments yet.</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-5 pb-4">
+        {/* Render all comments */}
+        {comments.map(comment => (
+          <CommentItem
+            comment={comment}
+            key={comment.hash}
+            handleSelectComment={() => handleCommentSelect(comment)}
+          />
+        ))}
+        
+        {/* Loading state for pagination */}
+        {(loading || isValidating) && nextCursor && (
+          <div className="space-y-5" id="comments-loading">
+            {renderSkeletons()}
+          </div>
+        )}
+      </div>
+    );
+  };
+  
+  // Render comment input with avatar
+  const renderCommentInput = () => (
+    <div className="p-4 flex items-center space-x-2">
+      <Avatar
+        imageUrl={user?.pfp_url ?? ""}
+        altText={user?.display_name ?? ""}
+        className="w-8 h-8"
+      />
+      <div className="relative flex-grow">
+        <Input
+          ref={inputRef}
+          maxLength={255}
+          placeholder={
+            replyingTo
+              ? `Replying to ${replyingTo.author.display_name}`
+              : "Add comment..."
+          }
+          className="flex-grow rounded pr-10"
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+          onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+            const isClickingSendButton = (e.relatedTarget as HTMLElement)?.id === "send-comment-button";
+            if (commentText.length === 0 && !isClickingSendButton) {
+              setReplyingTo(null);
+            }
+          }}
+        />
+        {commentText.length > 0 && (
+          <Button
+            id="send-comment-button"
+            variant="action"
+            onClick={() => postComment(
+              replyingTo ? replyingTo.hash : castHash,
+              commentText
+            )}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-sm w-7 h-7 font-bold p-0"
+          >
+            <ArrowUpIcon className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div onDoubleClick={(e) => e.stopPropagation()}>
@@ -261,85 +419,17 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
           <DrawerHeader>
             <DrawerTitle>Comments</DrawerTitle>
           </DrawerHeader>
+          
+          {/* Scrollable comment area */}
           <div
             ref={scrollableContainerRef}
             className="p-4 overflow-y-auto flex-grow w-full"
           >
-            {loading && comments.length === 0 ? (
-              <div className="space-y-4">
-                <CommentSkeleton />
-                <CommentSkeleton />
-                <CommentSkeleton />
-                <CommentSkeleton />
-              </div>
-            ) : comments && comments.length > 0 ? (
-              <div className="space-y-5 pb-4">
-                {comments.map((comment) => (
-                  <CommentItem
-                    comment={comment}
-                    key={comment.hash}
-                    handleSelectComment={() => handleCommentSelect(comment)}
-                  />
-                ))}
-
-                {loading && comments.length > 0 && nextCursor && (
-                  <div className="py-4 space-y-4">
-                    <CommentSkeleton />
-                    <CommentSkeleton />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="py-8 text-center">
-                <p className="text-gray-500">No comments yet.</p>
-              </div>
-            )}
+            {renderCommentList()}
           </div>
-          <div className="p-4 flex items-center space-x-2">
-            <Avatar
-              imageUrl={user?.pfp_url ?? ""}
-              altText={user?.display_name ?? ""}
-              className="w-8 h-8"
-            />
-            <div className="relative flex-grow">
-              <Input
-                ref={inputRef}
-                maxLength={255}
-                placeholder={
-                  replyingTo
-                    ? `Replying to ${replyingTo.author.display_name}`
-                    : "Add comment..."
-                }
-                className="flex-grow rounded pr-10"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-                  if (
-                    commentText.length === 0 &&
-                    (e.relatedTarget as HTMLElement)?.id !==
-                      "send-comment-button"
-                  ) {
-                    setReplyingTo(null);
-                  }
-                }}
-              />
-              {commentText.length > 0 && (
-                <Button
-                  id="send-comment-button"
-                  variant="action"
-                  onClick={() =>
-                    postComment(
-                      replyingTo ? replyingTo.hash : castHash,
-                      commentText
-                    )
-                  }
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-sm w-7 h-7 font-bold p-0"
-                >
-                  <ArrowUpIcon className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
+          
+          {/* Comment input area */}
+          {renderCommentInput()}
         </DrawerContent>
       </Drawer>
     </div>
