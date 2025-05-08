@@ -119,6 +119,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
 
     setCommentText("");
     inputRef.current?.blur();
+    setReplyingTo(null);
 
     if (parentHash === castHash) {
       setComments((prevComments) => [optimisticComment, ...prevComments]);
@@ -290,8 +291,9 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
                 onChange={(e) => setCommentText(e.target.value)}
                 onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
                   if (
+                    commentText.length === 0 &&
                     (e.relatedTarget as HTMLElement)?.id !==
-                    "send-comment-button"
+                      "send-comment-button"
                   ) {
                     setReplyingTo(null);
                   }
