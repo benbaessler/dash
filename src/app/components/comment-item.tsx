@@ -142,7 +142,7 @@ export const CommentItem = ({
           </div>
         </div>
       </div>
-      <div className="ml-10">
+      {/* <div className="ml-10">
         {comment.replies.count > 0 && !isReplyItem && (
           <>
             <Accordion
@@ -185,7 +185,7 @@ export const CommentItem = ({
             </Accordion>
           </>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };
