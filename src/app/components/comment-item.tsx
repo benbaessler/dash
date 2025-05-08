@@ -127,7 +127,7 @@ export const CommentItem = ({
                   {comment.reactions.likes_count}
                 </span>
               </div>
-              {!isReplyItem && (
+              {/* {!isReplyItem && (
                 <span
                   className="text-sm font-medium text-gray-400 hover:text-gray-300 cursor-pointer"
                   onClick={(e) => {
@@ -137,7 +137,7 @@ export const CommentItem = ({
                 >
                   Reply
                 </span>
-              )}
+              )} */}
             </div>
           </div>
         </div>

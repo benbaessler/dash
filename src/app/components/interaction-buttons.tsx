@@ -42,16 +42,6 @@ export const InteractionButtons = ({
         />
         <span className="text-sm font-medium">{post.likeCount}</span>
       </div>
-      <div className="flex flex-col items-center text-slate-200">
-        <ArrowPathIcon
-          className={`size-9 cursor-pointer hover:opacity-100 ${
-            loading ? "opacity-50" : recasted ? "opacity-100" : "opacity-80"
-          } ${recasted ? "text-green-500 animate-heartbeat" : ""}`}
-          onClick={(e) => handleInteraction(e, "recast")}
-          onDoubleClick={(e) => e.stopPropagation()}
-        />
-        <span className="text-sm font-medium">{post.recastCount}</span>
-      </div>
       <CommentSection castHash={post.id}>
         <div className="flex flex-col items-center text-slate-200">
           <ChatBubbleOvalLeftIcon
@@ -63,6 +53,16 @@ export const InteractionButtons = ({
           <span className="text-sm font-medium">{post.commentCount}</span>
         </div>
       </CommentSection>
+      <div className="flex flex-col items-center text-slate-200">
+        <ArrowPathIcon
+          className={`size-9 cursor-pointer hover:opacity-100 ${
+            loading ? "opacity-50" : recasted ? "opacity-100" : "opacity-80"
+          } ${recasted ? "text-green-500 animate-heartbeat" : ""}`}
+          onClick={(e) => handleInteraction(e, "recast")}
+          onDoubleClick={(e) => e.stopPropagation()}
+        />
+        <span className="text-sm font-medium">{post.recastCount}</span>
+      </div>
       <div
         className="w-9 h-9 opacity-80 hover:opacity-100 cursor-pointer rounded-full"
         onClick={() => {

@@ -20,7 +20,7 @@ export function CommentSkeleton() {
   return (
     <div className="flex gap-3 w-full">
       <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-      <div className="space-y-4 w-full">
+      <div className="space-y-2 w-full">
         <Skeleton className="h-4 w-20" />
         <Skeleton className="h-6 w-full" />
       </div>
