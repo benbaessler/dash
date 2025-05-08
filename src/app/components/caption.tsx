@@ -25,7 +25,7 @@ export function Caption({ post, expandedTexts, toggleExpandText }: CaptionProps)
             {formatTimeAgo(post.timestamp)}
           </span>
         </div>
-        <div className="text-slate-200/90 text-sm mt-1 flex items-end gap-1 w-full">
+        <div className="text-slate-200/90 mt-1 flex items-end gap-1 w-full">
           <div
             className={`flex-1 break-words overflow-hidden ${
               !expandedTexts.has(post.id) ? "line-clamp-2" : ""
