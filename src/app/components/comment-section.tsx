@@ -46,104 +46,103 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { user, sessionToken } = useFrame();
   const { checkAuth } = usePost();
-  
-  // Key generator function for SWR pagination
-  const getKey = (pageIndex: number, previousPageData: CommentsResponse | null) => {
-    // Create base URL for all requests
+
+  const getKey = (
+    pageIndex: number,
+    previousPageData: CommentsResponse | null
+  ) => {
     const url = new URL(`/api/comments`, appUrl);
     url.searchParams.append("hash", castHash);
-    
-    // First page request
+
     if (pageIndex === 0) {
       return url.toString();
     }
-    
+
     // Stop fetching when we reach the end (no cursor returned)
     if (previousPageData && !previousPageData.cursor) {
       return null;
     }
-    
+
     // Subsequent page requests with cursor
     url.searchParams.append("cursor", previousPageData?.cursor || "");
     return url.toString();
   };
 
-  const { 
+  const {
     data: pagesData,
     setSize,
     isLoading: loading,
     isValidating,
-    mutate
   } = useSWRInfinite(getKey, fetcher, {
     revalidateOnFocus: false,
-    dedupingInterval: 30000, // 30 seconds
     revalidateIfStale: false,
     revalidateOnReconnect: false,
     persistSize: true,
     revalidateAll: false,
   });
 
-  // Extract comments and next cursor from SWR data, ensuring no duplicates
-  const allComments = pagesData 
-    ? Array.from(
-        new Map(
-          pagesData.flatMap(page => page.comments || [])
-            .map(comment => [comment.hash, comment])
-        ).values()
-      ) 
-    : [];
   const nextCursor = pagesData?.[pagesData.length - 1]?.cursor;
-  
-  const handleCommentSelect = (comment: CommentData) => {
-    setReplyingTo(comment);
-    const commentId = `comment-${comment.hash}`;
-    const commentElement = document.getElementById(commentId);
 
-    if (commentElement && scrollableContainerRef.current) {
-      commentElement.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "nearest",
-      });
-    }
+  // const handleCommentSelect = (comment: CommentData) => {
+  //   setReplyingTo(comment);
+  //   const commentId = `comment-${comment.hash}`;
+  //   const commentElement = document.getElementById(commentId);
 
-    inputRef.current?.focus();
-  };
+  //   if (commentElement && scrollableContainerRef.current) {
+  //     commentElement.scrollIntoView({
+  //       behavior: "smooth",
+  //       block: "center",
+  //       inline: "nearest",
+  //     });
+  //   }
+
+  //   inputRef.current?.focus();
+  // };
 
   // Update comments state when SWR data changes
   useEffect(() => {
+    const allComments = pagesData
+      ? pagesData.flatMap((page) => page.comments)
+      : [];
+
     if (allComments.length > 0) {
-      // Only update if there are actual changes (different comments)
-      const hashesChanged = JSON.stringify(allComments.map(c => c.hash)) !== 
-                           JSON.stringify(comments.map(c => c.hash));
-      
-      if (hashesChanged) {
-        setComments(allComments);
+      // Find temporary comments that should be preserved
+      const tempComments = comments.filter((c) => c.hash.startsWith("temp-"));
+
+      // Only add non-temporary comments from pagesData that don't already exist in comments
+      const existingHashes = new Set(comments.map((c) => c.hash));
+      const newNonTempComments = allComments.filter(
+        (c: CommentData) =>
+          !c.hash.startsWith("temp-") && !existingHashes.has(c.hash)
+      );
+
+      // Only update state if there are new comments to add
+      if (newNonTempComments.length > 0) {
+        setComments([
+          ...tempComments,
+          ...allComments.filter(
+            (c: CommentData) => !c.hash.startsWith("temp-")
+          ),
+        ]);
       }
     }
-  }, [allComments, comments]);
+  }, [pagesData]); // Only depend on pagesData, not comments
 
-  // Load more comments function
   const loadMoreComments = useCallback(() => {
     const canLoadMore = nextCursor && !loading && !isValidating;
     if (canLoadMore) {
-      setSize(prevSize => prevSize + 1);
+      setSize((prevSize) => prevSize + 1);
     }
   }, [nextCursor, loading, isValidating, setSize]);
 
   const postComment = async (parentHash: string, textToPost: string) => {
-    if (!user || !user.fid) {
-      console.error(
-        "User data (including FID) is not available. Cannot post comment."
-      );
-      return;
-    }
+    if (!user || !user.fid) return;
 
     const authorized = await checkAuth();
     if (!authorized) return;
 
     const tempId = `temp-${Date.now()}`;
-    const optimisticComment: CommentData = {
+    const newComment: CommentData = {
       hash: tempId,
       author: {
         fid: user.fid,
@@ -164,60 +163,15 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     inputRef.current?.blur();
     setReplyingTo(null);
 
-    // Handle top-level comments
-    if (parentHash === castHash) {
-      // Add the optimistic comment to the state, avoiding duplicates
-      setComments(prevComments => {
-        // Don't add if comment already exists
-        if (prevComments.some(c => c.hash === optimisticComment.hash)) {
-          return prevComments;
-        }
-        return [optimisticComment, ...prevComments];
-      });
-      
-      // Scroll to top to show the new comment
+    setComments((prevComments) => [newComment, ...prevComments]);
+
+    // Force immediate UI update with the new comment
+    setTimeout(() => {
       scrollableContainerRef.current?.scrollTo({
         top: 0,
         behavior: "smooth",
       });
-    } 
-    // Handle replies to existing comments
-    else {
-      const parentCast = comments.find(c => c.hash === parentHash);
-      if (!parentCast) return;
-      
-      // Initialize direct_replies array if it doesn't exist
-      if (!parentCast.direct_replies) {
-        parentCast.direct_replies = [];
-      }
-      
-      // Check if reply already exists
-      const replyExists = parentCast.direct_replies.some(
-        reply => reply.hash === optimisticComment.hash
-      );
-      
-      // Only add reply if it doesn't already exist
-      if (!replyExists) {
-        // Increment reply count
-        parentCast.replies.count++;
-        
-        // Add the new reply to the beginning of the replies array
-        parentCast.direct_replies = [
-          optimisticComment,
-          ...parentCast.direct_replies
-        ];
-        
-        // Expand the comment to show replies
-        parentCast.isExpanded = true;
-        
-        // Update the comments state with the modified parent
-        setComments(prevComments =>
-          prevComments.map(comment =>
-            comment.hash === parentHash ? parentCast : comment
-          )
-        );
-      }
-    }
+    }, 0);
 
     try {
       const response = await fetch(`/api/comments`, {
@@ -242,53 +196,44 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         }
         throw new Error(`Failed to post comment: ${errorDetails}`);
       }
-
-      // Revalidate the cache after posting a comment
-      mutate();
     } catch (error) {
       console.error("Error posting comment:", error);
       // Handle error cleanup for top-level comments
-      if (parentHash === castHash) {
-        // Remove the optimistic comment from the list
-        setComments(prevComments => 
-          prevComments.filter(c => c.hash !== tempId)
-        );
-      } 
+      setComments((prevComments) =>
+        prevComments.filter((c) => c.hash !== tempId)
+      );
       // Handle error cleanup for replies
-      else {
-        setComments(prevComments =>
-          prevComments.map(comment => {
-            // Only update the parent comment
-            if (comment.hash === parentHash) {
-              return {
-                ...comment,
-                // Decrement reply count
-                replies: {
-                  ...comment.replies,
-                  count: Math.max(0, comment.replies.count - 1)
-                },
-                // Remove the temporary reply from direct_replies
-                direct_replies: comment.direct_replies?.filter(
-                  reply => reply.hash !== tempId
-                ) || []
-              };
-            }
-            return comment;
-          })
-        );
-      }
+      // else {
+      //   setComments(prevComments =>
+      //     prevComments.map(comment => {
+      //       // Only update the parent comment
+      //       if (comment.hash === parentHash) {
+      //         return {
+      //           ...comment,
+      //           // Decrement reply count
+      //           replies: {
+      //             ...comment.replies,
+      //             count: Math.max(0, comment.replies.count - 1)
+      //           },
+      //           // Remove the temporary reply from direct_replies
+      //           direct_replies: comment.direct_replies?.filter(
+      //             reply => reply.hash !== tempId
+      //           ) || []
+      //         };
+      //       }
+      //       return comment;
+      //     })
+      //   );
+      // }
     }
   };
 
-  // Reset pagination and fetch initial comments when drawer is opened
   useEffect(() => {
     if (isOpen) {
-      // Use function form to avoid dependency on size
       setSize(1);
     }
   }, [isOpen, setSize]);
 
-  // Infinite scroll handler using Intersection Observer
   useEffect(() => {
     const container = scrollableContainerRef.current;
     if (!container) return;
@@ -298,24 +243,24 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     sentinel.id = "comments-sentinel";
     sentinel.style.height = "20px";
     sentinel.style.width = "100%";
-    
+
     // Configure intersection observer
     const observer = new IntersectionObserver(
       (entries) => {
         const isIntersecting = entries[0].isIntersecting;
         const canLoadMore = nextCursor && !loading && !isValidating;
-        
+
         if (isIntersecting && canLoadMore) {
           loadMoreComments();
         }
       },
       { root: container, threshold: 0.1, rootMargin: "150px" }
     );
-    
+
     // Add sentinel to container and observe it
     container.appendChild(sentinel);
     observer.observe(sentinel);
-    
+
     // Cleanup function
     return () => {
       observer.disconnect();
@@ -323,7 +268,6 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     };
   }, [nextCursor, loading, isValidating, loadMoreComments]);
 
-  // Render comment skeletons for loading state
   const renderSkeletons = (count = 4) => (
     <div className="space-y-5">
       {[...Array(count)].map((_, index) => (
@@ -332,12 +276,11 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     </div>
   );
 
-  // Render the main comment list
   const renderCommentList = () => {
     if (loading && comments.length === 0) {
       return renderSkeletons();
     }
-    
+
     if (!comments || comments.length === 0) {
       return (
         <div className="py-8 text-center">
@@ -345,19 +288,17 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         </div>
       );
     }
-    
+
     return (
       <div className="space-y-5 pb-4">
-        {/* Render all comments */}
-        {comments.map(comment => (
+        {comments.map((comment) => (
           <CommentItem
             comment={comment}
             key={comment.hash}
-            handleSelectComment={() => handleCommentSelect(comment)}
+            // handleSelectComment={() => handleCommentSelect(comment)}
           />
         ))}
-        
-        {/* Loading state for pagination */}
+
         {(loading || isValidating) && nextCursor && (
           <div className="space-y-5" id="comments-loading">
             {renderSkeletons()}
@@ -366,8 +307,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
       </div>
     );
   };
-  
-  // Render comment input with avatar
+
   const renderCommentInput = () => (
     <div className="p-4 flex items-center space-x-2">
       <Avatar
@@ -388,7 +328,8 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-            const isClickingSendButton = (e.relatedTarget as HTMLElement)?.id === "send-comment-button";
+            const isClickingSendButton =
+              (e.relatedTarget as HTMLElement)?.id === "send-comment-button";
             if (commentText.length === 0 && !isClickingSendButton) {
               setReplyingTo(null);
             }
@@ -398,10 +339,9 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
           <Button
             id="send-comment-button"
             variant="action"
-            onClick={() => postComment(
-              replyingTo ? replyingTo.hash : castHash,
-              commentText
-            )}
+            onClick={() =>
+              postComment(castHash, commentText)
+            }
             className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-sm w-7 h-7 font-bold p-0"
           >
             <ArrowUpIcon className="h-4 w-4" />
@@ -419,16 +359,14 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
           <DrawerHeader>
             <DrawerTitle>Comments</DrawerTitle>
           </DrawerHeader>
-          
-          {/* Scrollable comment area */}
+
           <div
             ref={scrollableContainerRef}
             className="p-4 overflow-y-auto flex-grow w-full"
           >
             {renderCommentList()}
           </div>
-          
-          {/* Comment input area */}
+
           {renderCommentInput()}
         </DrawerContent>
       </Drawer>
