@@ -43,9 +43,9 @@ export function useFeed({
 
   const fetchFeed = async (limit: number = initialLimit) => {
     // For production, should use the actual user FID
-    // const fid = context?.user.fid;
+    const fid = context?.user.fid;
     // For testing
-    const fid = 367782;
+    // const fid = 367782;
 
     setFetching(true);
     try {
