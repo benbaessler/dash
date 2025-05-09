@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useContext } from "react";
 import sdk, {
   type Context,
   type FrameNotificationDetails,
@@ -8,20 +8,41 @@ import sdk, {
 } from "@farcaster/frame-sdk";
 import { createStore } from "mipd";
 import React from "react";
-import { Loader2 } from "lucide-react";
 import { getCsrfToken } from "next-auth/react";
 import { isMobile } from "@/utils/isMobile";
+import useSWR, { SWRResponse } from "swr";
+import { User } from "@neynar/nodejs-sdk/build/api";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
   context: Context.FrameContext | undefined;
+  added: boolean;
+  notificationDetails: FrameNotificationDetails | null;
+  lastEvent: string;
+  addFrameResult: string;
+  sessionToken: string | null;
+  mobile: boolean;
+  signIn: () => Promise<void>;
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
+  user: User | undefined;
+  userError: Error | undefined;
+  userLoading: boolean;
 }
 
 const FrameContext = React.createContext<FrameContextType | undefined>(
   undefined
 );
 
-export function useFrame() {
+const fetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) {
+      throw new Error("An error occurred while fetching the data.");
+    }
+    return res.json();
+  });
+
+export function FrameProvider({ children }: { children: React.ReactNode }) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext>();
   const [added, setAdded] = useState(false);
@@ -29,10 +50,22 @@ export function useFrame() {
     useState<FrameNotificationDetails | null>(null);
   const [lastEvent, setLastEvent] = useState("");
   const [addFrameResult, setAddFrameResult] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [mobile, setMobile] = useState<boolean>(false);
-  const [fid, setFid] = useState<number | null>(null);
+
+  const fid = context?.user?.fid;
+
+  const {
+    data: user,
+    error: userError,
+    isLoading: userLoading,
+  }: SWRResponse<User> = useSWR(fid ? `/api/user/${fid}` : null, fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: true,
+    errorRetryCount: 3,
+  });
 
   const addFrame = useCallback(async () => {
     try {
@@ -81,7 +114,6 @@ export function useFrame() {
     if (!success) throw new Error("Failed to sign in");
 
     setSessionToken(token);
-    setFid(fid);
 
     console.log("Signed in", { fid, token });
   }, []);
@@ -104,41 +136,11 @@ export function useFrame() {
       setContext(context);
       setIsSDKLoaded(true);
 
-      // Set up event listeners
       sdk.on("frameAdded", ({ notificationDetails }) => {
         console.log("Frame added", notificationDetails);
         setAdded(true);
         setNotificationDetails(notificationDetails ?? null);
         setLastEvent("Frame added");
-      });
-
-      sdk.on("frameAddRejected", ({ reason }) => {
-        console.log("Frame add rejected", reason);
-        setAdded(false);
-        setLastEvent(`Frame add rejected: ${reason}`);
-      });
-
-      sdk.on("frameRemoved", () => {
-        console.log("Frame removed");
-        setAdded(false);
-        setLastEvent("Frame removed");
-      });
-
-      sdk.on("notificationsEnabled", ({ notificationDetails }) => {
-        console.log("Notifications enabled", notificationDetails);
-        setNotificationDetails(notificationDetails ?? null);
-        setLastEvent("Notifications enabled");
-      });
-
-      sdk.on("notificationsDisabled", () => {
-        console.log("Notifications disabled");
-        setNotificationDetails(null);
-        setLastEvent("Notifications disabled");
-      });
-
-      sdk.on("primaryButtonClicked", () => {
-        console.log("Primary button clicked");
-        setLastEvent("Primary button clicked");
       });
 
       // Call ready action
@@ -162,7 +164,7 @@ export function useFrame() {
     }
   }, [isSDKLoaded]);
 
-  return {
+  const values = {
     isSDKLoaded,
     context,
     added,
@@ -172,17 +174,24 @@ export function useFrame() {
     addFrameResult,
     sessionToken,
     fid,
+    user,
+    userError,
+    userLoading,
     mobile,
     signIn,
+    loading,
+    setLoading,
   };
-}
-
-export function FrameProvider({ children }: { children: React.ReactNode }) {
-  const { isSDKLoaded, context } = useFrame();
 
   return (
-    <FrameContext.Provider value={{ isSDKLoaded, context }}>
-      {children}
-    </FrameContext.Provider>
+    <FrameContext.Provider value={values}>{children}</FrameContext.Provider>
   );
+}
+
+export function useFrame() {
+  const context = useContext(FrameContext);
+  if (context === undefined) {
+    throw new Error("useFrame must be used within a FrameProvider");
+  }
+  return context;
 }

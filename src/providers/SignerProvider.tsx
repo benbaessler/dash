@@ -11,6 +11,8 @@ import { useFrame } from "@/providers/FrameProvider";
 interface SignerContextType {
   valid: boolean;
   signer: Signer | null;
+  showDialog: boolean;
+  setShowDialog: (show: boolean) => void;
   createSigner: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
@@ -26,15 +28,16 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [signer, setSigner] = useState<Signer | null>(null);
   const [valid, setValid] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [showDialog, setShowDialog] = useState<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout>();
 
-  const fid = context?.user.fid;
+  const fid = context?.user?.fid;
 
   useEffect(() => {
     if (!isSDKLoaded || !context) return;
 
     const checkSigner = async () => {
-      const response = await fetch(`/api/verify/signer/${fid}`);
+      const response = await fetch(`/api/verify/signer?fid=${fid}`);
       const { verified } = await response.json();
       setValid(verified);
     };
@@ -85,7 +88,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const storeUser = async (data: Signer) => {
     try {
-      const response = await fetch(`/api/verify/signer/${data.fid}`, {
+      const response = await fetch(`/api/verify/signer`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -115,6 +118,8 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     startPolling,
     stopPolling,
     loading,
+    showDialog,
+    setShowDialog,
   };
   return (
     <SignerContext.Provider value={signerValue}>

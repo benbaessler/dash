@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useInView } from "react-intersection-observer";
-import { Loader2 } from "lucide-react";
 
 interface VideoPlayerProps {
   post: Post;
@@ -77,11 +76,6 @@ export function VideoPlayer({ post, isActive, loading, shouldPreload = false }: 
       {paused && (
         <div className="absolute inset-0 flex items-center justify-center">
           <PlayIcon className="size-12 text-white opacity-70 cursor-pointer" />
-        </div>
-      )}
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-          <Loader2 className="animate-spin" />
         </div>
       )}
     </div>

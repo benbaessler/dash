@@ -11,20 +11,18 @@ import { useSigner } from "@/providers/SignerProvider";
 import { ArrowRightCircleIcon } from "@heroicons/react/24/solid";
 import { Button } from "@/components/ui/button";
 import sdk from "@farcaster/frame-sdk";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
 import { useFrame } from "@/providers/FrameProvider";
 interface SignerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  setLoading: (loading: boolean) => void;
 }
 
 export const ApproveSignerDialog = ({
   open,
   onOpenChange,
-  setLoading,
 }: SignerModalProps) => {
-  const { mobile } = useFrame();
+  const { mobile, setLoading } = useFrame();
   const { valid, signer, startPolling, stopPolling } = useSigner();
 
   const mobileUrl = useMemo(() => {
@@ -81,7 +79,7 @@ export const ApproveSignerDialog = ({
               />
             </Button>
             <div className="flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader className="w-4 h-4 animate-spin" />
               <p className="text-sm">Awaiting approval...</p>
             </div>
           </div>
