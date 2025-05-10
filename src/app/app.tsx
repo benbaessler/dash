@@ -1,15 +1,13 @@
 "use client";
-import { VideoPlayer } from "./components/video-player";
 import { ApproveSignerDialog } from "./components/approve-signer-dialog";
 import { useSigner } from "@/providers/SignerProvider";
-import { InteractionButtons } from "./components/interaction-buttons";
 import { Loading } from "./components/loading";
 import { AddFramePage } from "./components/add-frame";
 import { useFeed, usePost, useVideoNavigation } from "@/hooks";
-import { Caption } from "./components/caption";
 import { useFrame } from "@/providers/FrameProvider";
 import { Loader } from "lucide-react";
 import { createPortal } from "react-dom";
+import { Post } from "./components/post";
 
 export default function App() {
   const { loading } = useFrame();
@@ -48,40 +46,23 @@ export default function App() {
 
   // Render post component for each post
   const renderPostItem = (post: Post, index: number, isActive: boolean) => (
-    <div
+    <Post
       key={`post-${index}`}
-      className="h-screen w-screen snap-start snap-always relative"
-      onDoubleClick={(e) => {
-        if (!likedPosts.has(post.id)) {
-          handleInteraction(e, "like", post.id);
-        }
-      }}
-    >
-      <VideoPlayer
-        post={post}
-        isActive={isActive}
-        loading={loading}
-        shouldPreload={shouldPreloadVideo(index)}
-      />
-      <Caption
-        post={post}
-        expandedTexts={expandedTexts}
-        toggleExpandText={toggleExpandText}
-      />
-      <div className="absolute right-4 bottom-6">
-        <InteractionButtons
-          post={post}
-          liked={likedPosts.has(post.id)}
-          recasted={recastedPosts.has(post.id)}
-          handleInteraction={(e, type) => handleInteraction(e, type, post.id)}
-        />
-      </div>
-    </div>
+      data={post}
+      index={index}
+      isActive={isActive}
+      loading={loading}
+      shouldPreload={shouldPreloadVideo(index)}
+      liked={likedPosts.has(post.id)}
+      recasted={recastedPosts.has(post.id)}
+      expandedTexts={expandedTexts}
+      toggleExpandText={toggleExpandText}
+      handleInteraction={(e, type, id) => handleInteraction(e, type as "like" | "recast", id)}
+    />
   );
 
-  // Render share frame component
-  const renderShareFrame = () => (
-    <div key="share-frame" className="h-screen w-screen snap-start snap-always">
+  const renderPromotionPost = () => (
+    <div key="promotion-post" className="h-screen w-screen snap-start snap-always">
       <AddFramePage />
     </div>
   );
@@ -90,12 +71,10 @@ export default function App() {
   const feedWithShareFrame =
     feed && feed.length > 0
       ? feed.reduce<React.ReactNode[]>((acc, post, index) => {
-          // Insert ShareFrame at the configured position
           if (promotionPageIndex !== 0 && index === promotionPageIndex) {
-            acc.push(renderShareFrame());
+            acc.push(renderPromotionPost());
           }
 
-          // Add the post item
           acc.push(
             renderPostItem(
               post,
