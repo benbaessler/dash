@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
+import { isDevelopment } from "@/constants";
 
 interface UseFeedOptions {
   initialLimit?: number;
@@ -42,10 +43,7 @@ export function useFeed({
   };
 
   const fetchFeed = async (limit: number = initialLimit) => {
-    // For production, should use the actual user FID
-    const fid = context?.user.fid;
-    // For testing
-    // const fid = 367782;
+    const fid = isDevelopment ? 367782 : context?.user.fid;
 
     setFetching(true);
     try {
