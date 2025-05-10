@@ -6,6 +6,7 @@ import "@vidstack/react/player/styles/base.css";
 import { Providers } from "@/app/providers";
 import { DM_Sans } from "next/font/google";
 import { backgroundColor } from "@/constants";
+import { Analytics } from "@vercel/analytics/next";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -27,7 +28,10 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`bg-[${backgroundColor}]`}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
       </head>
       <body lang="en" className={`${dmSans.variable} bg-${backgroundColor}`}>
         <Providers session={session}>{children}</Providers>
