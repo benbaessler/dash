@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { MediaPlayer, MediaProvider } from "@vidstack/react";
+import { useEffect, useMemo, useState, ReactNode } from "react";
+import { MediaPlayer, MediaProvider, type MediaPlayerInstance } from "@vidstack/react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { useInView } from "react-intersection-observer";
 
@@ -9,9 +9,18 @@ interface VideoPlayerProps {
   isActive: boolean;
   loading: boolean;
   shouldPreload?: boolean; // Whether this video should be preloaded
+  onPlayerReady?: (player: MediaPlayerInstance) => void;
+  renderTimeSlider?: (player: MediaPlayerInstance) => ReactNode;
 }
 
-export function VideoPlayer({ post, isActive, loading, shouldPreload = false }: VideoPlayerProps) {
+export function VideoPlayer({
+  post,
+  isActive,
+  loading,
+  shouldPreload = false,
+  onPlayerReady,
+  renderTimeSlider,
+}: VideoPlayerProps) {
   const [ref, inView] = useInView({
     threshold: 0.1,
     triggerOnce: false,
@@ -19,6 +28,7 @@ export function VideoPlayer({ post, isActive, loading, shouldPreload = false }: 
   const [playTimeout, setPlayTimeout] = useState<NodeJS.Timeout | null>(null);
   const [paused, setPaused] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
+  const [player, setPlayer] = useState<MediaPlayerInstance | null>(null);
 
   const idle = useMemo(() => {
     return !inView || !isActive || loading;
@@ -50,6 +60,13 @@ export function VideoPlayer({ post, isActive, loading, shouldPreload = false }: 
     if (!inView) setPaused(false);
   }, [inView, paused]);
 
+  const handlePlayerReady = (media: MediaPlayerInstance) => {
+    setPlayer(media);
+    if (onPlayerReady) {
+      onPlayerReady(media);
+    }
+  };
+
   return (
     <div ref={ref} className="relative w-full h-full" onClick={handleClick}>
       {shouldLoad ? (
@@ -67,8 +84,10 @@ export function VideoPlayer({ post, isActive, loading, shouldPreload = false }: 
           onAutoPlayFail={() => setPaused(true)}
           fullscreenOrientation="none"
           autoFocus={false}
+          ref={handlePlayerReady}
         >
           <MediaProvider className="w-full h-full" />
+          {player && renderTimeSlider && renderTimeSlider(player)}
         </MediaPlayer>
       ) : (
         <div className="w-full h-full bg-black"></div>
