@@ -114,8 +114,6 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
     if (!success) throw new Error("Failed to sign in");
 
     setSessionToken(token);
-
-    console.log("Signed in", { fid, token });
   }, []);
 
   useEffect(() => {
@@ -137,25 +135,15 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
       setIsSDKLoaded(true);
 
       sdk.on("frameAdded", ({ notificationDetails }) => {
-        console.log("Frame added", notificationDetails);
         setAdded(true);
         setNotificationDetails(notificationDetails ?? null);
         setLastEvent("Frame added");
       });
 
-      // Call ready action
-      console.log("Calling ready");
       sdk.actions.ready({});
-
-      // Set up MIPD Store
-      const store = createStore();
-      store.subscribe((providerDetails) => {
-        console.log("PROVIDER DETAILS", providerDetails);
-      });
     };
 
     if (sdk && !isSDKLoaded) {
-      console.log("Calling load");
       setIsSDKLoaded(true);
       load();
       return () => {
