@@ -52,7 +52,13 @@ export function useFeed({
         throw new Error(`Failed to fetch feed: ${response.status}`);
       }
       const { data } = await response.json();
-      setFeed((prevFeed) => [...(prevFeed || []), ...data]);
+      setFeed((prevFeed) => {
+        const prevPosts = prevFeed || [];
+        const uniquePosts = data.filter(
+          (newPost: Post) => !prevPosts.some((existingPost: Post) => existingPost.id === newPost.id)
+        );
+        return [...prevPosts, ...uniquePosts];
+      });
     } catch (error) {
       console.error("Error fetching feed:", error);
     } finally {
