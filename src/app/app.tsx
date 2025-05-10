@@ -63,6 +63,11 @@ export default function App() {
         loading={loading}
         shouldPreload={shouldPreloadVideo(index)}
       />
+      <Caption
+        post={post}
+        expandedTexts={expandedTexts}
+        toggleExpandText={toggleExpandText}
+      />
       <div className="absolute right-4 bottom-6">
         <InteractionButtons
           post={post}
@@ -71,11 +76,6 @@ export default function App() {
           handleInteraction={(e, type) => handleInteraction(e, type, post.id)}
         />
       </div>
-      <Caption
-        post={post}
-        expandedTexts={expandedTexts}
-        toggleExpandText={toggleExpandText}
-      />
     </div>
   );
 

@@ -8,6 +8,7 @@ import { useSigner } from "@/providers/SignerProvider";
 import { FarcasterIcon } from "@/assets/icons";
 import { CommentSection } from "./comment-section";
 import { Avatar } from "./avatar";
+import { ReactNode } from "react";
 
 interface InteractionButtonsProps {
   post: Post;
@@ -15,6 +16,43 @@ interface InteractionButtonsProps {
   recasted: boolean;
   handleInteraction: (e: React.MouseEvent, type: "like" | "recast") => void;
 }
+
+interface InteractionButtonProps {
+  icon: ReactNode;
+  count?: number;
+  isActive?: boolean;
+  activeColor?: string;
+  isLoading: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+  wrapper?: (children: ReactNode) => ReactNode;
+}
+
+const InteractionButton = ({
+  icon,
+  count,
+  isActive = false,
+  activeColor = "",
+  isLoading,
+  onClick,
+  wrapper = (children) => children,
+}: InteractionButtonProps) => {
+  return wrapper(
+    <div
+      className={`flex cursor-pointer flex-col items-center text-sm font-medium hover:opacity-100 ${
+        isLoading ? "opacity-50" : isActive ? "opacity-100" : "opacity-90"
+      }`}
+    >
+      <div
+        className={`size-9 ${isActive ? `${activeColor} animate-heartbeat` : ""}`}
+        onClick={onClick}
+        onDoubleClick={(e) => e.stopPropagation()}
+      >
+        {icon}
+      </div>
+      {count && <span>{count}</span>}
+    </div>
+  );
+};
 
 export const InteractionButtons = ({
   post,
@@ -25,54 +63,50 @@ export const InteractionButtons = ({
   const { loading } = useSigner();
 
   return (
-    <div className="flex flex-col gap-5 items-center">
+    <div className="flex flex-col gap-5 items-center text-white drop-shadow-sm z-10">
       <Avatar
-        imageUrl={post.author.pfpUrl ?? ""}
+        imageUrl={post.author.pfpUrl ?? ""} 
         altText={post.author.displayName ?? ""}
         fid={post.author.fid}
         className="w-10 h-10"
       />
-      <div className="flex flex-col items-center text-slate-200">
-        <HeartIcon
-          className={`size-9 cursor-pointer hover:opacity-100 ${
-            loading ? "opacity-50" : liked ? "opacity-100" : "opacity-80"
-          } ${liked ? "text-red-500 animate-heartbeat" : ""}`}
-          onClick={(e) => handleInteraction(e, "like")}
-          onDoubleClick={(e) => e.stopPropagation()}
-        />
-        <span className="text-sm font-medium">{post.likeCount}</span>
-      </div>
-      <CommentSection castHash={post.id}>
-        <div className="flex flex-col items-center text-slate-200">
-          <ChatBubbleOvalLeftIcon
-            className={`size-9 cursor-pointer hover:opacity-100 ${
-              loading ? "opacity-50" : "opacity-80"
-            }`}
-            onDoubleClick={(e) => e.stopPropagation()}
-          />
-          <span className="text-sm font-medium">{post.commentCount}</span>
-        </div>
-      </CommentSection>
-      <div className="flex flex-col items-center text-slate-200">
-        <ArrowPathIcon
-          className={`size-9 cursor-pointer hover:opacity-100 ${
-            loading ? "opacity-50" : recasted ? "opacity-100" : "opacity-80"
-          } ${recasted ? "text-green-500 animate-heartbeat" : ""}`}
-          onClick={(e) => handleInteraction(e, "recast")}
-          onDoubleClick={(e) => e.stopPropagation()}
-        />
-        <span className="text-sm font-medium">{post.recastCount}</span>
-      </div>
-      <div
-        className="w-9 h-9 opacity-80 hover:opacity-100 cursor-pointer rounded-full"
+
+      <InteractionButton
+        icon={<HeartIcon className="size-9" />}
+        count={post.likeCount}
+        isActive={liked}
+        activeColor="text-red-500"
+        isLoading={loading}
+        onClick={(e) => handleInteraction(e, "like")}
+      />
+
+      <InteractionButton
+        icon={<ChatBubbleOvalLeftIcon className="size-9" />}
+        count={post.commentCount}
+        isLoading={loading}
+        wrapper={(children) => (
+          <CommentSection castHash={post.id}>{children}</CommentSection>
+        )}
+      />
+
+      <InteractionButton
+        icon={<ArrowPathIcon className="size-9" />}
+        count={post.recastCount}
+        isActive={recasted}
+        activeColor="text-green-500"
+        isLoading={loading}
+        onClick={(e) => handleInteraction(e, "recast")}
+      />
+
+      <InteractionButton
+        icon={<FarcasterIcon className="size-9" />}
+        isLoading={loading}
         onClick={() => {
           sdk.actions.openUrl(
             `https://warpcast.com/${post.author.username}/${post.id}`
           );
         }}
-      >
-        <FarcasterIcon className="size-9" />
-      </div>
+      />
     </div>
   );
 };

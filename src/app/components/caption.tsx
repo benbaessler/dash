@@ -15,17 +15,17 @@ interface CaptionProps {
 
 export function Caption({ post, expandedTexts, toggleExpandText }: CaptionProps) {
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-6 w-[calc(100%-3rem)] overflow-hidden">
+    <div className="absolute bottom-0 left-0 right-0 p-6 w-full pr-14 overflow-hidden bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-6 pt-12">
       <div className="flex flex-col">
         <div className="flex gap-2 items-center">
-          <span className="text-slate-200 font-semibold truncate">
+          <span className="text-white font-semibold truncate">
             {post.author.displayName}
           </span>
-          <span className="text-slate-200/80 text-sm">
+          <span className="text-white/80 text-sm">
             {formatTimeAgo(post.timestamp)}
           </span>
         </div>
-        <div className="text-slate-200/90 mt-1 flex items-end gap-1 w-full">
+        <div className="text-white/90 mt-1 flex items-end gap-1 w-full">
           <div
             className={`flex-1 break-words overflow-hidden ${
               !expandedTexts.has(post.id) ? "line-clamp-2" : ""
