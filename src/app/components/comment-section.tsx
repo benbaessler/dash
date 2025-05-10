@@ -16,6 +16,7 @@ import { usePost } from "@/hooks/usePost";
 import { appUrl } from "@/constants";
 import { CommentSkeleton } from "./skeleton-loader";
 import useSWRInfinite from "swr/infinite";
+import { Loader } from "lucide-react";
 
 interface CommentSectionProps {
   children: React.ReactNode;
@@ -36,6 +37,75 @@ const fetcher = async (url: string): Promise<CommentsResponse> => {
   }
   return response.json();
 };
+
+// Custom hook for debouncing functions
+function useDebounce<T extends (...args: any[]) => any>(
+  fn: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedFn = useCallback(
+    (...args: Parameters<T>) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        fn(...args);
+      }, delay);
+    },
+    [fn, delay]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return debouncedFn;
+}
+
+// Custom hook for infinite scroll
+function useInfiniteScroll(
+  scrollRef: React.RefObject<HTMLElement>,
+  callback: () => void,
+  options: {
+    threshold?: number;
+    loading?: boolean;
+    hasMore?: boolean;
+  } = {}
+) {
+  const { threshold = 0.8, loading = false, hasMore = false } = options;
+
+  const checkScrollPosition = useCallback(() => {
+    const container = scrollRef.current;
+    if (!container || loading || !hasMore) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+
+    if (scrollPercentage >= threshold) {
+      callback();
+    }
+  }, [scrollRef, callback, threshold, loading, hasMore]);
+
+  const debouncedCheck = useDebounce(checkScrollPosition, 200);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    container.addEventListener("scroll", debouncedCheck);
+
+    return () => {
+      container.removeEventListener("scroll", debouncedCheck);
+    };
+  }, [scrollRef, debouncedCheck]);
+}
 
 export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const [comments, setComments] = useState<CommentData[]>([]);
@@ -99,34 +169,30 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   //   inputRef.current?.focus();
   // };
 
-  // Update comments state when SWR data changes
   useEffect(() => {
     const allComments = pagesData
       ? pagesData.flatMap((page) => page.comments)
       : [];
 
     if (allComments.length > 0) {
-      // Find temporary comments that should be preserved
       const tempComments = comments.filter((c) => c.hash.startsWith("temp-"));
 
-      // Only add non-temporary comments from pagesData that don't already exist in comments
-      const existingHashes = new Set(comments.map((c) => c.hash));
-      const newNonTempComments = allComments.filter(
-        (c: CommentData) =>
-          !c.hash.startsWith("temp-") && !existingHashes.has(c.hash)
-      );
+      const existingComments = comments
+        .filter((c) => !c.hash.startsWith("temp-"))
+        .reduce((acc, comment) => {
+          acc.set(comment.hash, comment);
+          return acc;
+        }, new Map<string, CommentData>());
 
-      // Only update state if there are new comments to add
-      if (newNonTempComments.length > 0) {
-        setComments([
-          ...tempComments,
-          ...allComments.filter(
-            (c: CommentData) => !c.hash.startsWith("temp-")
-          ),
-        ]);
-      }
+      allComments.forEach((comment: CommentData) => {
+        if (!comment.hash.startsWith("temp-")) {
+          existingComments.set(comment.hash, comment);
+        }
+      });
+
+      setComments([...tempComments, ...Array.from(existingComments.values())]);
     }
-  }, [pagesData]); // Only depend on pagesData, not comments
+  }, [pagesData]);
 
   const loadMoreComments = useCallback(() => {
     const canLoadMore = nextCursor && !loading && !isValidating;
@@ -165,7 +231,6 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
 
     setComments((prevComments) => [newComment, ...prevComments]);
 
-    // Force immediate UI update with the new comment
     setTimeout(() => {
       scrollableContainerRef.current?.scrollTo({
         top: 0,
@@ -198,7 +263,6 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
       }
     } catch (error) {
       console.error("Error posting comment:", error);
-      // Handle error cleanup for top-level comments
       setComments((prevComments) =>
         prevComments.filter((c) => c.hash !== tempId)
       );
@@ -234,39 +298,12 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     }
   }, [isOpen, setSize]);
 
-  useEffect(() => {
-    const container = scrollableContainerRef.current;
-    if (!container) return;
-
-    // Create and observe a sentinel element for infinite scrolling
-    const sentinel = document.createElement("div");
-    sentinel.id = "comments-sentinel";
-    sentinel.style.height = "20px";
-    sentinel.style.width = "100%";
-
-    // Configure intersection observer
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const isIntersecting = entries[0].isIntersecting;
-        const canLoadMore = nextCursor && !loading && !isValidating;
-
-        if (isIntersecting && canLoadMore) {
-          loadMoreComments();
-        }
-      },
-      { root: container, threshold: 0.1, rootMargin: "150px" }
-    );
-
-    // Add sentinel to container and observe it
-    container.appendChild(sentinel);
-    observer.observe(sentinel);
-
-    // Cleanup function
-    return () => {
-      observer.disconnect();
-      container.removeChild(sentinel);
-    };
-  }, [nextCursor, loading, isValidating, loadMoreComments]);
+  // Use the custom infinite scroll hook
+  useInfiniteScroll(scrollableContainerRef, loadMoreComments, {
+    threshold: 0.8,
+    loading: loading || isValidating,
+    hasMore: !!nextCursor,
+  });
 
   const renderSkeletons = (count = 4) => (
     <div className="space-y-5">
@@ -290,7 +327,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     }
 
     return (
-      <div className="space-y-5 pb-4">
+      <div className="space-y-5">
         {comments.map((comment) => (
           <CommentItem
             comment={comment}
@@ -300,8 +337,8 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         ))}
 
         {(loading || isValidating) && nextCursor && (
-          <div className="space-y-5" id="comments-loading">
-            {renderSkeletons()}
+          <div className="flex justify-center items-center pt-6">
+            <Loader className="w-4 h-4 animate-spin" />
           </div>
         )}
       </div>
@@ -339,9 +376,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
           <Button
             id="send-comment-button"
             variant="action"
-            onClick={() =>
-              postComment(castHash, commentText)
-            }
+            onClick={() => postComment(castHash, commentText)}
             className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-sm w-7 h-7 font-bold p-0"
           >
             <ArrowUpIcon className="h-4 w-4" />
