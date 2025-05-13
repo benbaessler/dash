@@ -28,8 +28,11 @@ export function Feed({ initialPost }: FeedProps) {
   } = useFeed();
 
   // If initialPost is provided, combine it with feed
-  const combinedFeed = initialPost 
-    ? [initialPost, ...(feed?.filter(post => post.id !== initialPost.id) || [])]
+  const combinedFeed = initialPost
+    ? [
+        initialPost,
+        ...(feed?.filter((post) => post.id !== initialPost.id) || []),
+      ]
     : feed;
 
   const {
@@ -46,9 +49,10 @@ export function Feed({ initialPost }: FeedProps) {
   const { activeVideoIndex, handleScroll, shouldPreloadVideo } =
     useVideoNavigation({
       feedLength: combinedFeed?.length || 0,
-      promotionPageIndex: initialPost && promotionPageIndex > 0 
-        ? promotionPageIndex + 1
-        : promotionPageIndex,
+      promotionPageIndex:
+        initialPost && promotionPageIndex > 0
+          ? promotionPageIndex + 1
+          : promotionPageIndex,
       getPostIndex,
       fetchMoreContent: fetchFeed,
       fetching,
@@ -65,16 +69,21 @@ export function Feed({ initialPost }: FeedProps) {
       isActive={isActive}
       loading={loading}
       shouldPreload={shouldPreloadVideo(index)}
-      liked={likedPosts.has(post.id)}
-      recasted={recastedPosts.has(post.id)}
+      liked={post.viewerContext?.liked ?? likedPosts.has(post.id)}
+      recasted={post.viewerContext?.recasted ?? recastedPosts.has(post.id)}
       expandedTexts={expandedTexts}
       toggleExpandText={toggleExpandText}
-      handleInteraction={(e, type, id) => handleInteraction(e, type as "like" | "recast", id)}
+      handleInteraction={(e, type, id) =>
+        handleInteraction(e, type as "like" | "recast", id)
+      }
     />
   );
 
   const renderPromotionPost = () => (
-    <div key="promotion-post" className="h-screen w-screen snap-start snap-always">
+    <div
+      key="promotion-post"
+      className="h-screen w-screen snap-start snap-always"
+    >
       <AddFramePage />
     </div>
   );
@@ -83,11 +92,15 @@ export function Feed({ initialPost }: FeedProps) {
     combinedFeed && combinedFeed.length > 0
       ? combinedFeed.reduce<React.ReactNode[]>((acc, post, index) => {
           // Adjust promotion index if we have an initial post
-          const adjustedPromotionIndex = initialPost && promotionPageIndex > 0
-            ? promotionPageIndex + 1
-            : promotionPageIndex;
-            
-          if (adjustedPromotionIndex !== 0 && index === adjustedPromotionIndex) {
+          const adjustedPromotionIndex =
+            initialPost && promotionPageIndex > 0
+              ? promotionPageIndex + 1
+              : promotionPageIndex;
+
+          if (
+            adjustedPromotionIndex !== 0 &&
+            index === adjustedPromotionIndex
+          ) {
             acc.push(renderPromotionPost());
           }
 
