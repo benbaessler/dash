@@ -12,6 +12,10 @@ interface Post {
     username: string;
     pfpUrl: string;
   };
+  viewerContext?: {
+    liked: boolean;
+    recasted: boolean;
+  };
 }
 
 interface CommentData {
