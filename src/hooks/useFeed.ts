@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import { isDevelopment } from "@/constants";
 
@@ -19,7 +19,11 @@ interface UseFeedResult {
   prepareFeedWithShareFrame: (
     feed: Post[] | null,
     activeVideoIndex: number,
-    renderItem: (post: Post, index: number, isActive: boolean) => React.ReactNode,
+    renderItem: (
+      post: Post,
+      index: number,
+      isActive: boolean
+    ) => React.ReactNode,
     renderShareFrame: () => React.ReactNode
   ) => React.ReactNode[];
 }
@@ -31,10 +35,11 @@ export function useFeed({
   const { isSDKLoaded, context } = useFrame();
   const [feed, setFeed] = useState<Post[] | null>(null);
   const [fetching, setFetching] = useState(false);
-  
+
   // Share frame position in the feed (0-based index)
-  const promotionPageIndex = 
-    Number(process.env.NEXT_PUBLIC_PROMOTION_PAGE_INDEX) || defaultPromotionPageIndex;
+  const promotionPageIndex =
+    Number(process.env.NEXT_PUBLIC_PROMOTION_PAGE_INDEX) ||
+    defaultPromotionPageIndex;
 
   // Map to track the real index of posts with ShareFrame inserted
   const getPostIndex = (virtualIndex: number): number => {
@@ -42,39 +47,49 @@ export function useFeed({
     return virtualIndex > promotionPageIndex ? virtualIndex - 1 : virtualIndex;
   };
 
-  const fetchFeed = async (limit: number = initialLimit) => {
-    const fid = isDevelopment ? 367782 : context?.user.fid;
+  const fetchFeed = useCallback(
+    async (limit: number = initialLimit) => {
+      const fid = isDevelopment ? 367782 : context?.user.fid;
 
-    setFetching(true);
-    try {
-      const response = await fetch(`/api/feed/${fid}?limit=${limit}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch feed: ${response.status}`);
+      setFetching(true);
+      try {
+        const response = await fetch(`/api/feed/${fid}?limit=${limit}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch feed: ${response.status}`);
+        }
+        const { data } = await response.json();
+        setFeed((prevFeed) => {
+          const prevPosts = prevFeed || [];
+          const uniquePosts = data.filter(
+            (newPost: Post) =>
+              !prevPosts.some(
+                (existingPost: Post) => existingPost.id === newPost.id
+              )
+          );
+          return [...prevPosts, ...uniquePosts];
+        });
+      } catch (error) {
+        console.error("Error fetching feed:", error);
+      } finally {
+        setFetching(false);
       }
-      const { data } = await response.json();
-      setFeed((prevFeed) => {
-        const prevPosts = prevFeed || [];
-        const uniquePosts = data.filter(
-          (newPost: Post) => !prevPosts.some((existingPost: Post) => existingPost.id === newPost.id)
-        );
-        return [...prevPosts, ...uniquePosts];
-      });
-    } catch (error) {
-      console.error("Error fetching feed:", error);
-    } finally {
-      setFetching(false);
-    }
-  };
+    },
+    [initialLimit, context, setFetching, setFeed]
+  );
 
   // Prepare feed items with ShareFrame inserted
   const prepareFeedWithShareFrame = (
     feed: Post[] | null,
     activeVideoIndex: number,
-    renderItem: (post: Post, index: number, isActive: boolean) => React.ReactNode,
+    renderItem: (
+      post: Post,
+      index: number,
+      isActive: boolean
+    ) => React.ReactNode,
     renderShareFrame: () => React.ReactNode
   ): React.ReactNode[] => {
     const feedWithShareFrame: React.ReactNode[] = [];
-    
+
     if (!feed) return feedWithShareFrame;
 
     feed.forEach((post, index) => {
