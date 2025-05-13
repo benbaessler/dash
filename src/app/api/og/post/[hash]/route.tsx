@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import { Box, HStack, VStack, Text, Image } from "@/app/api/og/ui";
 import { loadGoogleFont } from "@/app/api/og/methods";
 import { appUrl } from "@/constants";
+import { truncateText } from "@/utils/truncate";
 
 export const runtime = "nodejs";
 
@@ -43,8 +44,8 @@ export async function GET(
         flexDirection="row"
       >
         <VStack display="flex" flex="1 0">
-          <Box padding="20">
-            <Image src={`${appUrl}/logo.png`} width="52" height="52" />
+          <Box padding="32">
+            <Image src={`${appUrl}/icons/dash.png`} width="22" height="22" />
           </Box>
           <Box
             display="flex"
@@ -53,28 +54,28 @@ export async function GET(
             justifyContent="center"
             padding="32"
           >
-            <Text size="24" wrap overflow="ellipsis">
-              {cast.text}
+            <Text size="24" overflow="ellipsis" wrap="balance">
+              {truncateText(cast.text, 100)}
             </Text>
           </Box>
-          <HStack gap="10" display="flex" alignItems="center" padding="32">
+          <HStack gap="10" display="flex" flexDirection="row" alignItems="center" padding="32">
             <Image
               src={cast.author.pfp_url ?? ""}
-              width="40"
-              height="40"
+              width="46"
+              height="46"
               borderRadius="256"
             />
             <VStack>
-              <Text size="20" weight="700">
-                {cast.author.display_name}
+              <Text size="20" weight="700" overflow="ellipsis">
+                {truncateText(cast.author.display_name ?? "", 20)}
               </Text>
-              <Text size="18">@{cast.author.username}</Text>
+              <Text size="18">@{truncateText(cast.author.username ?? "", 25)}</Text>
             </VStack>
           </HStack>
         </VStack>
         <Box display="flex" flex="1 0" backgroundColor="videoBg" grow>
           <Image
-            // TODO: Replace with dynamic thumbnail
+            // TODO: Replace with dynamic thumbnail - consider leaving out if it's too big
             src="https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/f0600888-36e4-4728-3ed5-4f4dd07b9200/original"
             objectFit="contain"
             height="100%"
