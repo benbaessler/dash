@@ -31,7 +31,9 @@ export const Share = ({ children, post }: ShareProps) => {
   // Fetch users based on the search query
   const searchKey =
     search.trim().length > 0 && context?.user?.fid
-      ? `/api/search/users?query=${encodeURIComponent(search)}&viewerFid=${context.user.fid}`
+      ? `/api/search/users?query=${encodeURIComponent(search)}&viewerFid=${
+          context.user.fid
+        }`
       : null;
 
   const { data: searchResults, isLoading: isSearching } = useSWR<User[]>(
@@ -58,6 +60,25 @@ export const Share = ({ children, post }: ShareProps) => {
     }
     return [];
   }, [searchResults, friends, search]);
+
+  const trackShare = async (recipientFid: string) => {
+    if (!context?.user?.fid) return;
+
+    try {
+      await fetch("/api/shares/track", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          senderFid: context.user.fid,
+          recipientFid,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to track share:", error);
+    }
+  };
 
   return (
     <div onDoubleClick={(e) => e.stopPropagation()}>
@@ -112,15 +133,16 @@ export const Share = ({ children, post }: ShareProps) => {
                       size="sm"
                       variant="secondaryAction"
                       className="gap-2"
-                      onClick={() =>
+                      onClick={() => {
+                        trackShare(user.fid.toString());
                         sdk.actions.openUrl(
                           `https://warpcast.com/~/inbox/create/${
                             user.fid
                           }?text=${encodeURIComponent(
                             `Check out this video by @${post.author.username} on Dash!\n\n${appUrl}/share/${post.id}`
                           )}`
-                        )
-                      }
+                        );
+                      }}
                     >
                       Send
                     </Button>
@@ -131,12 +153,12 @@ export const Share = ({ children, post }: ShareProps) => {
               <Button
                 variant="action"
                 className="w-full text-md [&_svg]:!size-5 gap-2"
-                onClick={() => {
+                onClick={() =>
                   sdk.actions.composeCast({
                     text: `Check out this video by @${post.author.username} on Dash!`,
                     embeds: [`${appUrl}/share/${post.id}`],
-                  });
-                }}
+                  })
+                }
               >
                 <FarcasterIcon className="w-5 h-5" />
                 Share on Farcaster

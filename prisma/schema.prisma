@@ -20,5 +20,21 @@ model User {
   expiresAt DateTime
   signerUuid String
   publicKey String
+  shared Share[] @relation("shared")
+
+  @@index([fid])
+}
+
+model Share {
+  id Int @id @default(autoincrement())
+  senderFid String
+  recipientFid String
+  count Int @default(1)
+  
+  sender User @relation("shared", fields: [senderFid], references: [fid])
+
+  @@unique([senderFid, recipientFid])
+  @@index([senderFid])
+  @@index([recipientFid])
 }
 
