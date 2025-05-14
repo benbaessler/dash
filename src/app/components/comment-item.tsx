@@ -1,6 +1,6 @@
 import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
-import { formatTimeAgo } from "@/utils/formatTimeAgo";
+import { formatTimeAgo } from "@/utils/formatTime";
 import { useState, useEffect } from "react";
 import { Avatar } from "./avatar";
 import { usePost } from "@/hooks/usePost";

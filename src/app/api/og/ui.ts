@@ -18,8 +18,9 @@ export const {
 } = createSystem({
   colors: {
     background: '#000000',
-    videoBg: "#262626",
+    secondaryBg: "#2C2C2C",
     text: '#FFFFFF',
+    textSecondary: '#9C9C9C',
   },
   fonts: {
     default: [

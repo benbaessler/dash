@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         version: "next",
         imageUrl: `${appUrl}/api/og/post/${hash}`,
         button: {
-          title: "Watch ▶️",
+          title: "Watch 📲",
           action: {
             type: "launch_frame",
             name: "Dash",
