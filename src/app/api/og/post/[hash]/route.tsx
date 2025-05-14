@@ -40,7 +40,10 @@ export async function GET(
         width="100%"
         backgroundColor="background"
         display="flex"
-        padding="32"
+        paddingLeft="32"
+        paddingRight="32"
+        paddingTop="24"
+        paddingBottom="24"
       >
         <Box width="100%" alignItems="center">
           <Image src={`${appUrl}/icons/dash.png`} width="24" height="24" />
