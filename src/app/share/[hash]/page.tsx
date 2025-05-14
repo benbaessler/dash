@@ -28,9 +28,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `Video by @${cast.author.username}`,
     openGraph: {
-      title: `Video by ${cast.author.username}`,
+      title: `Video by @${cast.author.username}`,
       images: [`${appUrl}/api/og/post/${hash}`],
-      description: `Watch a video by ${cast.author.username} on Dash`,
+      description: `Watch a video by @${cast.author.username} on Dash`,
     },
     metadataBase: new URL(appUrl || ""),
     other: {
