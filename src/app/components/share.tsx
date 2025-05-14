@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import sdk from "@farcaster/frame-sdk";
 import { appUrl } from "@/constants";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import useSWR from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api/models/user";
 import { useFrame } from "@/providers/FrameProvider";
+import { Loader } from "lucide-react";
+import { Avatar } from "./avatar";
 
 interface ShareProps {
   children: React.ReactNode;
@@ -20,28 +22,50 @@ export const Share = ({ children, post }: ShareProps) => {
   const [search, setSearch] = useState("");
   const { context } = useFrame();
 
-  const { data: friends, isLoading } = useSWR<User[]>(
+  const { data: friends, isLoading: isFriendsLoading } = useSWR<User[]>(
     context?.user?.fid ? `/api/friends/${context.user.fid}` : null,
-    (url: string) => fetch(url).then((res) => res.json())
+    (url: string) => fetch(url).then((res) => res.json()),
+    { revalidateOnFocus: false, revalidateOnReconnect: false }
   );
 
-  // Filter friends according to search query
-  const filteredFriends = friends?.filter((friend) => {
-    if (!search) return true;
-    const query = search.toLowerCase();
-    return (
-      friend.username.toLowerCase().includes(query) ||
-      (friend.display_name?.toLowerCase().includes(query) ?? false)
-    );
-  });
+  // Fetch users based on the search query
+  const searchKey =
+    search.trim().length > 0 && context?.user?.fid
+      ? `/api/search/users?query=${encodeURIComponent(search)}&viewerFid=${context.user.fid}`
+      : null;
+
+  const { data: searchResults, isLoading: isSearching } = useSWR<User[]>(
+    searchKey,
+    (url: string) => fetch(url).then((res) => res.json()),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      keepPreviousData: true,
+    }
+  );
+
+  const isLoading = useMemo(() => {
+    return isFriendsLoading || isSearching;
+  }, [isFriendsLoading, isSearching]);
+
+  const users = useMemo(() => {
+    if (search.trim().length === 0) {
+      return friends;
+    } else if (searchResults && searchResults.length > 0) {
+      return searchResults;
+    } else if (friends && friends.length > 0) {
+      return friends;
+    }
+    return [];
+  }, [searchResults, friends, search]);
 
   return (
     <div onDoubleClick={(e) => e.stopPropagation()}>
       <Drawer open={isOpen} onOpenChange={setIsOpen}>
         <DrawerTrigger asChild>{children}</DrawerTrigger>
         <DrawerContent className="h-[50vh] w-full flex flex-col pb-4 px-4">
-          <div className="flex flex-col w-full h-full gap-4 overflow-hidden">
-            <div className="relative">
+          <div className="flex flex-col w-full h-full overflow-hidden">
+            <div className="relative mb-4">
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
               <Input
                 value={search}
@@ -51,36 +75,37 @@ export const Share = ({ children, post }: ShareProps) => {
                 className="w-full rounded pl-9"
               />
             </div>
-            <div className="flex-1 overflow-y-auto max-h-[calc(70vh-180px)]">
+            <div className="flex-1 overflow-y-auto min-h-0">
               {isLoading && (
+                <div className="flex justify-center items-center px-2 py-4">
+                  <Loader className="w-5 h-5 text-muted-foreground animate-spin" />
+                </div>
+              )}
+              {!isLoading && (!users || users.length === 0) && (
                 <p className="text-sm text-muted-foreground px-2 py-4">
-                  Loading…
+                  {search.trim().length > 0
+                    ? "No users found"
+                    : "Search users to send"}
                 </p>
               )}
-              {!isLoading &&
-                (!filteredFriends || filteredFriends.length === 0) && (
-                  <p className="text-sm text-muted-foreground px-2 py-4">
-                    No friends found
-                  </p>
-                )}
 
               {!isLoading &&
-                filteredFriends?.map((friend) => (
+                users?.map((user) => (
                   <div
-                    key={friend.fid}
+                    key={user.fid}
                     className="flex items-center justify-between py-2 px-1 gap-3 hover:bg-accent/40 rounded-md"
                   >
-                    <img
-                      src={friend.pfp_url ?? "https://placehold.co/40"}
-                      alt={friend.username}
-                      className="w-9 h-9 rounded-full object-cover"
+                    <Avatar
+                      imageUrl={user.pfp_url ?? ""}
+                      altText={user.username}
+                      fid={user.fid}
                     />
                     <div className="flex flex-col flex-1 min-w-0">
                       <span className="text-sm font-semibold truncate">
-                        {friend.display_name || friend.username}
+                        {user.display_name || user.username}
                       </span>
                       <span className="text-xs text-muted-foreground truncate">
-                        @{friend.username}
+                        @{user.username}
                       </span>
                     </div>
                     <Button
@@ -90,7 +115,7 @@ export const Share = ({ children, post }: ShareProps) => {
                       onClick={() =>
                         sdk.actions.openUrl(
                           `https://warpcast.com/~/inbox/create/${
-                            friend.fid
+                            user.fid
                           }?text=${encodeURIComponent(
                             `Check out this video by @${post.author.username} on Dash!\n\n${appUrl}/share/${post.id}`
                           )}`
@@ -102,7 +127,7 @@ export const Share = ({ children, post }: ShareProps) => {
                   </div>
                 ))}
             </div>
-            <div className="w-full sticky bottom-0 bg-background pb-2">
+            <div className="w-full mt-4 bg-background">
               <Button
                 variant="action"
                 className="w-full text-md [&_svg]:!size-5 gap-2"
