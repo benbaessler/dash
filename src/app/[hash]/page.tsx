@@ -38,7 +38,7 @@ export default function Video() {
     }
   }, [hash, context, getPost]);
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading text={loading && "Loading video"} />;
 
   return loading ? <Loading /> : <Feed initialPost={post} />;
 }
