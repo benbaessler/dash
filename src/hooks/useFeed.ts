@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import { isDevelopment } from "@/constants";
+import useSWR from "swr";
 
 interface UseFeedOptions {
   initialLimit?: number;
@@ -28,6 +29,15 @@ interface UseFeedResult {
   ) => React.ReactNode[];
 }
 
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch feed: ${response.status}`);
+  }
+  const result = await response.json();
+  return result.data;
+};
+
 export function useFeed({
   initialLimit = 15,
   defaultPromotionPageIndex = 10,
@@ -47,9 +57,25 @@ export function useFeed({
     return virtualIndex > promotionPageIndex ? virtualIndex - 1 : virtualIndex;
   };
 
+  const fid = isDevelopment ? 367782 : context?.user.fid;
+
+  const { data, isValidating } = useSWR(
+    fid && isSDKLoaded ? `/api/feed/${fid}?limit=${initialLimit}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  useEffect(() => {
+    if (data && !feed) {
+      setFeed(data);
+    }
+  }, [data, feed]);
+
   const fetchFeed = useCallback(
     async (limit: number = initialLimit) => {
-      const fid = isDevelopment ? 367782 : context?.user.fid;
+      if (!fid) return;
 
       setFetching(true);
       try {
@@ -74,7 +100,7 @@ export function useFeed({
         setFetching(false);
       }
     },
-    [initialLimit, context, setFetching, setFeed]
+    [initialLimit, fid, setFetching, setFeed]
   );
 
   // Prepare feed items with ShareFrame inserted
@@ -107,16 +133,10 @@ export function useFeed({
     return feedWithShareFrame;
   };
 
-  useEffect(() => {
-    if (isSDKLoaded && context?.user.fid) {
-      fetchFeed();
-    }
-  }, [isSDKLoaded, context]);
-
   return {
     feed,
     setFeed,
-    fetching,
+    fetching: fetching || isValidating,
     fetchFeed,
     getPostIndex,
     promotionPageIndex,
