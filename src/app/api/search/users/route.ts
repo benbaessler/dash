@@ -27,7 +27,9 @@ export async function GET(request: Request) {
       viewerFid: Number(viewerFid),
     });
 
-    return NextResponse.json(response.result.users);
+    return NextResponse.json(
+      response.result.users.filter((user) => user.fid !== Number(viewerFid))
+    );
   } catch (error) {
     console.error("Error searching users:", error);
     return NextResponse.json(
