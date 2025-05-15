@@ -1,7 +1,13 @@
 import { FarcasterIcon } from "@/assets/icons";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerContent,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import sdk from "@farcaster/frame-sdk";
 import { appUrl } from "@/constants";
 import { useMemo, useState } from "react";
@@ -41,6 +47,7 @@ export const Share = ({ children, post }: ShareProps) => {
     (url: string) => fetch(url).then((res) => res.json()),
     {
       revalidateOnFocus: false,
+      revalidateOnMount: true,
       revalidateOnReconnect: false,
       keepPreviousData: true,
     }
@@ -71,7 +78,7 @@ export const Share = ({ children, post }: ShareProps) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          senderFid: context.user.fid,
+          senderFid: context.user.fid.toString(),
           recipientFid,
         }),
       });
@@ -84,7 +91,10 @@ export const Share = ({ children, post }: ShareProps) => {
     <div onDoubleClick={(e) => e.stopPropagation()}>
       <Drawer open={isOpen} onOpenChange={setIsOpen}>
         <DrawerTrigger asChild>{children}</DrawerTrigger>
-        <DrawerContent className="h-[50vh] w-full flex flex-col pb-4 px-4">
+        <DrawerContent className="h-[55vh] w-full flex flex-col pb-4 px-4">
+          <DrawerHeader>
+            <DrawerTitle>Share video</DrawerTitle>
+          </DrawerHeader>
           <div className="flex flex-col w-full h-full overflow-hidden">
             <div className="relative mb-4">
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
@@ -149,7 +159,7 @@ export const Share = ({ children, post }: ShareProps) => {
                   </div>
                 ))}
             </div>
-            <div className="w-full mt-4 bg-background">
+            <div className="w-full my-4 bg-background">
               <Button
                 variant="action"
                 className="w-full text-md [&_svg]:!size-5 gap-2"

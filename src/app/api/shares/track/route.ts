@@ -11,22 +11,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const sender = await prisma.user.findUnique({
-      where: { fid: senderFid },
-    });
-
-    if (!sender) {
-      return NextResponse.json(
-        { 
-          error: "Sender user not found in database", 
-          details: "The sender user must be registered before sharing. Please contact support." 
-        }, 
-        { status: 404 }
-      );
-    }
     
-    // Since we have a valid sender, we can proceed with the share
     try {
       const share = await prisma.share.upsert({
         where: {
@@ -41,15 +26,16 @@ export async function POST(req: NextRequest) {
           recipientFid,
         },
       });
-  
+
       return NextResponse.json({ success: true, share });
     } catch (error) {
       console.error("Error creating share:", error);
       return NextResponse.json(
-        { 
-          error: "Failed to create share", 
-          details: "There might be an issue with the recipient FID or database constraints."
-        }, 
+        {
+          error: "Failed to create share",
+          details:
+            "There might be an issue with the recipient FID or database constraints.",
+        },
         { status: 500 }
       );
     }

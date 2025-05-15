@@ -25,7 +25,6 @@ export async function GET(request: Request) {
     const response = await neynar.searchUser({
       q: query.trim(),
       viewerFid: Number(viewerFid),
-      limit: 20,
     });
 
     return NextResponse.json(response.result.users);
