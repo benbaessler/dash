@@ -1,4 +1,4 @@
-import { formatTimeAgo } from "@/utils/formatTimeAgo";
+import { formatTimeAgo } from "@/utils/formatTime";
 
 interface CaptionProps {
   post: {

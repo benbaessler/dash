@@ -2,13 +2,13 @@ import {
   ArrowPathIcon,
   HeartIcon,
   ChatBubbleOvalLeftIcon,
+  ArrowUpTrayIcon,
 } from "@heroicons/react/24/solid";
-import sdk from "@farcaster/frame-sdk";
 import { useSigner } from "@/providers/SignerProvider";
-import { FarcasterIcon } from "@/assets/icons";
 import { CommentSection } from "./comment-section";
 import { Avatar } from "./avatar";
 import { ReactNode } from "react";
+import { Share } from "./share";
 
 interface InteractionButtonsProps {
   post: Post;
@@ -43,7 +43,9 @@ const InteractionButton = ({
       }`}
     >
       <div
-        className={`size-9 ${isActive ? `${activeColor} animate-heartbeat` : ""}`}
+        className={`size-9 mx-auto ${
+          isActive ? `${activeColor} animate-heartbeat` : ""
+        }`}
         onClick={onClick}
         onDoubleClick={(e) => e.stopPropagation()}
       >
@@ -65,14 +67,14 @@ export const InteractionButtons = ({
   return (
     <div className="flex flex-col gap-5 items-center text-white drop-shadow-sm z-10">
       <Avatar
-        imageUrl={post.author.pfpUrl ?? ""} 
+        imageUrl={post.author.pfpUrl ?? ""}
         altText={post.author.displayName ?? ""}
         fid={post.author.fid}
         className="w-10 h-10"
       />
 
       <InteractionButton
-        icon={<HeartIcon className="size-9" />}
+        icon={<HeartIcon />}
         count={post.likeCount}
         isActive={liked}
         activeColor="text-red-500"
@@ -81,16 +83,7 @@ export const InteractionButtons = ({
       />
 
       <InteractionButton
-        icon={<ChatBubbleOvalLeftIcon className="size-9" />}
-        count={post.commentCount}
-        isLoading={loading}
-        wrapper={(children) => (
-          <CommentSection castHash={post.id}>{children}</CommentSection>
-        )}
-      />
-
-      <InteractionButton
-        icon={<ArrowPathIcon className="size-9" />}
+        icon={<ArrowPathIcon />}
         count={post.recastCount}
         isActive={recasted}
         activeColor="text-green-500"
@@ -99,13 +92,20 @@ export const InteractionButtons = ({
       />
 
       <InteractionButton
-        icon={<FarcasterIcon className="size-9" />}
+        icon={<ChatBubbleOvalLeftIcon />}
+        count={post.commentCount}
         isLoading={loading}
-        onClick={() => {
-          sdk.actions.openUrl(
-            `https://warpcast.com/${post.author.username}/${post.id}`
-          );
-        }}
+        wrapper={(children) => (
+          <CommentSection castHash={post.id}>{children}</CommentSection>
+        )}
+      />
+
+      <InteractionButton
+        icon={<ArrowUpTrayIcon />}
+        isLoading={loading}
+        wrapper={(children) => (
+          <Share post={post}>{children}</Share>
+        )}
       />
     </div>
   );

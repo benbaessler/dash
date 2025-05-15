@@ -1,20 +1,6 @@
-import { useEffect, useState } from "react";
 import Image from "next/image";
 
-export function Loading() {
-  const [loadingDots, setLoadingDots] = useState("");
-
-  useEffect(() => {
-    const dotsInterval = setInterval(() => {
-      setLoadingDots((prev) => {
-        if (prev.length >= 3) return "";
-        return prev + ".";
-      });
-    }, 300);
-
-    return () => clearInterval(dotsInterval);
-  }, []);
-
+export function Loading({ text }: { text?: string }) {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black">
       <div className="flex flex-col items-center -mt-[55px]">
@@ -25,8 +11,8 @@ export function Loading() {
           height={85} 
           className="animate-pulse"
         />
-        <div className="mt-2 text-gray-400 text-sm w-[232px] text-center whitespace-nowrap">
-          Creating a personalized feed for you{loadingDots}
+        <div className="mt-2 text-gray-400 text-sm text-center whitespace-nowrap">
+          {text || "Building a feed for you"}
         </div>
       </div>
     </div>

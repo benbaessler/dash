@@ -1,11 +1,15 @@
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
+import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
 
 const apiKey = process.env.NEYNAR_API_KEY;
 if (!apiKey) {
   throw new Error("NEYNAR_API_KEY not configured");
 }
 
-export const neynar: NeynarAPIClient = new NeynarAPIClient({ apiKey });
+const config = new Configuration({
+  apiKey,
+});
+
+export const neynar = new NeynarAPIClient(config);
 
 type SendFrameNotificationResult =
   | {

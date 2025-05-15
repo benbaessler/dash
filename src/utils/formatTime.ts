@@ -44,3 +44,11 @@ export const formatTimeAgo = (unixTimestamp: number): string => {
     return `${years}y ago`;
   }
 };
+
+export const formatDuration = (duration: number): string => {
+  const minutes = Math.floor(duration / 60);
+  const seconds = Math.floor(duration % 60);  
+  const formattedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`;
+  
+  return `${minutes}:${formattedSeconds}`;
+}

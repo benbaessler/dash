@@ -32,7 +32,7 @@ export const Avatar = ({
         className={`rounded-full object-cover ${fid ? "cursor-pointer" : ""} ${
           isImageLoading ? "opacity-0" : "opacity-100"
         }`}
-        onLoadingComplete={() => setIsImageLoading(false)}
+        onLoad={() => setIsImageLoading(false)}
         onClick={
           fid
             ? (e: React.MouseEvent<HTMLImageElement>) => {

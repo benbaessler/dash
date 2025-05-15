@@ -7,6 +7,7 @@ import { Providers } from "@/app/providers";
 import { DM_Sans } from "next/font/google";
 import { backgroundColor } from "@/constants";
 import { Analytics } from "@vercel/analytics/next";
+import { Toaster } from "@/components/ui/toaster";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -35,6 +36,8 @@ export default async function RootLayout({
       </head>
       <body lang="en" className={`${dmSans.variable} bg-${backgroundColor}`}>
         <Providers session={session}>{children}</Providers>
+        <Analytics />
+        <Toaster />
       </body>
     </html>
   );

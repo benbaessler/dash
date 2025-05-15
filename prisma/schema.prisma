@@ -20,5 +20,18 @@ model User {
   expiresAt DateTime
   signerUuid String
   publicKey String
+
+  @@index([fid])
+}
+
+model Share {
+  id Int @id @default(autoincrement())
+  senderFid String
+  recipientFid String
+  updatedAt DateTime @updatedAt
+
+  @@unique([senderFid, recipientFid])
+  @@index([senderFid])
+  @@index([recipientFid])
 }
 
