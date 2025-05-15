@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,50 +7,56 @@ export async function POST(req: NextRequest) {
 
     if (!senderFid || !recipientFid) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
     const sender = await prisma.user.findUnique({
-      where: { fid: senderFid }
+      where: { fid: senderFid },
     });
 
-    const recipient = await prisma.user.findUnique({
-      where: { fid: recipientFid }
-    });
-
-    if (!sender || !recipient) {
+    if (!sender) {
       return NextResponse.json(
-        { error: 'One or both users not found' },
+        { 
+          error: "Sender user not found in database", 
+          details: "The sender user must be registered before sharing. Please contact support." 
+        }, 
         { status: 404 }
       );
     }
-
-    const share = await prisma.share.upsert({
-      where: {
-        senderFid_recipientFid: {
+    
+    // Since we have a valid sender, we can proceed with the share
+    try {
+      const share = await prisma.share.upsert({
+        where: {
+          senderFid_recipientFid: {
+            senderFid,
+            recipientFid,
+          },
+        },
+        update: {},
+        create: {
           senderFid,
-          recipientFid
-        }
-      },
-      update: {
-        count: {
-          increment: 1
-        }
-      },
-      create: {
-        senderFid,
-        recipientFid,
-        count: 1
-      }
-    });
-
-    return NextResponse.json({ success: true, share });
+          recipientFid,
+        },
+      });
+  
+      return NextResponse.json({ success: true, share });
+    } catch (error) {
+      console.error("Error creating share:", error);
+      return NextResponse.json(
+        { 
+          error: "Failed to create share", 
+          details: "There might be an issue with the recipient FID or database constraints."
+        }, 
+        { status: 500 }
+      );
+    }
   } catch (error) {
-    console.error('Error tracking share:', error);
+    console.error("Error tracking share:", error);
     return NextResponse.json(
-      { error: 'Failed to track share' },
+      { error: "Failed to track share" },
       { status: 500 }
     );
   }
