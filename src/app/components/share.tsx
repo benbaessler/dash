@@ -93,7 +93,7 @@ export const Share = ({ children, post }: ShareProps) => {
         <DrawerTrigger asChild>{children}</DrawerTrigger>
         <DrawerContent className="h-[55vh] w-full flex flex-col pb-4 px-4">
           <DrawerHeader>
-            <DrawerTitle>Share video</DrawerTitle>
+            <DrawerTitle>Share Dash</DrawerTitle>
           </DrawerHeader>
           <div className="flex flex-col w-full h-full overflow-hidden">
             <div className="relative mb-4">
@@ -140,7 +140,7 @@ export const Share = ({ children, post }: ShareProps) => {
                           `https://warpcast.com/~/inbox/create/${
                             user.fid
                           }?text=${encodeURIComponent(
-                            `Check out this video by @${post.author.username} on Dash!\n\n${appUrl}/share/${post.id}`
+                            `Check out this Dash by @${post.author.username}!\n\n${appUrl}/share/${post.id}`
                           )}`
                         );
                       }}
@@ -157,7 +157,7 @@ export const Share = ({ children, post }: ShareProps) => {
                 className="w-full text-md [&_svg]:!size-5 gap-2"
                 onClick={() =>
                   sdk.actions.composeCast({
-                    text: `Check out this video by @${post.author.username} on Dash!`,
+                    text: `Check out this Dash by @${post.author.username}!`,
                     embeds: [`${appUrl}/share/${post.id}`],
                   })
                 }
