@@ -107,20 +107,11 @@ export const Share = ({ children, post }: ShareProps) => {
               />
             </div>
             <div className="flex-1 overflow-y-auto min-h-0">
-              {isLoading && (
+              {isLoading ? (
                 <div className="flex justify-center items-center px-2 py-4">
                   <Loader className="w-5 h-5 text-muted-foreground animate-spin" />
                 </div>
-              )}
-              {!isLoading && (!users || users.length === 0) && (
-                <p className="text-sm text-muted-foreground px-2 py-4">
-                  {search.trim().length > 0
-                    ? "No users found"
-                    : "Search users to send"}
-                </p>
-              )}
-
-              {!isLoading &&
+              ) : (
                 users?.map((user) => (
                   <div
                     key={user.fid}
@@ -157,7 +148,8 @@ export const Share = ({ children, post }: ShareProps) => {
                       Send
                     </Button>
                   </div>
-                ))}
+                ))
+              )}
             </div>
             <div className="w-full my-4 bg-background">
               <Button
