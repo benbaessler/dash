@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import prisma from "@/lib/prisma";
-
+import { Share } from "@/generated/prisma";
+import { User } from "@neynar/nodejs-sdk/build/api/models/user";
 export async function GET(
   request: NextRequest,
   {
@@ -28,21 +29,23 @@ export async function GET(
     take: 15,
   });
 
-  const [{ users: friends }, { users: following }] = await Promise.all([
-    neynar.fetchBulkUsers({
-      fids: shares.map((share: any) => share.recipientFid),
-    }),
-    neynar.fetchUserFollowing({
-      fid: Number(fid),
-      sortType: "algorithmic",
-      limit: 15,
-    }),
-  ]);
+  let users: User[] = [];
+  if (shares.length > 0) {
+    const { users: friends } = await neynar.fetchBulkUsers({
+      fids: shares.map((share: Share) => Number(share.recipientFid)),
+    });
+    users = friends;
+  }
 
-  const users = [...friends, ...following.map((user) => user.user!)]
-    .filter((user, index, self) => 
-      index === self.findIndex((u) => u.fid === user.fid)
-    );
+  const { users: following } = await neynar.fetchUserFollowing({
+    fid: Number(fid),
+    sortType: "algorithmic",
+    limit: 15,
+  });
+
+  users = [...users, ...following.map((user) => user.user!)].filter(
+    (user, index, self) => index === self.findIndex((u) => u.fid === user.fid)
+  );
 
   try {
     return NextResponse.json(users);
