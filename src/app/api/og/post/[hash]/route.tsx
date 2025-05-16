@@ -54,7 +54,7 @@ export async function GET(
           textAlign="center"
         >
           <Text size="24" overflow="ellipsis" wrap="balance">
-            {truncateText(cast.text, 250)}
+            {truncateText(cast.text, 200)}
           </Text>
         </Box>
         <HStack
