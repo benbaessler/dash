@@ -5,9 +5,10 @@ import { setUserNotificationDetails } from "@/lib/kv";
 import { sendFrameNotification } from "@/lib/notifs";
 import { sendNeynarFrameNotification } from "@/lib/neynar";
 
+// Using passthrough to avoid excessive type checking on the notificationDetails object
 const requestSchema = z.object({
   fid: z.number(),
-  notificationDetails: notificationDetailsSchema,
+  notificationDetails: z.any(),
 });
 
 export async function POST(request: NextRequest) {
@@ -21,6 +22,15 @@ export async function POST(request: NextRequest) {
   if (requestBody.success === false) {
     return Response.json(
       { success: false, errors: requestBody.error.errors },
+      { status: 400 }
+    );
+  }
+
+  // Validate the notification details separately to avoid deep type instantiation
+  const notificationDetailsResult = notificationDetailsSchema.safeParse(requestBody.data.notificationDetails);
+  if (!notificationDetailsResult.success) {
+    return Response.json(
+      { success: false, errors: notificationDetailsResult.error.errors },
       { status: 400 }
     );
   }
