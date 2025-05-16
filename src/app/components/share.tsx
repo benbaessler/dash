@@ -93,7 +93,7 @@ export const Share = ({ children, post }: ShareProps) => {
         <DrawerTrigger asChild>{children}</DrawerTrigger>
         <DrawerContent className="h-[55vh] w-full flex flex-col pb-4 px-4">
           <DrawerHeader>
-            <DrawerTitle>Share Dash</DrawerTitle>
+            <DrawerTitle>Share</DrawerTitle>
           </DrawerHeader>
           <div className="flex flex-col w-full h-full overflow-hidden">
             <div className="relative mb-4">
