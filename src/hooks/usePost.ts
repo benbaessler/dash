@@ -91,16 +91,25 @@ export function usePost({
 
     // Update feed directly in the App component by finding the post and updating it
     if (feed && feed.length > 0) {
-      const updatedPost = feed.find((post) => post.id === postId);
-      if (updatedPost) {
+      // Update the post in the feed array
+      const feedPost = feed.find((post) => post.id === postId);
+      if (feedPost) {
         if (type === "like") {
-          updatedPost.likeCount = isLiked
-            ? updatedPost.likeCount - 1
-            : updatedPost.likeCount + 1;
+          feedPost.likeCount = isLiked
+            ? feedPost.likeCount - 1
+            : feedPost.likeCount + 1;
+          // Update viewerContext to reflect the change
+          if (feedPost.viewerContext) {
+            feedPost.viewerContext.liked = !isLiked;
+          }
         } else {
-          updatedPost.recastCount = isRecasted
-            ? updatedPost.recastCount - 1
-            : updatedPost.recastCount + 1;
+          feedPost.recastCount = isRecasted
+            ? feedPost.recastCount - 1
+            : feedPost.recastCount + 1;
+          // Update viewerContext to reflect the change
+          if (feedPost.viewerContext) {
+            feedPost.viewerContext.recasted = !isRecasted;
+          }
         }
         // Force re-render by creating a new array
         const updatedFeed = [...feed];
@@ -149,16 +158,24 @@ export function usePost({
 
       // Revert feed updates on error
       if (feed && feed.length > 0) {
-        const updatedPost = feed.find((post) => post.id === postId);
-        if (updatedPost) {
+        const feedPost = feed.find((post) => post.id === postId);
+        if (feedPost) {
           if (type === "like") {
-            updatedPost.likeCount = isLiked
-              ? updatedPost.likeCount + 1
-              : updatedPost.likeCount - 1;
+            feedPost.likeCount = isLiked
+              ? feedPost.likeCount + 1
+              : feedPost.likeCount - 1;
+            // Revert viewerContext changes
+            if (feedPost.viewerContext) {
+              feedPost.viewerContext.liked = isLiked;
+            }
           } else {
-            updatedPost.recastCount = isRecasted
-              ? updatedPost.recastCount + 1
-              : updatedPost.recastCount - 1;
+            feedPost.recastCount = isRecasted
+              ? feedPost.recastCount + 1
+              : feedPost.recastCount - 1;
+            // Revert viewerContext changes
+            if (feedPost.viewerContext) {
+              feedPost.viewerContext.recasted = isRecasted;
+            }
           }
           // Force re-render by creating a new array
           const updatedFeed = [...feed];

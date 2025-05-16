@@ -67,8 +67,8 @@ export const Post = ({
       <div className="absolute right-4 bottom-14">
         <InteractionButtons
           post={data}
-          liked={liked}
-          recasted={recasted}
+          liked={data.viewerContext?.liked ?? liked}
+          recasted={data.viewerContext?.recasted ?? recasted}
           handleInteraction={(e, type) => handleInteraction(e, type, data.id)}
         />
       </div>
