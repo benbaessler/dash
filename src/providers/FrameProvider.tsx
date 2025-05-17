@@ -6,7 +6,6 @@ import sdk, {
   type FrameNotificationDetails,
   AddFrame,
 } from "@farcaster/frame-sdk";
-import { createStore } from "mipd";
 import React from "react";
 import { getCsrfToken } from "next-auth/react";
 import { isMobile } from "@/utils/isMobile";
@@ -109,7 +108,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
       }),
     });
 
-    const { success, fid, token } = await response.json();
+    const { success, token } = await response.json();
 
     if (!success) throw new Error("Failed to sign in");
 
@@ -134,10 +133,28 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
       setContext(context);
       setIsSDKLoaded(true);
 
-      sdk.on("frameAdded", ({ notificationDetails }) => {
+      sdk.on("frameAdded", async ({ notificationDetails }) => {
         setAdded(true);
         setNotificationDetails(notificationDetails ?? null);
-        setLastEvent("Frame added");
+
+        if (context.user?.fid) {
+          try {
+            const response = await fetch("/api/onboarding", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ fid: context.user.fid }),
+            });
+            
+            const result = await response.json();
+            console.log(result);
+            
+            setLastEvent("Frame added");
+          } catch (error) {
+            console.error("Onboarding failed:", error);
+          }
+        }
       });
 
       sdk.actions.ready({});
