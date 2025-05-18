@@ -139,16 +139,11 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
 
         if (context.user?.fid) {
           try {
-            const response = await fetch("/api/onboarding", {
+            await fetch("/api/onboarding", {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
               body: JSON.stringify({ fid: context.user.fid }),
             });
             
-            const result = await response.json();
-            console.log(result);
             
             setLastEvent("Frame added");
           } catch (error) {
