@@ -1,5 +1,7 @@
 export const appUrl = process.env.NEXT_PUBLIC_URL;
 
+export const appDomain = process.env.NEXT_PUBLIC_DOMAIN;
+
 export const authUrl = process.env.AUTH_URL;
 export const authSecret = process.env.AUTH_SECRET;
 
