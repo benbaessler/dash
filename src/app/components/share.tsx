@@ -17,6 +17,7 @@ import { User } from "@neynar/nodejs-sdk/build/api/models/user";
 import { useFrame } from "@/providers/FrameProvider";
 import { Loader } from "lucide-react";
 import { Avatar } from "./avatar";
+import { usePlausible } from "next-plausible";
 
 interface ShareProps {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ export const Share = ({ children, post }: ShareProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const { context } = useFrame();
+  const plausible = usePlausible();
 
   const { data: friends, isLoading: isFriendsLoading } = useSWR<User[]>(
     context?.user?.fid ? `/api/friends/${context.user.fid}` : null,
@@ -81,6 +83,14 @@ export const Share = ({ children, post }: ShareProps) => {
           senderFid: context.user.fid.toString(),
           recipientFid,
         }),
+      });
+
+      await plausible("Share", {
+        props: {
+          senderFid: context.user.fid.toString(),
+          recipientFid,
+          castHash: post.id,
+        },
       });
     } catch (error) {
       console.error("Failed to track share:", error);
