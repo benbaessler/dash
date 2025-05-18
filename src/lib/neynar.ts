@@ -1,3 +1,4 @@
+import { appUrl, devSignerUuid } from "@/constants";
 import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
 
 const apiKey = process.env.NEYNAR_API_KEY;
@@ -20,21 +21,38 @@ type SendFrameNotificationResult =
   | { state: "rate_limit" }
   | { state: "success" };
 
+export const inviteToChannel = async ({ fid }: { fid: number }) => {
+  if (!devSignerUuid) {
+    throw new Error("DEV_SIGNER_UUID not configured");
+  }
+
+  const result = await neynar.inviteChannelMember({
+    signerUuid: devSignerUuid,
+    channelId: "dash",
+    fid,
+    role: "member",
+  });
+
+  return result;
+};
+
 export async function sendNeynarFrameNotification({
   fid,
   title,
   body,
+  targetUrl,
 }: {
   fid: number;
   title: string;
   body: string;
+  targetUrl?: string;
 }): Promise<SendFrameNotificationResult> {
   try {
     const targetFids = [fid];
     const notification = {
       title,
       body,
-      target_url: process.env.NEXT_PUBLIC_URL!,
+      target_url: targetUrl ?? appUrl!,
     };
 
     const result = await neynar.publishFrameNotifications({
