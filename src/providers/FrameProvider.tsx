@@ -11,6 +11,7 @@ import { getCsrfToken } from "next-auth/react";
 import { isMobile } from "@/utils/isMobile";
 import useSWR, { SWRResponse } from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
+import { onboardUser } from "@/utils/onboarding";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
@@ -137,19 +138,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
         setAdded(true);
         setNotificationDetails(notificationDetails ?? null);
 
-        if (context.user?.fid) {
-          try {
-            await fetch("/api/onboarding", {
-              method: "POST",
-              body: JSON.stringify({ fid: context.user.fid }),
-            });
-            
-            
-            setLastEvent("Frame added");
-          } catch (error) {
-            console.error("Onboarding failed:", error);
-          }
-        }
+        if (context.user?.fid) await onboardUser(context.user.fid);
       });
 
       sdk.actions.ready({});

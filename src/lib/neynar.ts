@@ -1,4 +1,4 @@
-import { devSignerUuid } from "@/constants";
+import { appUrl, devSignerUuid } from "@/constants";
 import { NeynarAPIClient, Configuration } from "@neynar/nodejs-sdk";
 
 const apiKey = process.env.NEYNAR_API_KEY;
@@ -52,7 +52,7 @@ export async function sendNeynarFrameNotification({
     const notification = {
       title,
       body,
-      target_url: targetUrl || process.env.NEXT_PUBLIC_URL!,
+      target_url: targetUrl ?? appUrl!,
     };
 
     const result = await neynar.publishFrameNotifications({
