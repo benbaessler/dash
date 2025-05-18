@@ -1,20 +1,14 @@
 import { NextResponse } from "next/server";
 import { inviteToChannel, sendNeynarFrameNotification } from "@/lib/neynar";
+import { verifyToken } from "@/utils/auth";
 
 export async function POST(request: Request) {
   try {
-    const { fid } = await request.json();
-
-    // Verify FID is provided
-    if (!fid) {
-      return NextResponse.json(
-        { error: "Missing required FID parameter" },
-        { status: 400 }
-      );
-    }
+    const authHeader = request.headers.get("Authorization");
+    const { fid } = (await verifyToken(authHeader)) as { fid: number };
 
     try {
-      await inviteToChannel({ fid: Number(fid) });
+      await inviteToChannel({ fid });
     } catch {}
 
     await sendNeynarFrameNotification({
