@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import { useSigner } from "@/providers/SignerProvider";
+import { usePlausible } from "next-plausible";
 
 interface UsePostOptions {
   feed?: Post[] | null;
@@ -23,21 +24,25 @@ interface UsePostResult {
   isTextExpanded: (postId: string) => boolean;
 }
 
-export function usePost({
-  feed,
-  setFeed,
-}: UsePostOptions = {}): UsePostResult {
-  const { sessionToken, signIn, setLoading } = useFrame();
-  const { valid, loading: authLoading, signer, createSigner, setShowDialog } = useSigner();
+export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
+  const { sessionToken, signIn, setLoading, context } = useFrame();
+  const {
+    valid,
+    loading: authLoading,
+    signer,
+    createSigner,
+    setShowDialog,
+  } = useSigner();
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [recastedPosts, setRecastedPosts] = useState<Set<string>>(new Set());
   const [expandedTexts, setExpandedTexts] = useState<Set<string>>(new Set());
+  const plausible = usePlausible();
 
   const checkAuth = async () => {
     if (!sessionToken) {
       try {
         await signIn();
-        return false; 
+        return false;
       } catch (error) {
         console.error("Failed to sign in", error);
         return false;
@@ -138,6 +143,14 @@ export function usePost({
       if (!response.ok) {
         throw new Error("Failed to update reaction");
       }
+
+      plausible("Reacted", {
+        props: {
+          senderFid: context?.user?.fid.toString(),
+          castHash: postId,
+          type,
+        },
+      });
     } catch (error) {
       // Revert optimistic update on error
       if (type === "like") {

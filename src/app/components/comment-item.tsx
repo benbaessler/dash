@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Avatar } from "./avatar";
 import { usePost } from "@/hooks/usePost";
 import { useFrame } from "@/providers/FrameProvider";
+import { usePlausible } from "next-plausible";
 import { ClickableText } from "./text";
 
 export const CommentItem = ({
@@ -20,8 +21,9 @@ export const CommentItem = ({
   const [isTextTruncated, setIsTextTruncated] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
   const { checkAuth } = usePost();
-  const { sessionToken } = useFrame();
-  
+  const { sessionToken, context } = useFrame();
+  const plausible = usePlausible();
+
   useEffect(() => {
     if (comment.isExpanded) {
       setIsTextExpanded(true);
@@ -38,18 +40,18 @@ export const CommentItem = ({
 
     checkIfTruncated();
     // Check again after images might have loaded
-    window.addEventListener('load', checkIfTruncated);
-    window.addEventListener('resize', checkIfTruncated);
+    window.addEventListener("load", checkIfTruncated);
+    window.addEventListener("resize", checkIfTruncated);
 
     return () => {
-      window.removeEventListener('load', checkIfTruncated);
-      window.removeEventListener('resize', checkIfTruncated);
+      window.removeEventListener("load", checkIfTruncated);
+      window.removeEventListener("resize", checkIfTruncated);
     };
   }, [comment.text]);
 
   const likeComment = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    
+
     const authorized = await checkAuth();
     if (!authorized) return;
 
@@ -80,6 +82,13 @@ export const CommentItem = ({
       if (!response.ok) {
         throw new Error("Failed to update reaction");
       }
+
+      plausible("LikedComment", {
+        props: {
+          senderFid: context?.user?.fid.toString(),
+          castHash: comment.hash,
+        },
+      });
     } catch (error) {
       // Revert optimistic update on error
       setIsLiked(!isLiked);
@@ -94,7 +103,10 @@ export const CommentItem = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full" onDoubleClick={handleDoubleClick}>
+    <div
+      className="flex flex-col gap-2 w-full"
+      onDoubleClick={handleDoubleClick}
+    >
       <div className="flex justify-between w-full">
         <div className="flex gap-3 min-w-0">
           <Avatar
@@ -127,7 +139,7 @@ export const CommentItem = ({
               <ClickableText text={comment.text} />
             </div>
             {isTextTruncated && (
-              <div 
+              <div
                 className="opacity-60 hover:opacity-80 text-sm font-medium mt-1 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();

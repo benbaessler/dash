@@ -17,6 +17,7 @@ import { appUrl } from "@/constants";
 import { CommentSkeleton } from "./skeleton-loader";
 import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
+import { usePlausible } from "next-plausible";
 
 interface CommentSectionProps {
   children: React.ReactNode;
@@ -116,6 +117,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { user, sessionToken } = useFrame();
   const { checkAuth } = usePost();
+  const plausible = usePlausible();
 
   const getKey = (
     pageIndex: number,
@@ -261,6 +263,13 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         }
         throw new Error(`Failed to post comment: ${errorDetails}`);
       }
+
+      plausible("Commented", {
+        props: {
+          senderFid: user?.fid.toString(),
+          castHash,
+        },
+      });
     } catch (error) {
       console.error("Error posting comment:", error);
       setComments((prevComments) =>
