@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { usePlausible } from "next-plausible";
 
 export const CommentItem = ({
   comment,
@@ -27,7 +28,8 @@ export const CommentItem = ({
     comment.isExpanded ? `replies-${comment.hash}` : undefined
   );
   const { checkAuth } = usePost();
-  const { sessionToken } = useFrame();
+  const { sessionToken, context } = useFrame();
+  const plausible = usePlausible();
   
   useEffect(() => {
     if (comment.isExpanded) {
@@ -68,6 +70,13 @@ export const CommentItem = ({
       if (!response.ok) {
         throw new Error("Failed to update reaction");
       }
+
+      plausible("LikedComment", {
+        props: {
+          senderFid: context?.user?.fid.toString(),
+          castHash: comment.hash,
+        },
+      });
     } catch (error) {
       // Revert optimistic update on error
       setIsLiked(!isLiked);

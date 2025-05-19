@@ -85,7 +85,7 @@ export const Share = ({ children, post }: ShareProps) => {
         }),
       });
 
-      await plausible("Share", {
+      await plausible("Sent", {
         props: {
           senderFid: context.user.fid.toString(),
           recipientFid,
@@ -165,12 +165,22 @@ export const Share = ({ children, post }: ShareProps) => {
               <Button
                 variant="action"
                 className="w-full text-md [&_svg]:!size-5 gap-2"
-                onClick={() =>
-                  sdk.actions.composeCast({
+                onClick={async () => {
+                  const result = await sdk.actions.composeCast({
                     text: `Check out this video by @${post.author.username} on Dash!`,
                     embeds: [`${appUrl}/share/${post.id}`],
-                  })
-                }
+                  });
+
+                  if (result && result.cast) {
+                    plausible("Sent", {
+                      props: {
+                        senderFid: context?.user?.fid.toString(),
+                        recipientFid: "*",
+                        castHash: result.cast.hash,
+                      },
+                    });
+                  }
+                }}
               >
                 <FarcasterIcon className="w-5 h-5" />
                 Share on Farcaster

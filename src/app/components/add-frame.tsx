@@ -6,8 +6,9 @@ import sdk from "@farcaster/frame-sdk";
 import { useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { useFrame } from "@/providers/FrameProvider";
-
+import { usePlausible } from "next-plausible";
 export function AddFramePage() {
+  const plausible = usePlausible();
   const { context } = useFrame();
   const added = useMemo(() => context?.client.added, [context]);
   const [ref, inView] = useInView({
@@ -51,12 +52,21 @@ export function AddFramePage() {
       <Button
         variant="action"
         className="w-full text-md [&_svg]:!size-5 gap-2"
-        onClick={() =>
-          sdk.actions.composeCast({
+        onClick={async () => {
+          const result = await sdk.actions.composeCast({
             text: "Scroll your feed TikTok-style on Dash! ⚡️",
             embeds: [appUrl!],
-          })
-        }
+          });
+
+          if (result && result.cast) {
+            plausible("AppShared", {
+              props: {
+                senderFid: context?.user?.fid.toString(),
+                castHash: result.cast.hash,
+              },
+            });
+          }
+        }}
       >
         <FarcasterIcon />
         Share to support
