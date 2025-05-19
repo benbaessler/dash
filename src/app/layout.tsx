@@ -4,14 +4,14 @@ import { getSession } from "@/auth";
 import "@/app/globals.css";
 import "@vidstack/react/player/styles/base.css";
 import { Providers } from "@/app/providers";
-import { DM_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import { backgroundColor } from "@/constants";
 import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "@/components/ui/toaster";
 
-const dmSans = DM_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-dm-sans",
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -34,7 +34,7 @@ export default async function RootLayout({
           content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
         />
       </head>
-      <body lang="en" className={`${dmSans.variable} bg-${backgroundColor}`}>
+      <body lang="en" className={`${inter.variable} bg-${backgroundColor}`}>
         <Providers session={session}>{children}</Providers>
         <Analytics />
         <Toaster />

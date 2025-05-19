@@ -116,14 +116,14 @@ export async function GET(
       height: 800,
       fonts: [
         {
-          name: "DM Sans",
-          data: await loadGoogleFont("DM Sans", 400),
+          name: "Inter",
+          data: await loadGoogleFont("Inter", 400),
           style: "normal",
           weight: 400,
         },
         {
-          name: "DM Sans",
-          data: await loadGoogleFont("DM Sans", 700),
+          name: "Inter",
+          data: await loadGoogleFont("Inter", 700),
           style: "normal",
           weight: 700,
         },
