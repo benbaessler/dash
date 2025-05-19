@@ -134,11 +134,11 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
       setContext(context);
       setIsSDKLoaded(true);
 
-      sdk.on("notificationsEnabled", async ({ notificationDetails }) => {
+      sdk.on("frameAdded", async ({ notificationDetails }) => {
         setAdded(true);
         setNotificationDetails(notificationDetails ?? null);
 
-        if (context.user?.fid) await onboardUser(context.user.fid);
+        await onboardUser(context.user.fid);
       });
 
       sdk.actions.ready({});

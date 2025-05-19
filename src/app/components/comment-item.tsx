@@ -1,22 +1,16 @@
 import { HeartIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
 import { formatTimeAgo } from "@/utils/formatTime";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Avatar } from "./avatar";
 import { usePost } from "@/hooks/usePost";
 import { useFrame } from "@/providers/FrameProvider";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { usePlausible } from "next-plausible";
+import { ClickableText } from "./text";
 
 export const CommentItem = ({
   comment,
   isReplyItem = false,
-  handleSelectComment,
 }: {
   comment: CommentData;
   isReplyItem?: boolean;
@@ -24,22 +18,40 @@ export const CommentItem = ({
 }) => {
   const [isTextExpanded, setIsTextExpanded] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  const [accordionValue, setAccordionValue] = useState<string | undefined>(
-    comment.isExpanded ? `replies-${comment.hash}` : undefined
-  );
+  const [isTextTruncated, setIsTextTruncated] = useState(false);
+  const textRef = useRef<HTMLDivElement>(null);
   const { checkAuth } = usePost();
   const { sessionToken, context } = useFrame();
   const plausible = usePlausible();
-  
+
   useEffect(() => {
     if (comment.isExpanded) {
-      setAccordionValue(`replies-${comment.hash}`);
+      setIsTextExpanded(true);
     }
-  }, [comment.isExpanded, comment.hash]);
+  }, [comment.isExpanded]);
+
+  useEffect(() => {
+    const checkIfTruncated = () => {
+      if (textRef.current) {
+        const { scrollHeight, clientHeight } = textRef.current;
+        setIsTextTruncated(scrollHeight > clientHeight);
+      }
+    };
+
+    checkIfTruncated();
+    // Check again after images might have loaded
+    window.addEventListener("load", checkIfTruncated);
+    window.addEventListener("resize", checkIfTruncated);
+
+    return () => {
+      window.removeEventListener("load", checkIfTruncated);
+      window.removeEventListener("resize", checkIfTruncated);
+    };
+  }, [comment.text]);
 
   const likeComment = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    
+
     const authorized = await checkAuth();
     if (!authorized) return;
 
@@ -91,7 +103,10 @@ export const CommentItem = ({
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full" onDoubleClick={handleDoubleClick}>
+    <div
+      className="flex flex-col gap-2 w-full"
+      onDoubleClick={handleDoubleClick}
+    >
       <div className="flex justify-between w-full">
         <div className="flex gap-3 min-w-0">
           <Avatar
@@ -111,7 +126,8 @@ export const CommentItem = ({
                 )}
               </span>
             </div>
-            <p
+            <div
+              ref={textRef}
               className={`text-base w-full break-words ${
                 !isTextExpanded ? "line-clamp-3" : ""
               } cursor-pointer`}
@@ -120,8 +136,19 @@ export const CommentItem = ({
                 setIsTextExpanded(!isTextExpanded);
               }}
             >
-              {comment.text}
-            </p>
+              <ClickableText text={comment.text} />
+            </div>
+            {isTextTruncated && (
+              <div
+                className="opacity-60 hover:opacity-80 text-sm font-medium mt-1 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsTextExpanded(!isTextExpanded);
+                }}
+              >
+                {isTextExpanded ? "Show less" : "Show more"}
+              </div>
+            )}
             <div className="flex items-center gap-3 mt-2">
               <div
                 className="flex items-center gap-1 text-gray-400 hover:text-gray-300 cursor-pointer"

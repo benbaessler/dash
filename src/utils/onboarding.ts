@@ -7,7 +7,9 @@ import { inviteToChannel } from "@/lib/neynar";
 export const onboardUser = async (fid: number) => {
   try {
     await inviteToChannel({ fid });
-  } catch {}
+  } catch (error) {
+    console.log("Error inviting to channel", error);
+  }
 
   try {
     await sendNeynarFrameNotification({

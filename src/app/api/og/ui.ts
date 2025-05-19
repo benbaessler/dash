@@ -25,12 +25,12 @@ export const {
   fonts: {
     default: [
       {
-        name: 'DM Sans',
+        name: 'Inter',
         source: 'google',
         weight: 400,
       },
       {
-        name: 'DM Sans Bold',
+        name: 'Inter Bold',
         source: 'google',
         weight: 700,
       },
