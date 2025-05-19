@@ -42,9 +42,9 @@ export async function GET(
         display="flex"
         padding="24"
       >
-        <Box width="100%" alignItems="center">
+        {/* <Box width="100%" alignItems="center">
           <Image src={`${appUrl}/icons/dash.png`} width="24" height="24" />
-        </Box>
+        </Box> */}
         <Box
           display="flex"
           width="100%"
