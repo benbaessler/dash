@@ -138,6 +138,7 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
       screenshotUrls: [
         `${appUrl}/screenshots/1.png`,
         `${appUrl}/screenshots/2.png`,
+        `${appUrl}/screenshots/3.png`,
       ],
       primaryCategory: "entertainment",
       heroImageUrl: `${appUrl}/hero.png`,
