@@ -17,7 +17,7 @@ import { User } from "@neynar/nodejs-sdk/build/api/models/user";
 import { useFrame } from "@/providers/FrameProvider";
 import { Loader } from "lucide-react";
 import { Avatar } from "./avatar";
-import { usePlausible } from "next-plausible";
+import { usePostHog } from "posthog-js/react";
 
 interface ShareProps {
   children: React.ReactNode;
@@ -28,7 +28,7 @@ export const Share = ({ children, post }: ShareProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const { context } = useFrame();
-  const plausible = usePlausible();
+  const { capture } = usePostHog();
 
   const { data: friends, isLoading: isFriendsLoading } = useSWR<User[]>(
     context?.user?.fid ? `/api/friends/${context.user.fid}` : null,
@@ -85,12 +85,10 @@ export const Share = ({ children, post }: ShareProps) => {
         }),
       });
 
-      await plausible("Sent", {
-        props: {
-          senderFid: context.user.fid.toString(),
-          recipientFid,
-          castHash: post.id,
-        },
+      capture("Sent video via DC", {
+        senderFid: context.user.fid.toString(),
+        recipientFid,
+        castHash: post.id,
       });
     } catch (error) {
       console.error("Failed to track share:", error);
@@ -172,12 +170,10 @@ export const Share = ({ children, post }: ShareProps) => {
                   });
 
                   if (result && result.cast) {
-                    plausible("Sent", {
-                      props: {
-                        senderFid: context?.user?.fid.toString(),
-                        recipientFid: "*",
-                        castHash: result.cast.hash,
-                      },
+                    capture("Shared embed in cast", {
+                      senderFid: context?.user?.fid.toString(),
+                      videoHash: post.id,
+                      castHash: result.cast.hash,
                     });
                   }
                 }}

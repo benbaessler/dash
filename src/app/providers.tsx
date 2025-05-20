@@ -4,7 +4,6 @@ import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { FrameProvider } from "@/providers/FrameProvider";
 import { SignerProvider } from "@/providers/SignerProvider";
-import PlausibleProvider from "next-plausible";
 import { appDomain } from "@/constants";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 
@@ -19,13 +18,11 @@ export function Providers({
 
   return (
     <PostHogProvider>
-      <PlausibleProvider domain={appDomain}>
-        <SessionProvider session={session}>
-          <FrameProvider>
-            <SignerProvider>{children}</SignerProvider>
-          </FrameProvider>
-        </SessionProvider>
-      </PlausibleProvider>
+      <SessionProvider session={session}>
+        <FrameProvider>
+          <SignerProvider>{children}</SignerProvider>
+        </FrameProvider>
+      </SessionProvider>
     </PostHogProvider>
   );
 }

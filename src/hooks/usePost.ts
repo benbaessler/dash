@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import { useSigner } from "@/providers/SignerProvider";
-import { usePlausible } from "next-plausible";
+import { usePostHog } from "posthog-js/react";
 
 interface UsePostOptions {
   feed?: Post[] | null;
@@ -36,7 +36,7 @@ export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [recastedPosts, setRecastedPosts] = useState<Set<string>>(new Set());
   const [expandedTexts, setExpandedTexts] = useState<Set<string>>(new Set());
-  const plausible = usePlausible();
+  const { capture } = usePostHog();
 
   const checkAuth = async () => {
     if (!sessionToken) {
@@ -144,12 +144,10 @@ export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
         throw new Error("Failed to update reaction");
       }
 
-      plausible("Reacted", {
-        props: {
-          senderFid: context?.user?.fid.toString(),
-          castHash: postId,
-          type,
-        },
+      capture("Reacted", {
+        senderFid: context?.user?.fid.toString(),
+        castHash: postId,
+        type,
       });
     } catch (error) {
       // Revert optimistic update on error

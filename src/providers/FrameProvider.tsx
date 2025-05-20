@@ -12,6 +12,7 @@ import { isMobile } from "@/utils/isMobile";
 import useSWR, { SWRResponse } from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { onboardUser } from "@/utils/onboarding";
+import { usePostHog } from "posthog-js/react";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
@@ -51,7 +52,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
   const [lastEvent, setLastEvent] = useState("");
   const [addFrameResult, setAddFrameResult] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
-
+  const { identify } = usePostHog();
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [mobile, setMobile] = useState<boolean>(false);
 
@@ -142,6 +143,9 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
       });
 
       sdk.actions.ready({});
+      identify(context.user.fid.toString(), {
+        username: context.user.username,
+      });
     };
 
     if (sdk && !isSDKLoaded) {

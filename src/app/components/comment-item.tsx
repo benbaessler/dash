@@ -5,8 +5,8 @@ import { useState, useEffect, useRef } from "react";
 import { Avatar } from "./avatar";
 import { usePost } from "@/hooks/usePost";
 import { useFrame } from "@/providers/FrameProvider";
-import { usePlausible } from "next-plausible";
 import { ClickableText } from "./text";
+import { usePostHog } from "posthog-js/react";
 
 export const CommentItem = ({
   comment,
@@ -22,7 +22,7 @@ export const CommentItem = ({
   const textRef = useRef<HTMLDivElement>(null);
   const { checkAuth } = usePost();
   const { sessionToken, context } = useFrame();
-  const plausible = usePlausible();
+  const { capture } = usePostHog();
 
   useEffect(() => {
     if (comment.isExpanded) {
@@ -83,11 +83,9 @@ export const CommentItem = ({
         throw new Error("Failed to update reaction");
       }
 
-      plausible("LikedComment", {
-        props: {
-          senderFid: context?.user?.fid.toString(),
-          castHash: comment.hash,
-        },
+      capture("Liked comment", {
+        senderFid: context?.user?.fid.toString(),
+        castHash: comment.hash,
       });
     } catch (error) {
       // Revert optimistic update on error
