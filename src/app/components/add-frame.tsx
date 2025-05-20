@@ -6,9 +6,9 @@ import sdk from "@farcaster/frame-sdk";
 import { useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { useFrame } from "@/providers/FrameProvider";
-import { usePlausible } from "next-plausible";
+import { usePostHog } from "posthog-js/react";
 export function AddFramePage() {
-  const plausible = usePlausible();
+  const { capture } = usePostHog();
   const { context } = useFrame();
   const added = useMemo(() => context?.client.added, [context]);
   const [ref, inView] = useInView({
@@ -59,11 +59,9 @@ export function AddFramePage() {
           });
 
           if (result && result.cast) {
-            plausible("AppShared", {
-              props: {
-                senderFid: context?.user?.fid.toString(),
-                castHash: result.cast.hash,
-              },
+            capture("Shared app", {
+              senderFid: context?.user?.fid.toString(),
+              castHash: result.cast.hash,
             });
           }
         }}
