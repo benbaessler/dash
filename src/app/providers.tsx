@@ -6,6 +6,7 @@ import { FrameProvider } from "@/providers/FrameProvider";
 import { SignerProvider } from "@/providers/SignerProvider";
 import PlausibleProvider from "next-plausible";
 import { appDomain } from "@/constants";
+import { PostHogProvider } from "@/providers/PostHogProvider";
 
 export function Providers({
   session,
@@ -17,12 +18,14 @@ export function Providers({
   if (!appDomain) throw new Error("NEXT_PUBLIC_DOMAIN is not set");
 
   return (
-    <PlausibleProvider domain={appDomain}>
-      <SessionProvider session={session}>
-        <FrameProvider>
-          <SignerProvider>{children}</SignerProvider>
-        </FrameProvider>
-      </SessionProvider>
-    </PlausibleProvider>
+    <PostHogProvider>
+      <PlausibleProvider domain={appDomain}>
+        <SessionProvider session={session}>
+          <FrameProvider>
+            <SignerProvider>{children}</SignerProvider>
+          </FrameProvider>
+        </SessionProvider>
+      </PlausibleProvider>
+    </PostHogProvider>
   );
 }
