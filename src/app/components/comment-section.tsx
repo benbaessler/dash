@@ -263,10 +263,10 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         throw new Error(`Failed to post comment: ${errorDetails}`);
       }
 
-      capture("Commented", {
-        senderFid: user?.fid.toString(),
-        castHash,
-      });
+      // capture("Commented", {
+      //   senderFid: user?.fid.toString(),
+      //   castHash,
+      // });
     } catch (error) {
       console.error("Error posting comment:", error);
       setComments((prevComments) =>

@@ -144,11 +144,11 @@ export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
         throw new Error("Failed to update reaction");
       }
 
-      capture("Reacted", {
-        senderFid: context?.user?.fid.toString(),
-        castHash: postId,
-        type,
-      });
+      // capture("Reacted", {
+      //   senderFid: context?.user?.fid.toString(),
+      //   castHash: postId,
+      //   type,
+      // });
     } catch (error) {
       // Revert optimistic update on error
       if (type === "like") {

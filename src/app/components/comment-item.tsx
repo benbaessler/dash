@@ -83,10 +83,10 @@ export const CommentItem = ({
         throw new Error("Failed to update reaction");
       }
 
-      capture("Liked comment", {
-        senderFid: context?.user?.fid.toString(),
-        castHash: comment.hash,
-      });
+      // capture("Liked comment", {
+      //   senderFid: context?.user?.fid.toString(),
+      //   castHash: comment.hash,
+      // });
     } catch (error) {
       // Revert optimistic update on error
       setIsLiked(!isLiked);
