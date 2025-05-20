@@ -143,8 +143,8 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
       });
 
       sdk.actions.ready({});
-      identify(context.user.fid.toString(), {
-        username: context.user.username,
+      identify(context.user.username, {
+        fid: context.user.fid,
       });
     };
 
