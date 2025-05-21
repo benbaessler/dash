@@ -74,6 +74,7 @@ export async function GET(
               width="46"
               height="46"
               borderRadius="256"
+              objectFit="cover"
             />
 
             <VStack>
