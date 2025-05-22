@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import { ReactionType } from "@neynar/nodejs-sdk/build/api";
 import prisma from "@/lib/prisma";
-import { verifyToken } from "@/utils/auth";
+import { verify } from "@/utils/verify";
 
 // Valid reaction types
 const VALID_REACTION_TYPES = ["like", "recast"] as const;
@@ -10,8 +10,11 @@ type ValidReactionType = (typeof VALID_REACTION_TYPES)[number];
 
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get("Authorization");
-    const { fid } = (await verifyToken(authHeader)) as { fid: number };
+    const authHeader = request.headers.get("Authorization") as string;
+
+    const payload = await verify(authHeader?.split(" ")[1]);
+    const fid = payload.sub;
+
     const { castHash, type } = await request.json();
 
     if (!castHash || !type) {
