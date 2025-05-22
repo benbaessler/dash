@@ -5,9 +5,14 @@ import { useFrame } from "@/providers/FrameProvider";
 import { isDevelopment } from "@/constants";
 import useSWR from "swr";
 
+export type PromotionFrame = {
+  promotionType: "add-frame" | "share-app" | "join-channel";
+  index: number;
+};
+
 interface UseFeedOptions {
   initialLimit?: number;
-  defaultPromotionPageIndex?: number;
+  defaultPromotionFrames?: PromotionFrame[];
 }
 
 interface UseFeedResult {
@@ -16,17 +21,7 @@ interface UseFeedResult {
   fetching: boolean;
   fetchFeed: (limit?: number) => Promise<void>;
   getPostIndex: (virtualIndex: number) => number;
-  promotionPageIndex: number;
-  prepareFeedWithShareFrame: (
-    feed: Post[] | null,
-    activeVideoIndex: number,
-    renderItem: (
-      post: Post,
-      index: number,
-      isActive: boolean
-    ) => React.ReactNode,
-    renderShareFrame: () => React.ReactNode
-  ) => React.ReactNode[];
+  promotionFrames: PromotionFrame[];
 }
 
 const fetcher = async (url: string) => {
@@ -40,21 +35,24 @@ const fetcher = async (url: string) => {
 
 export function useFeed({
   initialLimit = 15,
-  defaultPromotionPageIndex = 10,
 }: UseFeedOptions = {}): UseFeedResult {
-  const { isSDKLoaded, context } = useFrame();
+  const { isSDKLoaded, context, added } = useFrame();
   const [feed, setFeed] = useState<Post[] | null>(null);
   const [fetching, setFetching] = useState(false);
 
-  // Share frame position in the feed (0-based index)
-  const promotionPageIndex =
-    Number(process.env.NEXT_PUBLIC_PROMOTION_PAGE_INDEX) ||
-    defaultPromotionPageIndex;
+  const promotionFrames = [
+    added
+      ? { promotionType: "share-app", index: 7 }
+      : { promotionType: "add-frame", index: 7 },
+    { promotionType: "join-channel", index: 15 },
+  ];
 
-  // Map to track the real index of posts with ShareFrame inserted
   const getPostIndex = (virtualIndex: number): number => {
-    // If we're past the share frame
-    return virtualIndex > promotionPageIndex ? virtualIndex - 1 : virtualIndex;
+    const framesBefore = promotionFrames.filter(
+      (frame) => frame.index < virtualIndex
+    ).length;
+
+    return virtualIndex - framesBefore;
   };
 
   const fid = isDevelopment ? 367782 : context?.user.fid;
@@ -103,43 +101,12 @@ export function useFeed({
     [initialLimit, fid, setFetching, setFeed]
   );
 
-  // Prepare feed items with ShareFrame inserted
-  const prepareFeedWithShareFrame = (
-    feed: Post[] | null,
-    activeVideoIndex: number,
-    renderItem: (
-      post: Post,
-      index: number,
-      isActive: boolean
-    ) => React.ReactNode,
-    renderShareFrame: () => React.ReactNode
-  ): React.ReactNode[] => {
-    const feedWithShareFrame: React.ReactNode[] = [];
-
-    if (!feed) return feedWithShareFrame;
-
-    feed.forEach((post, index) => {
-      // Insert ShareFrame at the configured position
-      if (promotionPageIndex !== 0 && index === promotionPageIndex) {
-        feedWithShareFrame.push(renderShareFrame());
-      }
-
-      // Add the post item
-      feedWithShareFrame.push(
-        renderItem(post, index, getPostIndex(activeVideoIndex) === index)
-      );
-    });
-
-    return feedWithShareFrame;
-  };
-
   return {
     feed,
     setFeed,
     fetching: fetching || isValidating,
     fetchFeed,
     getPostIndex,
-    promotionPageIndex,
-    prepareFeedWithShareFrame,
+    promotionFrames: promotionFrames as PromotionFrame[],
   };
 }
