@@ -5,7 +5,7 @@ import { useState, useCallback } from "react";
 interface UseVideoNavigationOptions {
   onIndexChange?: (newIndex: number) => void;
   feedLength: number;
-  promotionPageIndex: number;
+  promotionPageIndexes: number[];
   getPostIndex: (virtualIndex: number) => number;
   fetchMoreContent?: (limit?: number) => Promise<void>;
   fetching: boolean;
@@ -21,7 +21,7 @@ interface UseVideoNavigationResult {
 export function useVideoNavigation({
   onIndexChange,
   feedLength,
-  promotionPageIndex,
+  promotionPageIndexes,
   getPostIndex,
   fetchMoreContent,
   fetching,
@@ -42,11 +42,8 @@ export function useVideoNavigation({
           onIndexChange(newIndex);
         }
 
-        // Don't process further if we're on the share frame
-        // This prevents video loading/autoplay issues when on the share frame
-        if (newIndex === promotionPageIndex) return;
+        if (promotionPageIndexes.includes(newIndex)) return;
 
-        // Get the real post index (accounting for share frame)
         const realPostIndex = getPostIndex(newIndex);
 
         // Fetch more content when user has scrolled through 5 videos or near the end of the feed
@@ -62,7 +59,7 @@ export function useVideoNavigation({
     [
       activeVideoIndex, 
       onIndexChange, 
-      promotionPageIndex, 
+      promotionPageIndexes, 
       getPostIndex, 
       fetchMoreContent, 
       fetching, 
