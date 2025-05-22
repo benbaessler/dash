@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { neynar } from "@/lib/neynar";
-import { verifyToken } from "@/utils/auth";
+import { verify } from "@/utils/verify";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -49,8 +49,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const data = userSchema.parse(body);
 
-    const authHeader = request.headers.get("Authorization");
-    const { fid } = (await verifyToken(authHeader)) as { fid: number };
+    const authHeader = request.headers.get("Authorization") as string;
+
+    const payload = await verify(authHeader?.split(" ")[1]);
+
+    const fid = payload.sub;
 
     const signer = await neynar.lookupSigner({ signerUuid: data.signerUuid });
 

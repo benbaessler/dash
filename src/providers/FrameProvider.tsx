@@ -4,15 +4,14 @@ import { useEffect, useState, useCallback, useContext } from "react";
 import sdk, {
   type Context,
   type FrameNotificationDetails,
-  AddFrame,
 } from "@farcaster/frame-sdk";
 import React from "react";
-import { getCsrfToken } from "next-auth/react";
 import { isMobile } from "@/utils/isMobile";
 import useSWR, { SWRResponse } from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { onboardUser } from "@/utils/onboarding";
 import { usePostHog } from "posthog-js/react";
+import { AddFrame } from "@farcaster/frame-core";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
@@ -98,21 +97,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
   const signIn = useCallback(async () => {
     if (sessionToken) return;
 
-    const nonce = await getCsrfToken();
-    if (!nonce) throw new Error("Unable to generate nonce");
-    const result = await sdk.actions.signIn({ nonce });
-    const response = await fetch("api/verify", {
-      method: "POST",
-      body: JSON.stringify({
-        message: result.message,
-        signature: result.signature,
-        nonce,
-      }),
-    });
-
-    const { success, token } = await response.json();
-
-    if (!success) throw new Error("Failed to sign in");
+    const { token } = await sdk.experimental.quickAuth();
 
     setSessionToken(token);
   }, []);
