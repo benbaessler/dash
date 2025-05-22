@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useContext } from "react";
 import sdk, {
   type Context,
   type FrameNotificationDetails,
-  AddFrame,
 } from "@farcaster/frame-sdk";
 import React from "react";
 import { isMobile } from "@/utils/isMobile";
@@ -12,6 +11,7 @@ import useSWR, { SWRResponse } from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { onboardUser } from "@/utils/onboarding";
 import { usePostHog } from "posthog-js/react";
+import { AddFrame } from "@farcaster/frame-core";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
