@@ -9,7 +9,7 @@ import { useFrame } from "@/providers/FrameProvider";
 import { usePostHog } from "posthog-js/react";
 
 type PromotionProps = {
-  type: "add-frame" | "share-app";
+  type: "add-frame" | "share-app" | "join-channel";
 };
 
 function AddFramePromotion() {
@@ -77,6 +77,42 @@ function ShareAppPromotion() {
   );
 }
 
+function JoinChannelPromotion() {
+  const { capture } = usePostHog();
+  const { context } = useFrame();
+
+  return (
+    <div className="bg-black text-white min-h-screen flex flex-col items-center justify-center px-12 text-center gap-12">
+      <div className="flex flex-col items-center justify-center gap-2">
+        <Image src="/icon.png" alt="Dash Logo" width={90} height={90} />
+        <h1 className="text-3xl font-semibold">{`What's missing on Dash?`}</h1>
+      </div>
+
+      <div className="flex flex-col items-center justify-center gap-4 font-regular">
+        <p className="text-lg">
+          Join the /dash channel, share your ideas, and shape what comes next.
+        </p>
+      </div>
+
+      <Button
+        variant="action"
+        className="w-full text-md [&_svg]:!size-5 gap-2"
+        onClick={async () => {
+          await sdk.actions.openUrl(`https://warpcast.com/~/channel/dash`);
+
+          capture("Opened /dash channel", {
+            fid: context?.user?.fid.toString(),
+            username: context?.user?.username,
+          });
+        }}
+      >
+        <FarcasterIcon />
+        Join channel
+      </Button>
+    </div>
+  );
+}
+
 function ShareButton() {
   const { capture } = usePostHog();
   const { context } = useFrame();
@@ -106,5 +142,11 @@ function ShareButton() {
 }
 
 export function Promotion({ type }: PromotionProps) {
-  return type === "add-frame" ? <AddFramePromotion /> : <ShareAppPromotion />;
+  return type === "add-frame" ? (
+    <AddFramePromotion />
+  ) : type === "share-app" ? (
+    <ShareAppPromotion />
+  ) : (
+    <JoinChannelPromotion />
+  );
 }
