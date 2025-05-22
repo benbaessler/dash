@@ -2,7 +2,7 @@
 
 import { ApproveSignerDialog } from "./approve-signer-dialog";
 import { Loading } from "./loading";
-import { AddFramePage } from "./add-frame";
+import { Promotion } from "./promotion";
 import { Post } from "./post";
 import { useSigner } from "@/providers/SignerProvider";
 import { useFrame } from "@/providers/FrameProvider";
@@ -15,7 +15,7 @@ interface FeedProps {
 }
 
 export function Feed({ initialPost }: FeedProps) {
-  const { loading } = useFrame();
+  const { loading, added } = useFrame();
   const { showDialog, setShowDialog } = useSigner();
 
   const {
@@ -84,7 +84,7 @@ export function Feed({ initialPost }: FeedProps) {
       key="promotion-post"
       className="h-screen w-screen snap-start snap-always"
     >
-      <AddFramePage />
+      <Promotion type={added ? "share-app" : "add-frame"} />
     </div>
   );
 
