@@ -1,7 +1,7 @@
 interface Post {
   id: string;
   text: string;
-  video_url: string;
+  video_url?: string;
   likeCount: number;
   recastCount: number;
   commentCount: number;
