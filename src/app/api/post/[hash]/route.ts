@@ -30,13 +30,6 @@ export async function GET(
       (embed: any) => embed.metadata.content_type === "application/x-mpegurl"
     );
 
-    if (!videoEmbed) {
-      return NextResponse.json(
-        { error: "Post is not a video" },
-        { status: 400 }
-      );
-    }
-
     const post = {
       id: cast.hash,
       text: cast.text,
