@@ -26,21 +26,18 @@ export async function GET(
       viewerFid: fid,
     });
 
-    const videoEmbed: any = cast.embeds.find(
-      (embed: any) => embed.metadata.content_type === "application/x-mpegurl"
-    );
+    let videoEmbed: any;
 
-    if (!videoEmbed) {
-      return NextResponse.json(
-        { error: "Post is not a video" },
-        { status: 400 }
+    try {
+      videoEmbed = cast.embeds.find(
+        (embed: any) => embed.metadata.content_type === "application/x-mpegurl"
       );
-    }
+    } catch {}
 
     const post = {
       id: cast.hash,
       text: cast.text,
-      video_url: videoEmbed.url,
+      video_url: videoEmbed ? videoEmbed.url : undefined,
       likeCount: cast.reactions.likes_count,
       recastCount: cast.reactions.recasts_count,
       commentCount: cast.replies.count,

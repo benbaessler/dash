@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import { isDevelopment } from "@/constants";
 import useSWR from "swr";
+import { useSigner } from "@/providers/SignerProvider";
 
 export type PromotionFrame = {
-  promotionType: "add-frame" | "share-app" | "join-channel";
+  promotionType: "add-frame" | "share-app" | "join-channel" | "like-rpgf";
   index: number;
 };
 
@@ -36,16 +37,42 @@ const fetcher = async (url: string) => {
 export function useFeed({
   initialLimit = 15,
 }: UseFeedOptions = {}): UseFeedResult {
+  const { valid } = useSigner();
   const { isSDKLoaded, context, added } = useFrame();
   const [feed, setFeed] = useState<Post[] | null>(null);
   const [fetching, setFetching] = useState(false);
+  const [promotionFrames, setPromotionFrames] = useState<PromotionFrame[]>([]);
 
-  const promotionFrames = [
-    added
-      ? { promotionType: "share-app", index: 7 }
-      : { promotionType: "add-frame", index: 7 },
-    { promotionType: "join-channel", index: 15 },
-  ];
+  useEffect(() => {
+    const updatePromotionFrames = async () => {
+      const result = [
+        !added
+          ? { promotionType: "add-frame", index: 7 }
+          : { promotionType: "share-app", index: 7 },
+        { promotionType: "join-channel", index: 15 },
+      ] as PromotionFrame[];
+
+      console.log({ valid, fid: context?.user.fid });
+
+      if (valid && context?.user.fid) {
+        try {
+          const cast = await fetch(
+            `/api/post/0x02808f8108a026e2d1db54b05dd2aefb9f7fb41e?fid=${context.user.fid}`
+          );
+          const { data } = await cast.json();
+          if (!data.viewerContext?.liked) {
+            result[0] = { promotionType: "like-rpgf", index: 7 };
+          }
+        } catch (error) {
+          console.error("Error fetching cast data:", error);
+        }
+      }
+
+      setPromotionFrames(result);
+    };
+
+    updatePromotionFrames();
+  }, [added, valid, context?.user.fid]);
 
   const getPostIndex = (virtualIndex: number): number => {
     const framesBefore = promotionFrames.filter(
@@ -107,6 +134,6 @@ export function useFeed({
     fetching: fetching || isValidating,
     fetchFeed,
     getPostIndex,
-    promotionFrames: promotionFrames as PromotionFrame[],
+    promotionFrames,
   };
 }

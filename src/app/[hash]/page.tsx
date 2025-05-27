@@ -23,11 +23,22 @@ export default function Video() {
       setLoading(false);
       toast({
         title: "Post not found",
-        description: "The linked cast may not contain a video",
+        description: "The linked cast could not be found",
       });
       return;
     }
     const { data } = await response.json();
+
+    if (!data.video_url) {
+      setNotFound(true);
+      setLoading(false);
+      toast({
+        title: "Not a video",
+        description: "The linked cast is not a video",
+      });
+      return;
+    }
+
     setPost(data);
     setLoading(false);
   }, [hash, context?.user.fid]);
