@@ -52,9 +52,7 @@ export function useFeed({
         { promotionType: "join-channel", index: 15 },
       ] as PromotionFrame[];
 
-      console.log({ valid, fid: context?.user.fid });
-
-      if (valid && context?.user.fid) {
+      if (added && valid && context?.user.fid) {
         try {
           const cast = await fetch(
             `/api/post/0x02808f8108a026e2d1db54b05dd2aefb9f7fb41e?fid=${context.user.fid}`
