@@ -20,7 +20,7 @@ export function Caption({
   toggleExpandText,
 }: CaptionProps) {
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-5 w-full pr-16 overflow-hidden bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-14 pt-12">
+    <div className="absolute bottom-0 left-0 right-0 px-5 w-full pr-16 overflow-hidden bg-gradient-to-t from-black/70 via-black/40 to-transparent pb-14">
       <div className="flex flex-col">
         <div className="flex gap-2 items-center">
           <span className="text-white font-semibold truncate">
