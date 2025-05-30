@@ -148,7 +148,7 @@ export const Share = ({ children, post }: ShareProps) => {
                           `https://warpcast.com/~/inbox/create/${
                             user.fid
                           }?text=${encodeURIComponent(
-                            `Check out this video by @${post.author.username} on Dash!\n\n${appUrl}/share/${post.id}`
+                            `Check out this video by @${post.author.username} on /dash!\n\n${appUrl}/share/${post.id}`
                           )}`
                         );
                       }}
@@ -165,7 +165,7 @@ export const Share = ({ children, post }: ShareProps) => {
                 className="w-full text-md [&_svg]:!size-5 gap-2"
                 onClick={async () => {
                   const result = await sdk.actions.composeCast({
-                    text: `Check out this video by @${post.author.username} on Dash!`,
+                    text: `Check out this video by @${post.author.username} on /dash!`,
                     embeds: [`${appUrl}/share/${post.id}`],
                   });
 

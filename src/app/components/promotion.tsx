@@ -193,7 +193,7 @@ function ShareButton() {
       className="w-full text-md [&_svg]:!size-5 gap-2"
       onClick={async () => {
         const result = await sdk.actions.composeCast({
-          text: "Scroll your feed TikTok-style on Dash! ⚡️",
+          text: "Scroll your feed TikTok-style on /dash! ⚡️",
           embeds: [appUrl!],
         });
 
