@@ -7,7 +7,7 @@ import useSWR from "swr";
 import { useSigner } from "@/providers/SignerProvider";
 
 export type PromotionFrame = {
-  promotionType: "add-frame" | "share-app" | "join-channel" | "like-rpgf";
+  promotionType: "add-frame" | "share-app" | "join-channel";
   index: number;
 };
 
@@ -51,20 +51,6 @@ export function useFeed({
           : { promotionType: "share-app", index: 7 },
         { promotionType: "join-channel", index: 15 },
       ] as PromotionFrame[];
-
-      if (added && valid && context?.user.fid) {
-        try {
-          const cast = await fetch(
-            `/api/post/0x02808f8108a026e2d1db54b05dd2aefb9f7fb41e?fid=${context.user.fid}`
-          );
-          const { data } = await cast.json();
-          if (!data.viewerContext?.liked) {
-            result[0] = { promotionType: "like-rpgf", index: 7 };
-          }
-        } catch (error) {
-          console.error("Error fetching cast data:", error);
-        }
-      }
 
       setPromotionFrames(result);
     };

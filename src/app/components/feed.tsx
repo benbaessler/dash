@@ -83,7 +83,7 @@ export function Feed({ initialPost }: FeedProps) {
   );
 
   const renderPromotionPost = (
-    type: "add-frame" | "share-app" | "join-channel" | "like-rpgf"
+    type: "add-frame" | "share-app" | "join-channel"
   ) => (
     <div
       key={`promotion-${type}`}
