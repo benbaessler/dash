@@ -83,15 +83,6 @@ export const InteractionButtons = ({
       />
 
       <InteractionButton
-        icon={<ArrowPathIcon />}
-        count={post.recastCount}
-        isActive={recasted}
-        activeColor="text-green-500"
-        isLoading={loading}
-        onClick={(e) => handleInteraction(e, "recast")}
-      />
-
-      <InteractionButton
         icon={<ChatBubbleOvalLeftIcon />}
         count={post.commentCount}
         isLoading={loading}
@@ -101,11 +92,18 @@ export const InteractionButtons = ({
       />
 
       <InteractionButton
+        icon={<ArrowPathIcon />}
+        count={post.recastCount}
+        isActive={recasted}
+        activeColor="text-green-500"
+        isLoading={loading}
+        onClick={(e) => handleInteraction(e, "recast")}
+      />
+
+      <InteractionButton
         icon={<ArrowUpTrayIcon />}
         isLoading={loading}
-        wrapper={(children) => (
-          <Share post={post}>{children}</Share>
-        )}
+        wrapper={(children) => <Share post={post}>{children}</Share>}
       />
     </div>
   );
