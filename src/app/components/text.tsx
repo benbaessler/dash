@@ -25,7 +25,7 @@ export function ClickableText({ text }: ClickableTextProps) {
           className="text-blue-400 hover:text-blue-500 cursor-pointer"
           onClick={() =>
             sdk.actions.openUrl(
-              `https://warpcast.com/${matchText.replace("@", "")}`
+              `https://farcaster.xyz/${matchText.replace("@", "")}`
             )
           }
         >
@@ -39,7 +39,7 @@ export function ClickableText({ text }: ClickableTextProps) {
           key={`channel-${match.index}`}
           className="text-blue-400 hover:text-blue-500 cursor-pointer"
           onClick={() =>
-            sdk.actions.openUrl(`https://warpcast.com/~/channel${matchText}`)
+            sdk.actions.openUrl(`https://farcaster.xyz/~/channel${matchText}`)
           }
         >
           {matchText}

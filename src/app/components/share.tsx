@@ -145,7 +145,7 @@ export const Share = ({ children, post }: ShareProps) => {
                       onClick={() => {
                         trackShare(user.fid.toString());
                         sdk.actions.openUrl(
-                          `https://warpcast.com/~/inbox/create/${
+                          `https://farcaster.xyz/~/inbox/create/${
                             user.fid
                           }?text=${encodeURIComponent(
                             `Check out this video by @${post.author.username} on /dash!\n\n${appUrl}/share/${post.id}`
