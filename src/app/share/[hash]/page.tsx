@@ -20,7 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!cast) notFound();
 
   const isVideo = cast.embeds.some(
-    (embed: any) => embed.metadata.content_type === "application/x-mpegurl"
+    (embed: any) =>
+      embed.metadata && embed.metadata.content_type === "application/x-mpegurl"
   );
 
   if (!isVideo) notFound();

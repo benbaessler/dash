@@ -27,7 +27,8 @@ export async function GET(
   if (!cast) notFound();
 
   const videoEmbed: any = cast.embeds.find(
-    (embed: any) => embed.metadata.content_type === "application/x-mpegurl"
+    (embed: any) =>
+      embed.metadata && embed.metadata.content_type === "application/x-mpegurl"
   );
 
   if (!videoEmbed) notFound();
