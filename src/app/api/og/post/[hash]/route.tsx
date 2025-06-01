@@ -54,7 +54,7 @@ export async function GET(
           alignItems="center"
           textAlign="center"
         >
-          <Text size="24" overflow="ellipsis" wrap="balance">
+          <Text size="24" overflow="ellipsis" wrap>
             {truncateText(cast.text, 200)}
           </Text>
         </Box>
