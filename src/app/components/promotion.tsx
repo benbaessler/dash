@@ -124,7 +124,7 @@ function ShareButton() {
       onClick={async () => {
         const result = await sdk.actions.composeCast({
           text: "Scroll your feed TikTok-style on /dash! ⚡️",
-          embeds: [appUrl!],
+          embeds: [`${appUrl}?utm_source=share_app`],
         });
 
         if (result && result.cast) {

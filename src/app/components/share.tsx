@@ -148,7 +148,7 @@ export const Share = ({ children, post }: ShareProps) => {
                           `https://farcaster.xyz/~/inbox/create/${
                             user.fid
                           }?text=${encodeURIComponent(
-                            `Check out this video by @${post.author.username} on /dash!\n\n${appUrl}/share/${post.id}`
+                            `Check out this video by @${post.author.username} on /dash!\n\n${appUrl}/share/${post.id}?utm_source=dc`
                           )}`
                         );
                       }}
@@ -166,7 +166,7 @@ export const Share = ({ children, post }: ShareProps) => {
                 onClick={async () => {
                   const result = await sdk.actions.composeCast({
                     text: `Check out this video by @${post.author.username} on /dash!`,
-                    embeds: [`${appUrl}/share/${post.id}`],
+                    embeds: [`${appUrl}/share/${post.id}?utm_source=share_post`],
                   });
 
                   if (result && result.cast) {
