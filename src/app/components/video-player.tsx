@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, ReactNode } from "react";
 import { MediaPlayer, MediaProvider, type MediaPlayerInstance } from "@vidstack/react";
 import { PlayIcon, ForwardIcon } from "@heroicons/react/24/solid";
 import { useInView } from "react-intersection-observer";
+import { useProfile } from "@/providers/ProfileProvider";
 
 interface VideoPlayerProps {
   post: Post;
@@ -32,10 +33,11 @@ export function VideoPlayer({
   const [holdTimeout, setHoldTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isSpeedUp, setIsSpeedUp] = useState(false);
   const [lastTapTime, setLastTapTime] = useState(0);
+  const { isProfileVisible } = useProfile();
 
   const idle = useMemo(() => {
-    return !inView || !isActive || loading;
-  }, [inView, isActive, loading]);
+    return !inView || !isActive || loading || isProfileVisible;
+  }, [inView, isActive, loading, isProfileVisible]);
 
   useEffect(() => {
     // Load the video if it's in view, active, or should be preloaded

@@ -1,47 +1,65 @@
-import sdk from "@farcaster/frame-sdk";
 import Image from "next/image";
 import { useState } from "react";
+import { User } from "@neynar/nodejs-sdk/build/api";
+import { useProfile } from "@/providers/ProfileProvider";
+import useSWR from "swr";
 
 interface AvatarProps {
   imageUrl: string;
   altText: string;
   className?: string;
-  fid?: number;
+  username?: string;
 }
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const Avatar = ({
   imageUrl,
   altText,
   className = "w-10 h-10", // Default size
-  fid,
+  username,
 }: AvatarProps) => {
   const [isImageLoading, setIsImageLoading] = useState(true);
+  const { openProfile } = useProfile();
+
+  const { data: userData } = useSWR<User>(
+    username ? `/api/user/handle/${username}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+    }
+  );
 
   return (
-    <div className={`relative aspect-square ${className}`}>
-      {isImageLoading && (
-        <div
-          className={`absolute inset-0 rounded-full bg-white animate-pulse ${className}`}
+    <>
+      <div className={`relative aspect-square ${className}`}>
+        {isImageLoading && (
+          <div
+            className={`absolute inset-0 rounded-full bg-white animate-pulse ${className}`}
+          />
+        )}
+        <Image
+          src={imageUrl}
+          alt={altText}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Default sizes, can be overridden by className
+          className={`rounded-full object-cover ${username ? "cursor-pointer" : ""} ${
+            isImageLoading ? "opacity-0" : "opacity-100"
+          }`}
+          onLoad={() => setIsImageLoading(false)}
+          onClick={
+            username && userData
+              ? (e: React.MouseEvent<HTMLImageElement>) => {
+                  e.stopPropagation();
+                  openProfile(userData);
+                }
+              : undefined
+          }
         />
-      )}
-      <Image
-        src={imageUrl}
-        alt={altText}
-        fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Default sizes, can be overridden by className
-        className={`rounded-full object-cover ${fid ? "cursor-pointer" : ""} ${
-          isImageLoading ? "opacity-0" : "opacity-100"
-        }`}
-        onLoad={() => setIsImageLoading(false)}
-        onClick={
-          fid
-            ? (e: React.MouseEvent<HTMLImageElement>) => {
-                e.stopPropagation();
-                sdk.actions.viewProfile({ fid });
-              }
-            : undefined
-        }
-      />
-    </div>
+      </div>
+
+    </>
   );
 };

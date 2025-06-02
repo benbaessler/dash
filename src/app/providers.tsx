@@ -4,6 +4,7 @@ import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { FrameProvider } from "@/providers/FrameProvider";
 import { SignerProvider } from "@/providers/SignerProvider";
+import { ProfileProvider } from "@/providers/ProfileProvider";
 import { appDomain } from "@/constants";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 
@@ -20,7 +21,9 @@ export function Providers({
     <PostHogProvider>
       <SessionProvider session={session}>
         <FrameProvider>
-          <SignerProvider>{children}</SignerProvider>
+          <SignerProvider>
+            <ProfileProvider>{children}</ProfileProvider>
+          </SignerProvider>
         </FrameProvider>
       </SessionProvider>
     </PostHogProvider>

@@ -69,7 +69,7 @@ export const InteractionButtons = ({
       <Avatar
         imageUrl={post.author.pfpUrl ?? ""}
         altText={post.author.displayName ?? ""}
-        fid={post.author.fid}
+        username={post.author.username}
         className="w-10 h-10"
       />
 
