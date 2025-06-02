@@ -31,6 +31,7 @@ export function VideoPlayer({
   const [player, setPlayer] = useState<MediaPlayerInstance | null>(null);
   const [holdTimeout, setHoldTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isSpeedUp, setIsSpeedUp] = useState(false);
+  const [lastTapTime, setLastTapTime] = useState(0);
 
   const idle = useMemo(() => {
     return !inView || !isActive || loading;
@@ -44,6 +45,23 @@ export function VideoPlayer({
   }, [inView, isActive, shouldPreload]);
 
   const handlePointerDown = () => {
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - lastTapTime;
+    
+    if (timeSinceLastTap < 300) {
+      if (playTimeout) {
+        clearTimeout(playTimeout);
+        setPlayTimeout(null);
+      }
+      if (holdTimeout) {
+        clearTimeout(holdTimeout);
+        setHoldTimeout(null);
+      }
+      return;
+    }
+
+    setLastTapTime(currentTime);
+
     if (playTimeout) {
       clearTimeout(playTimeout);
       setPlayTimeout(null);
