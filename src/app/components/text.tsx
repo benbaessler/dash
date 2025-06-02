@@ -8,7 +8,7 @@ export function ClickableText({ text }: ClickableTextProps) {
   const parts = [];
   let lastIndex = 0;
 
-  const pattern = /(?<=\s|^)((@[^\s]+|\/[^\s]+)|(https?:\/\/[^\s]+|www\.[^\s]+))/g;
+  const pattern = /(?<=\s|^)((@[a-zA-Z0-9_-]+(?:\.eth)?|\/[a-zA-Z0-9_-]+(?:\.eth)?)|(https?:\/\/[^\s]+|www\.[^\s]+))/g;
   let match;
 
   while ((match = pattern.exec(text)) !== null) {
