@@ -87,7 +87,7 @@ export function Feed({ initialPost }: FeedProps) {
   ) => (
     <div
       key={`promotion-${type}`}
-      className="h-screen w-screen snap-start snap-always"
+      className="h-screen w-screen snap-start"
     >
       <Promotion type={type} />
     </div>
