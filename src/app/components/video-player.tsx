@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, ReactNode } from "react";
 import { MediaPlayer, MediaProvider, type MediaPlayerInstance } from "@vidstack/react";
 import { PlayIcon, ForwardIcon } from "@heroicons/react/24/solid";
 import { useInView } from "react-intersection-observer";
+import { sdk } from "@farcaster/frame-sdk";
 
 interface VideoPlayerProps {
   post: Post;
@@ -68,13 +69,15 @@ export function VideoPlayer({
     }
 
     // Set up hold detection for speed increase
-    const holdTimer = setTimeout(() => {
-      if (player && !paused) {
-        player.playbackRate = 2;
+    const holdTimer = setTimeout(async () => {
+      if (player) {
+        await sdk.haptics.impactOccurred("medium");
+        setPaused(false);
         setIsSpeedUp(true);
+        player.playbackRate = 2;
       }
       setHoldTimeout(null);
-    }, 500);
+    }, 200);
 
     setHoldTimeout(holdTimer);
   };
