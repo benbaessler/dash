@@ -18,6 +18,7 @@ import { CommentSkeleton } from "./skeleton-loader";
 import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
+import { sdk } from "@farcaster/frame-sdk";
 interface CommentSectionProps {
   children: React.ReactNode;
   castHash: string;
@@ -231,6 +232,8 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     setReplyingTo(null);
 
     setComments((prevComments) => [newComment, ...prevComments]);
+
+    await sdk.haptics.impactOccurred("medium");
 
     setTimeout(() => {
       scrollableContainerRef.current?.scrollTo({

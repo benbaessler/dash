@@ -22,7 +22,7 @@
     "@farcaster/auth-kit": "^0.6.1",
     "@farcaster/frame-core": "^0.0.29",
     "@farcaster/frame-node": "^0.0.18",
-    "@farcaster/frame-sdk": "^0.0.50",
+    "@farcaster/frame-sdk": "^0.0.55",
     "@farcaster/hub-nodejs": "^0.13.5",
     "@heroicons/react": "^2.2.0",
     "@neynar/nodejs-sdk": "^2.41.0",

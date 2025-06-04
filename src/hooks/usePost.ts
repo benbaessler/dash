@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import { useSigner } from "@/providers/SignerProvider";
 import { usePostHog } from "posthog-js/react";
+import { sdk } from "@farcaster/frame-sdk";
 
 interface UsePostOptions {
   feed?: Post[] | null;
@@ -123,6 +124,8 @@ export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
         }
       }
     }
+
+    if (!isRemoving) await sdk.haptics.impactOccurred("medium");
 
     try {
       const endpoint = isRemoving
