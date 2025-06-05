@@ -87,7 +87,7 @@ export function Feed({ initialPost }: FeedProps) {
   ) => (
     <div
       key={`promotion-${type}`}
-      className="h-screen w-screen snap-start snap-always"
+      className="h-full w-screen snap-start snap-always"
     >
       <Promotion type={type} />
     </div>
@@ -118,7 +118,7 @@ export function Feed({ initialPost }: FeedProps) {
 
   return (
     <main
-      className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory relative"
+      className="overflow-y-scroll snap-y snap-mandatory relative flex-1"
       onScroll={handleScroll}
     >
       {feedWithPromotionFrames}

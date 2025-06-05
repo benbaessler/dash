@@ -30,7 +30,7 @@ export const Post = ({
 }: PostProps) => {
   return (
     <div
-      className="h-screen w-screen snap-start snap-always relative"
+      className="h-full w-screen snap-start snap-always relative"
       onDoubleClick={(e) => {
         if (!liked) {
           handleInteraction(e, "like", data.id);
@@ -44,13 +44,13 @@ export const Post = ({
         shouldPreload={shouldPreload}
         renderTimeSlider={() => (
           <div
-            className="absolute flex justify-center bottom-8 left-0 right-0 w-full z-10"
+            className="absolute flex justify-center bottom-0 left-0 right-0 w-full z-10"
             onClick={(e) => e.stopPropagation()}
             onDoubleClick={(e) => e.stopPropagation()}
           >
-            <TimeSlider.Root className="group mx-5 relative inline-flex h-6 w-full cursor-pointer touch-none select-none items-center outline-none aria-hidden:hidden">
-              <TimeSlider.Track className="relative ring-sky-400 z-0 h-1 w-full bg-white/25 rounded-sm group-data-[focus]:ring-[3px]">
-                <TimeSlider.TrackFill className="bg-white/60 absolute h-full w-[var(--slider-fill)] rounded-sm will-change-[width]" />
+            <TimeSlider.Root className="group relative inline-flex h-6 w-full cursor-pointer touch-none select-none items-end outline-none aria-hidden:hidden">
+              <TimeSlider.Track className="relative ring-sky-400 z-0 h-[2px] hover:h-1.5 w-full bg-white/25 group-data-[focus]:ring-[3px]">
+                <TimeSlider.TrackFill className="bg-white/60 absolute h-full w-[var(--slider-fill)] will-change-[width]" />
                 {/* <TimeSlider.Progress className="absolute z-10 h-full w-[var(--slider-progress)] rounded-sm bg-white/25 will-change-[width]" /> */}
               </TimeSlider.Track>
               {/* <TimeSlider.Thumb className="absolute left-[var(--slider-fill)] top-1/2 z-20 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 group-data-[active]:opacity-100 will-change-[left]" /> */}
@@ -64,7 +64,7 @@ export const Post = ({
         expandedTexts={expandedTexts}
         toggleExpandText={toggleExpandText}
       />
-      <div className="absolute right-4 bottom-14">
+      <div className="absolute right-4 bottom-4">
         <InteractionButtons
           post={data}
           liked={data.viewerContext?.liked ?? liked}
