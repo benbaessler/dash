@@ -5,10 +5,11 @@ import {
   UserCircleIcon as SelectedUserCircleIcon,
   BoltIcon as SelectedBoltIcon,
 } from "@heroicons/react/24/solid";
-import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 export function Navbar() {
-  const [selectedTab, setSelectedTab] = useState("/");
+  const router = useRouter();
+  const pathname = usePathname();
 
   const navItems = [
     {
@@ -30,7 +31,7 @@ export function Navbar() {
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-around pb-6 pt-2">
           {navItems.map((item) => {
-            const isSelected = selectedTab === item.href;
+            const isSelected = pathname === item.href;
             const IconComponent = isSelected ? item.selectedIcon : item.icon;
             
             return (
@@ -38,8 +39,7 @@ export function Navbar() {
                 key={item.label}
                 className="flex flex-col items-center justify-center p-2 space-y-1 rounded-lg transition-colors duration-200 min-w-[64px]"
                 onClick={() => {
-                  setSelectedTab(item.href);
-                  console.log(`Navigate to ${item.href}`);
+                  router.push(item.href);
                 }}
               >
                 <IconComponent 
