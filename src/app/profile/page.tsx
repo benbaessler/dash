@@ -12,7 +12,7 @@ export default function ProfilePage() {
       <div className="flex-1 overflow-hidden">
         <Profile 
           user={user || null} 
-          onClose={() => window.history.back()} 
+          isCurrentUser={true}
         />
       </div>
       <Navbar />

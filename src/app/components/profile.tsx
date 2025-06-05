@@ -11,31 +11,36 @@ import { Skeleton } from "@/app/components/skeleton";
 
 interface ProfileProps {
   user: User | null;
-  onClose: () => void;
+  isCurrentUser?: boolean;
+  onClose?: () => void;
 }
 
-export function Profile({ user, onClose }: ProfileProps) {
+export function Profile({
+  user,
+  isCurrentUser = false,
+  onClose,
+}: ProfileProps) {
   return (
     <div className="min-h-screen py-4 relative">
       <div className="max-w-md mx-auto px-4">
-        <div className="flex items-center justify-between mb-4">
-          <ArrowLeftIcon
-            className="w-5 h-5 text-white hover:text-slate-300 transition-colors cursor-pointer"
-            onClick={onClose}
-          />
+        <div className="relative flex items-center justify-center mb-4">
+          {!isCurrentUser && (
+            <ArrowLeftIcon
+              className="absolute left-0 w-5 h-5 text-white hover:text-slate-300 transition-colors cursor-pointer"
+              onClick={onClose}
+            />
+          )}
           {user ? (
-            <h1 className="font-medium">@{user.username}</h1>
+            <h1 className="font-medium text-center">@{user.username}</h1>
           ) : (
             <Skeleton className="h-6 w-24" />
           )}
-          <div
-            className="cursor-pointer"
-            onClick={() =>
-              user && sdk.actions.viewProfile({ fid: user.fid })
-            }
+          {!isCurrentUser && <div
+            className="absolute right-0 cursor-pointer"
+            onClick={() => user && sdk.actions.viewProfile({ fid: user.fid })}
           >
             <FarcasterIcon className="w-6 h-6 text-white hover:text-slate-300 transition-colors" />
-          </div>
+          </div>}
         </div>
 
         <div className="flex justify-center mb-2">
@@ -85,9 +90,7 @@ export function Profile({ user, onClose }: ProfileProps) {
 
           <div className="text-center">
             {user ? (
-              <div className="text-base font-bold text-white">
-                0
-              </div>
+              <div className="text-base font-bold text-white">0</div>
             ) : (
               <Skeleton className="h-6 w-10 mx-auto" />
             )}
@@ -102,7 +105,7 @@ export function Profile({ user, onClose }: ProfileProps) {
             className="max-w-60 w-full"
             disabled={!user}
           >
-            Follow
+            {isCurrentUser ? "Update" : "Follow"}
           </Button>
         </div>
 
