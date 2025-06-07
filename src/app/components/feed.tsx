@@ -13,12 +13,15 @@ import { PromotionFrame } from "@/hooks/useFeed";
 
 interface FeedProps {
   initialPost?: Post;
+  feedType?: "following" | "explore";
 }
 
-export function Feed({ initialPost }: FeedProps) {
+export function Feed({ initialPost, feedType = "following" }: FeedProps) {
   const { loading } = useFrame();
   const { showDialog, setShowDialog } = useSigner();
 
+  // TODO: Use feedType to fetch different feed content (following vs explore)
+  console.log("Current feed type:", feedType);
   const { feed, setFeed, fetching, fetchFeed, getPostIndex, promotionFrames } =
     useFeed();
 
