@@ -33,11 +33,11 @@ export function VideoPlayer({
   const [holdTimeout, setHoldTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isSpeedUp, setIsSpeedUp] = useState(false);
   const [lastTapTime, setLastTapTime] = useState(0);
-  const { isProfileVisible } = useProfile();
+  const { isStackOpen } = useProfile();
 
   const idle = useMemo(() => {
-    return !inView || !isActive || loading || isProfileVisible;
-  }, [inView, isActive, loading, isProfileVisible]);
+    return !inView || !isActive || loading || isStackOpen;
+  }, [inView, isActive, loading, isStackOpen]);
 
   useEffect(() => {
     // Load the video if it's in view, active, or should be preloaded

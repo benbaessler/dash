@@ -1,6 +1,6 @@
 "use client";
 import { Feed } from "./components/feed";
-import { ProfileOverlay } from "./components/profile-overlay";
+import { ProfileStack } from "./components/profile-stack";
 import { Navbar } from "./components/navbar";
 
 export default function App() {
@@ -8,7 +8,7 @@ export default function App() {
     <div className="h-screen w-screen flex flex-col">
       <Feed />
       <Navbar />
-      <ProfileOverlay />
+      <ProfileStack />
     </div>
   );
 }

@@ -9,6 +9,7 @@ interface AvatarProps {
   altText: string;
   className?: string;
   username?: string;
+  fid?: number;
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -18,12 +19,13 @@ export const Avatar = ({
   altText,
   className = "w-10 h-10", // Default size
   username,
+  fid,
 }: AvatarProps) => {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const { openProfile } = useProfile();
 
   const { data: userData } = useSWR<User>(
-    username ? `/api/user/handle/${username}` : null,
+    username ? `/api/user/handle/${username}` : fid ? `/api/user/${fid}` : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -45,12 +47,12 @@ export const Avatar = ({
           alt={altText}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Default sizes, can be overridden by className
-          className={`rounded-full object-cover ${username ? "cursor-pointer" : ""} ${
+          className={`rounded-full object-cover ${(username || fid) ? "cursor-pointer" : ""} ${
             isImageLoading ? "opacity-0" : "opacity-100"
           }`}
           onLoad={() => setIsImageLoading(false)}
           onClick={
-            username && userData
+            (username || fid) && userData
               ? (e: React.MouseEvent<HTMLImageElement>) => {
                   e.stopPropagation();
                   openProfile(userData);
