@@ -13,6 +13,10 @@ export type PromotionFrame = {
 
 interface UseFeedOptions {
   initialLimit?: number;
+  /**
+   * The feed category to fetch – either "following" or "explore". Defaults to "explore".
+   */
+  feedType?: FeedType;
   defaultPromotionFrames?: PromotionFrame[];
 }
 
@@ -36,6 +40,7 @@ const fetcher = async (url: string) => {
 
 export function useFeed({
   initialLimit = 15,
+  feedType = "explore",
 }: UseFeedOptions = {}): UseFeedResult {
   const { valid } = useSigner();
   const { isSDKLoaded, context, added } = useFrame();
@@ -69,7 +74,9 @@ export function useFeed({
   const fid = isDevelopment ? 367782 : context?.user.fid;
 
   const { data, isValidating } = useSWR(
-    fid && isSDKLoaded ? `/api/feed/${fid}?limit=${initialLimit}` : null,
+    fid && isSDKLoaded
+      ? `/api/feed/${fid}?limit=${initialLimit}&feedType=${feedType}`
+      : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -88,7 +95,9 @@ export function useFeed({
 
       setFetching(true);
       try {
-        const response = await fetch(`/api/feed/${fid}?limit=${limit}`);
+        const response = await fetch(
+          `/api/feed/${fid}?limit=${limit}&feedType=${feedType}`
+        );
         if (!response.ok) {
           throw new Error(`Failed to fetch feed: ${response.status}`);
         }
@@ -109,7 +118,7 @@ export function useFeed({
         setFetching(false);
       }
     },
-    [initialLimit, fid, setFetching, setFeed]
+    [initialLimit, fid, feedType, setFetching, setFeed]
   );
 
   return {

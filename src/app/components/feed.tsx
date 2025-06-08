@@ -20,10 +20,8 @@ export function Feed({ initialPost, feedType = "explore" }: FeedProps) {
   const { loading } = useFrame();
   const { showDialog, setShowDialog } = useSigner();
 
-  // TODO: Use feedType to fetch different feed content (following vs explore)
-  console.log("Current feed type:", feedType);
   const { feed, setFeed, fetching, fetchFeed, getPostIndex, promotionFrames } =
-    useFeed();
+    useFeed({ feedType });
 
   // If initialPost is provided, combine it with feed
   const combinedFeed = initialPost

@@ -5,9 +5,13 @@ import { useState } from "react";
 
 export default function App() {
   const [activeFeed, setActiveFeed] = useState<FeedType>("explore");
+  const [loadedFeeds, setLoadedFeeds] = useState<Set<FeedType>>(
+    new Set(["explore"])
+  );
 
   const handleFeedChange = (feedType: FeedType) => {
     setActiveFeed(feedType);
+    setLoadedFeeds((prev) => new Set(prev).add(feedType));
   };
 
   return (
@@ -16,7 +20,20 @@ export default function App() {
         handleFeedChange={handleFeedChange}
         activeFeed={activeFeed}
       />
-      <Feed key={activeFeed} feedType={activeFeed} />
+
+      {/* Explore Feed */}
+      {loadedFeeds.has("explore") && (
+        <div className={activeFeed === "explore" ? "block" : "hidden"}>
+          <Feed feedType="explore" />
+        </div>
+      )}
+
+      {/* Following Feed */}
+      {loadedFeeds.has("following") && (
+        <div className={activeFeed === "following" ? "block" : "hidden"}>
+          <Feed feedType="following" />
+        </div>
+      )}
     </div>
   );
 }
