@@ -36,3 +36,5 @@ interface CommentData {
   direct_replies?: CommentData[];
   isExpanded?: boolean;
 }
+
+type FeedType = "following" | "explore";

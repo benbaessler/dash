@@ -1,4 +1,4 @@
-import { appUrl } from "@/constants";
+import { appUrl, FEED_IDS } from "@/constants";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -14,6 +14,7 @@ export async function GET(
   const { fid } = await params;
   const { searchParams } = new URL(request.url);
   const limit = Number(searchParams.get("limit")) || 10;
+  const feedType = searchParams.get("feedType") ?? ("explore" as FeedType);
 
   if (!Number(fid)) {
     return NextResponse.json({ error: "Missing FID" }, { status: 400 });
@@ -25,22 +26,22 @@ export async function GET(
       method: "POST",
       headers: {
         accept: "application/json",
-        'HTTP-Referer': appUrl || "",
-        'X-Title': 'Dash',
+        "HTTP-Referer": appUrl || "",
+        "X-Title": "Dash",
         "content-type": "application/json",
         authorization: `Bearer ${process.env.MBD_API_KEY}`,
       },
       body: JSON.stringify({
         filters: { publication_types: ["video"] },
         user_id: fid.toString(),
-        feed_id: "feed_466",
+        feed_id: FEED_IDS[feedType as keyof typeof FEED_IDS],
         return_metadata: true,
         top_k: limit,
         impression_count: limit,
       }),
     });
     const data = await res.json();
-    
+
     const posts: Post[] = data.body
       .filter((item: any) =>
         item.metadata.embed_items.find((url: string) => url.includes("video"))

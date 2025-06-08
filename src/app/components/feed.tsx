@@ -13,10 +13,10 @@ import { PromotionFrame } from "@/hooks/useFeed";
 
 interface FeedProps {
   initialPost?: Post;
-  feedType?: "following" | "explore";
+  feedType?: FeedType;
 }
 
-export function Feed({ initialPost, feedType = "following" }: FeedProps) {
+export function Feed({ initialPost, feedType = "explore" }: FeedProps) {
   const { loading } = useFrame();
   const { showDialog, setShowDialog } = useSigner();
 
