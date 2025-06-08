@@ -70,7 +70,7 @@ export const Share = ({ children, post }: ShareProps) => {
     return [];
   }, [searchResults, friends, search]);
 
-  const trackShare = async (recipientFid: string) => {
+  const trackShare = async (recipient: User) => {
     if (!context?.user?.fid) return;
 
     try {
@@ -81,13 +81,13 @@ export const Share = ({ children, post }: ShareProps) => {
         },
         body: JSON.stringify({
           senderFid: context.user.fid.toString(),
-          recipientFid,
+          recipientFid: recipient.fid.toString(),
         }),
       });
 
-      trackEvent("Sent video via DC", {
-        user: context.user,
-        recipientFid,
+      trackEvent("shared_post_dc", {
+        user: context.user.username,
+        recipient: recipient.username,
         castHash: post.id,
       });
     } catch (error) {
@@ -143,7 +143,7 @@ export const Share = ({ children, post }: ShareProps) => {
                       variant="secondaryAction"
                       className="gap-2"
                       onClick={() => {
-                        trackShare(user.fid.toString());
+                        trackShare(user);
                         sdk.actions.openUrl(
                           `https://farcaster.xyz/~/inbox/create/${
                             user.fid
@@ -170,10 +170,10 @@ export const Share = ({ children, post }: ShareProps) => {
                   });
 
                   if (result && result.cast) {
-                    trackEvent("Shared embed in cast", {
-                      user: context?.user,
-                      videoHash: post.id,
-                      castHash: result.cast.hash,
+                    trackEvent("shared_post_cast", {
+                      user: context?.user.username,
+                      postCastHash: post.id,
+                      shareCastHash: result.cast.hash,
                     });
                   }
                 }}

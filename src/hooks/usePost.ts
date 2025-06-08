@@ -147,10 +147,9 @@ export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
         throw new Error("Failed to update reaction");
       }
 
-      trackEvent("Reacted", {
-        user: context?.user,
+      trackEvent(type === "like" ? "liked" : "recasted", {
+        user: context?.user.username,
         castHash: postId,
-        type,
       });
     } catch (error) {
       // Revert optimistic update on error

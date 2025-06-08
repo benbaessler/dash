@@ -83,8 +83,8 @@ export const CommentItem = ({
         throw new Error("Failed to update reaction");
       }
 
-      trackEvent("Liked comment", {
-        user: context?.user,
+      trackEvent("liked_comment", {
+        user: context?.user.username,
         castHash: comment.hash,
       });
     } catch (error) {

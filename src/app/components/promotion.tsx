@@ -101,8 +101,8 @@ function JoinChannelPromotion() {
         onClick={async () => {
           await sdk.actions.openUrl(`https://farcaster.xyz/~/channel/dash`);
 
-          trackEvent("Opened /dash channel", {
-            user: context?.user,
+          trackEvent("opened_channel", {
+            user: context?.user.username,
           });
         }}
       >
@@ -128,8 +128,8 @@ function ShareButton() {
         });
 
         if (result && result.cast) {
-          trackEvent("Shared app", {
-            user: context?.user,
+          trackEvent("shared_app", {
+            user: context?.user.username,
             castHash: result.cast.hash,
           });
         }

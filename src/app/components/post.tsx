@@ -40,7 +40,7 @@ export const Post = ({
         if (!liked) {
           handleInteraction(e, "like", data.id);
           trackEvent("double_tap_like", {
-            user,
+            user: user?.username,
             castHash: data.id
           });
         }

@@ -266,9 +266,9 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         throw new Error(`Failed to post comment: ${errorDetails}`);
       }
 
-      trackEvent("Commented", {
-        user: context?.user,
-        castHash,
+      trackEvent("commented", {
+        user: context?.user.username,
+        parentCastHash: castHash,
       });
     } catch (error) {
       console.error("Error posting comment:", error);
