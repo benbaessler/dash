@@ -6,7 +6,7 @@ import { Avatar } from "./avatar";
 import { usePost } from "@/hooks/usePost";
 import { useFrame } from "@/providers/FrameProvider";
 import { ClickableText } from "./text";
-import { usePostHog } from "posthog-js/react";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 export const CommentItem = ({
   comment,
@@ -22,7 +22,7 @@ export const CommentItem = ({
   const textRef = useRef<HTMLDivElement>(null);
   const { checkAuth } = usePost();
   const { sessionToken, context } = useFrame();
-  const { capture } = usePostHog();
+  const { trackEvent } = useAnalytics();
 
   useEffect(() => {
     if (comment.isExpanded) {
@@ -83,10 +83,10 @@ export const CommentItem = ({
         throw new Error("Failed to update reaction");
       }
 
-      // capture("Liked comment", {
-      //   senderFid: context?.user?.fid.toString(),
-      //   castHash: comment.hash,
-      // });
+      trackEvent("Liked comment", {
+        user: context?.user,
+        castHash: comment.hash,
+      });
     } catch (error) {
       // Revert optimistic update on error
       setIsLiked(!isLiked);

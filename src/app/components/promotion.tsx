@@ -6,7 +6,7 @@ import sdk from "@farcaster/frame-sdk";
 import { useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { useFrame } from "@/providers/FrameProvider";
-import { usePostHog } from "posthog-js/react";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 type PromotionProps = {
   type: "add-frame" | "share-app" | "join-channel";
@@ -78,7 +78,8 @@ function ShareAppPromotion() {
 }
 
 function JoinChannelPromotion() {
-  const { capture } = usePostHog();
+  const { trackEvent } = useAnalytics();
+
   const { context } = useFrame();
 
   return (
@@ -100,9 +101,8 @@ function JoinChannelPromotion() {
         onClick={async () => {
           await sdk.actions.openUrl(`https://farcaster.xyz/~/channel/dash`);
 
-          capture("Opened /dash channel", {
-            fid: context?.user?.fid.toString(),
-            username: context?.user?.username,
+          trackEvent("Opened /dash channel", {
+            user: context?.user,
           });
         }}
       >
@@ -114,7 +114,7 @@ function JoinChannelPromotion() {
 }
 
 function ShareButton() {
-  const { capture } = usePostHog();
+  const { trackEvent } = useAnalytics();
   const { context } = useFrame();
 
   return (
@@ -128,8 +128,8 @@ function ShareButton() {
         });
 
         if (result && result.cast) {
-          capture("Shared app", {
-            senderFid: context?.user?.fid.toString(),
+          trackEvent("Shared app", {
+            user: context?.user,
             castHash: result.cast.hash,
           });
         }

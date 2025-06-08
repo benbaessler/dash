@@ -17,8 +17,8 @@ import { appUrl } from "@/constants";
 import { CommentSkeleton } from "./skeleton-loader";
 import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
 import { sdk } from "@farcaster/frame-sdk";
+import { useAnalytics } from "@/hooks/useAnalytics";
 interface CommentSectionProps {
   children: React.ReactNode;
   castHash: string;
@@ -115,9 +115,9 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const [replyingTo, setReplyingTo] = useState<CommentData | null>(null);
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user, sessionToken } = useFrame();
+  const { user, sessionToken, context } = useFrame();
   const { checkAuth } = usePost();
-  const { capture } = usePostHog();
+  const { trackEvent } = useAnalytics();
 
   const getKey = (
     pageIndex: number,
@@ -266,10 +266,10 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         throw new Error(`Failed to post comment: ${errorDetails}`);
       }
 
-      // capture("Commented", {
-      //   senderFid: user?.fid.toString(),
-      //   castHash,
-      // });
+      trackEvent("Commented", {
+        user: context?.user,
+        castHash,
+      });
     } catch (error) {
       console.error("Error posting comment:", error);
       setComments((prevComments) =>

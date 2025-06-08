@@ -17,7 +17,7 @@ import { User } from "@neynar/nodejs-sdk/build/api/models/user";
 import { useFrame } from "@/providers/FrameProvider";
 import { Loader } from "lucide-react";
 import { Avatar } from "./avatar";
-import { usePostHog } from "posthog-js/react";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface ShareProps {
   children: React.ReactNode;
@@ -28,7 +28,7 @@ export const Share = ({ children, post }: ShareProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const { context } = useFrame();
-  const { capture } = usePostHog();
+  const { trackEvent } = useAnalytics();
 
   const { data: friends, isLoading: isFriendsLoading } = useSWR<User[]>(
     context?.user?.fid ? `/api/friends/${context.user.fid}` : null,
@@ -85,8 +85,8 @@ export const Share = ({ children, post }: ShareProps) => {
         }),
       });
 
-      capture("Sent video via DC", {
-        senderFid: context.user.fid.toString(),
+      trackEvent("Sent video via DC", {
+        user: context.user,
         recipientFid,
         castHash: post.id,
       });
@@ -170,8 +170,8 @@ export const Share = ({ children, post }: ShareProps) => {
                   });
 
                   if (result && result.cast) {
-                    capture("Shared embed in cast", {
-                      senderFid: context?.user?.fid.toString(),
+                    trackEvent("Shared embed in cast", {
+                      user: context?.user,
                       videoHash: post.id,
                       castHash: result.cast.hash,
                     });
