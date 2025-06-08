@@ -3,6 +3,8 @@ import { VideoPlayer } from "./video-player";
 import { Caption } from "./caption";
 import { InteractionButtons } from "./interaction-buttons";
 import { TimeSlider } from "@vidstack/react";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useFrame } from "@/providers/FrameProvider";
 
 interface PostProps {
   data: Post;
@@ -28,12 +30,19 @@ export const Post = ({
   toggleExpandText,
   handleInteraction,
 }: PostProps) => {
+  const { trackEvent } = useAnalytics();
+  const { user } = useFrame();
+
   return (
     <div
       className="h-screen w-screen snap-start snap-always relative"
       onDoubleClick={(e) => {
         if (!liked) {
           handleInteraction(e, "like", data.id);
+          trackEvent("double_tap_like", {
+            user,
+            castHash: data.id
+          });
         }
       }}
     >
