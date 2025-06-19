@@ -10,13 +10,19 @@ import { useFeed, usePost, useVideoNavigation } from "@/hooks";
 import { Loader } from "lucide-react";
 import { createPortal } from "react-dom";
 import { PromotionFrame } from "@/hooks/useFeed";
+import { FeedEndPage } from "./feed-end-page";
 
 interface FeedProps {
   initialPost?: Post;
   feedType?: FeedType;
+  onSwitchExplore?: () => void;
 }
 
-export function Feed({ initialPost, feedType = "explore" }: FeedProps) {
+export function Feed({
+  initialPost,
+  feedType = "explore",
+  onSwitchExplore,
+}: FeedProps) {
   const { loading } = useFrame();
   const { showDialog, setShowDialog } = useSigner();
 
@@ -86,10 +92,7 @@ export function Feed({ initialPost, feedType = "explore" }: FeedProps) {
   const renderPromotionPost = (
     type: "add-frame" | "share-app" | "join-channel"
   ) => (
-    <div
-      key={`promotion-${type}`}
-      className="h-screen w-screen snap-start"
-    >
+    <div key={`promotion-${type}`} className="h-screen w-screen snap-start">
       <Promotion type={type} />
     </div>
   );
@@ -117,12 +120,22 @@ export function Feed({ initialPost, feedType = "explore" }: FeedProps) {
         }, [])
       : [];
 
+  const finalFeed =
+    feedType === "following" &&
+    !fetching &&
+    activeVideoIndex === combinedFeed?.length - 1
+      ? [
+          ...feedWithPromotionFrames,
+          <FeedEndPage key="feed-end" onClick={onSwitchExplore!} />,
+        ]
+      : feedWithPromotionFrames;
+  
   return (
     <main
       className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory relative"
       onScroll={handleScroll}
     >
-      {feedWithPromotionFrames}
+      {finalFeed}
       <div className="z-[100]">
         <ApproveSignerDialog open={showDialog} onOpenChange={setShowDialog} />
       </div>

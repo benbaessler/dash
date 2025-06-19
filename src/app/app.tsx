@@ -31,7 +31,10 @@ export default function App() {
       {/* Following Feed */}
       {loadedFeeds.has("following") && (
         <div className={activeFeed === "following" ? "block" : "hidden"}>
-          <Feed feedType="following" />
+          <Feed
+            feedType="following"
+            onSwitchExplore={() => handleFeedChange("explore")}
+          />
         </div>
       )}
     </div>
