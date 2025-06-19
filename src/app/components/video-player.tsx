@@ -5,7 +5,7 @@ import {
   MediaProvider,
   type MediaPlayerInstance,
 } from "@vidstack/react";
-import { PlayIcon /*, ForwardIcon*/ } from "@heroicons/react/24/solid";
+import { PlayIcon /*, ForwardIcon*/ } from "@phosphor-icons/react";
 import { useInView } from "react-intersection-observer";
 // import { sdk } from "@farcaster/frame-sdk";
 
@@ -128,7 +128,7 @@ export function VideoPlayer({
       )}
       {paused && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <PlayIcon className="size-12 text-white opacity-70 cursor-pointer" />
+          <PlayIcon weight="fill" size={48} className="text-white opacity-70 cursor-pointer hover:opacity-90" />
         </div>
       )}
       {/* {isSpeedUp && (
