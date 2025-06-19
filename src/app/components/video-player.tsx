@@ -7,7 +7,6 @@ import {
 } from "@vidstack/react";
 import { PlayIcon /*, ForwardIcon*/ } from "@phosphor-icons/react";
 import { useInView } from "react-intersection-observer";
-// import { sdk } from "@farcaster/frame-sdk";
 
 interface VideoPlayerProps {
   post: Post;
