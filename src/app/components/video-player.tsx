@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState, ReactNode } from "react";
-import { MediaPlayer, MediaProvider, type MediaPlayerInstance } from "@vidstack/react";
+import {
+  MediaPlayer,
+  MediaProvider,
+  type MediaPlayerInstance,
+} from "@vidstack/react";
 import { PlayIcon /*, ForwardIcon*/ } from "@heroicons/react/24/solid";
 import { useInView } from "react-intersection-observer";
 // import { sdk } from "@farcaster/frame-sdk";
@@ -76,8 +80,6 @@ export function VideoPlayer({
     };
   }, [clickTimeout]);
 
-
-
   const handlePlayerReady = (media: MediaPlayerInstance) => {
     setPlayer(media);
     if (onPlayerReady) {
@@ -86,9 +88,9 @@ export function VideoPlayer({
   };
 
   return (
-    <div 
-      ref={ref} 
-      className="relative w-full h-full" 
+    <div
+      ref={ref}
+      className="relative w-full h-full"
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
@@ -110,7 +112,16 @@ export function VideoPlayer({
           ref={handlePlayerReady}
         >
           <MediaProvider className="w-full h-full" />
-          {player && renderTimeSlider && renderTimeSlider(player)}
+
+          {player && renderTimeSlider && (
+            <div
+              className="absolute flex justify-center bottom-8 left-0 right-0 w-full z-10"
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+            >
+              {renderTimeSlider(player)}
+            </div>
+          )}
         </MediaPlayer>
       ) : (
         <div className="w-full h-full bg-black"></div>
