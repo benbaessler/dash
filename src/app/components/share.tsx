@@ -1,5 +1,5 @@
 import { FarcasterIcon } from "@/assets/icons";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -105,7 +105,7 @@ export const Share = ({ children, post }: ShareProps) => {
           </DrawerHeader>
           <div className="flex flex-col w-full h-full overflow-hidden">
             <div className="relative mb-4">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
+              <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}

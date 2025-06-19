@@ -1,9 +1,11 @@
 "use client";
+import { useFrame } from "@/providers/FrameProvider";
 import { Feed } from "./components/feed";
 import { FeedSwitcher } from "./components/feed-switcher";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function App() {
+  const { sessionToken, signIn } = useFrame();
   const [activeFeed, setActiveFeed] = useState<FeedType>("explore");
   const [loadedFeeds, setLoadedFeeds] = useState<Set<FeedType>>(
     new Set(["explore"])
@@ -13,6 +15,10 @@ export default function App() {
     setActiveFeed(feedType);
     setLoadedFeeds((prev) => new Set(prev).add(feedType));
   };
+
+  useEffect(() => {
+    if (!sessionToken) signIn();
+  }, [sessionToken, signIn]);
 
   return (
     <div className="h-screen w-screen relative">

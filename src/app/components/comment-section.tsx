@@ -7,7 +7,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { ArrowUpIcon } from "@heroicons/react/24/solid";
+import { ArrowUpIcon } from "@phosphor-icons/react";
 import { CommentItem } from "./comment-item";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "./avatar";
@@ -388,7 +388,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
             onClick={() => postComment(castHash, commentText)}
             className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-sm w-7 h-7 font-bold p-0"
           >
-            <ArrowUpIcon className="h-4 w-4" />
+            <ArrowUpIcon weight="bold" className="h-4 w-4" />
           </Button>
         )}
       </div>

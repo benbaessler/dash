@@ -23,6 +23,28 @@ body {
   display: none;
 }
 
+media-player::-webkit-media-controls,
+media-player::-webkit-media-controls-overlay-play-button,
+media-player::-webkit-media-controls-play-button,
+media-player::-webkit-media-controls-timeline,
+media-player::-webkit-media-controls-current-time-display,
+media-player::-webkit-media-controls-time-remaining-display,
+media-player::-webkit-media-controls-time-remaining-display,
+media-player::-webkit-media-controls-mute-button,
+media-player::-webkit-media-controls-toggle-closed-captions-button,
+media-player::-webkit-media-controls-volume-slider,
+media-player::-webkit-media-controls-fullscreen-button {
+  display: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+media-player::--webkit-media-controls-container {
+  display: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
 @layer base {
   :root {
     --radius: 0.5rem;

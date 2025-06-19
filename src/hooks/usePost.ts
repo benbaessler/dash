@@ -43,11 +43,10 @@ export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
     if (!sessionToken) {
       try {
         await signIn();
-        return false;
       } catch (error) {
         console.error("Failed to sign in", error);
-        return false;
       }
+      return false;
     }
 
     if (authLoading) return false;

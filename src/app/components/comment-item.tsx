@@ -1,5 +1,4 @@
-import { HeartIcon } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
+import { HeartIcon } from "@phosphor-icons/react";
 import { formatTimeAgo } from "@/utils/formatTime";
 import { useState, useEffect, useRef } from "react";
 import { Avatar } from "./avatar";
@@ -153,9 +152,9 @@ export const CommentItem = ({
                 onClick={(e) => likeComment(e)}
               >
                 {isLiked ? (
-                  <HeartIconSolid className="size-5 text-red-500 animate-heartbeat" />
+                  <HeartIcon weight="fill" size={20} className="text-red-500 animate-heartbeat" />
                 ) : (
-                  <HeartIcon className="size-5" />
+                  <HeartIcon weight="regular" size={20} />
                 )}
                 <span className="text-sm font-medium">
                   {comment.reactions.likes_count}

@@ -8,7 +8,7 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useMemo } from "react";
 import { useSigner } from "@/providers/SignerProvider";
-import { ArrowRightCircleIcon } from "@heroicons/react/24/solid";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import sdk from "@farcaster/frame-sdk";
 import { Loader } from "lucide-react";
@@ -72,10 +72,9 @@ export const ApproveSignerDialog = ({
               onClick={() => sdk.actions.openUrl(mobileUrl)}
             >
               Already on mobile?
-              <ArrowRightCircleIcon
-                className="w-4 h-4"
-                width={50}
-                height={50}
+              <ArrowRightIcon
+                weight="bold"
+                size={20}
               />
             </Button>
             <div className="flex items-center justify-center gap-2">

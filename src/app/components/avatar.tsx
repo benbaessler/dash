@@ -1,6 +1,6 @@
 import sdk from "@farcaster/frame-sdk";
 import Image from "next/image";
-import { useState } from "react";
+import { memo, useState } from "react";
 
 interface AvatarProps {
   imageUrl: string;
@@ -9,7 +9,7 @@ interface AvatarProps {
   fid?: number;
 }
 
-export const Avatar = ({
+const AvatarComponent = ({
   imageUrl,
   altText,
   className = "w-10 h-10", // Default size
@@ -25,6 +25,7 @@ export const Avatar = ({
         />
       )}
       <Image
+        priority
         src={imageUrl}
         alt={altText}
         fill
@@ -45,3 +46,5 @@ export const Avatar = ({
     </div>
   );
 };
+
+export const Avatar = memo(AvatarComponent);
