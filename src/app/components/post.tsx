@@ -2,7 +2,9 @@
 import { VideoPlayer } from "./video-player";
 import { Caption } from "./caption";
 import { InteractionButtons } from "./interaction-buttons";
-import { TimeSlider } from "@vidstack/react";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useFrame } from "@/providers/FrameProvider";
+import { TimeSlider } from "./time-slider";
 
 interface PostProps {
   data: Post;
@@ -28,12 +30,19 @@ export const Post = ({
   toggleExpandText,
   handleInteraction,
 }: PostProps) => {
+  const { trackEvent } = useAnalytics();
+  const { user } = useFrame();
+
   return (
     <div
       className="h-full w-screen snap-start snap-always relative"
       onDoubleClick={(e) => {
         if (!liked) {
           handleInteraction(e, "like", data.id);
+          trackEvent("double_tap_like", {
+            user: user?.username,
+            castHash: data.id
+          });
         }
       }}
     >
@@ -42,21 +51,7 @@ export const Post = ({
         isActive={isActive}
         loading={loading}
         shouldPreload={shouldPreload}
-        renderTimeSlider={() => (
-          <div
-            className="absolute flex justify-center bottom-0 left-0 right-0 w-full z-10"
-            onClick={(e) => e.stopPropagation()}
-            onDoubleClick={(e) => e.stopPropagation()}
-          >
-            <TimeSlider.Root className="group relative inline-flex h-6 w-full cursor-pointer touch-none select-none items-end outline-none aria-hidden:hidden">
-              <TimeSlider.Track className="relative ring-sky-400 z-0 h-[2px] hover:h-1.5 w-full bg-white/25 group-data-[focus]:ring-[3px]">
-                <TimeSlider.TrackFill className="bg-white/60 absolute h-full w-[var(--slider-fill)] will-change-[width]" />
-                {/* <TimeSlider.Progress className="absolute z-10 h-full w-[var(--slider-progress)] rounded-sm bg-white/25 will-change-[width]" /> */}
-              </TimeSlider.Track>
-              {/* <TimeSlider.Thumb className="absolute left-[var(--slider-fill)] top-1/2 z-20 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-0 group-data-[active]:opacity-100 will-change-[left]" /> */}
-            </TimeSlider.Root>
-          </div>
-        )}
+        renderTimeSlider={() => <TimeSlider />}
       />
 
       <Caption

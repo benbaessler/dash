@@ -1,9 +1,9 @@
 import {
-  ArrowPathIcon,
+  ShareFatIcon,
   HeartIcon,
-  ChatBubbleOvalLeftIcon,
-  ArrowUpTrayIcon,
-} from "@heroicons/react/24/solid";
+  ChatTeardropTextIcon,
+  RepeatIcon,
+} from "@phosphor-icons/react";
 import { useSigner } from "@/providers/SignerProvider";
 import { CommentSection } from "./comment-section";
 import { Avatar } from "./avatar";
@@ -74,7 +74,7 @@ export const InteractionButtons = ({
       />
 
       <InteractionButton
-        icon={<HeartIcon />}
+        icon={<HeartIcon size={35} weight="fill" />}
         count={post.likeCount}
         isActive={liked}
         activeColor="text-red-500"
@@ -83,7 +83,7 @@ export const InteractionButtons = ({
       />
 
       <InteractionButton
-        icon={<ChatBubbleOvalLeftIcon />}
+        icon={<ChatTeardropTextIcon size={35} weight="fill" />}
         count={post.commentCount}
         isLoading={loading}
         wrapper={(children) => (
@@ -92,7 +92,7 @@ export const InteractionButtons = ({
       />
 
       <InteractionButton
-        icon={<ArrowPathIcon />}
+        icon={<RepeatIcon size={35} />}
         count={post.recastCount}
         isActive={recasted}
         activeColor="text-green-500"
@@ -101,7 +101,7 @@ export const InteractionButtons = ({
       />
 
       <InteractionButton
-        icon={<ArrowUpTrayIcon />}
+        icon={<ShareFatIcon size={35} weight="fill" />}
         isLoading={loading}
         wrapper={(children) => <Share post={post}>{children}</Share>}
       />

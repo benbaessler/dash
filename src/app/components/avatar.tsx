@@ -1,8 +1,8 @@
 import Image from "next/image";
-import { useState } from "react";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { useProfile } from "@/providers/ProfileProvider";
 import useSWR from "swr";
+import { memo, useState } from "react";
 
 interface AvatarProps {
   imageUrl: string;
@@ -14,7 +14,7 @@ interface AvatarProps {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export const Avatar = ({
+const AvatarComponent = ({
   imageUrl,
   altText,
   className = "w-10 h-10", // Default size
@@ -43,13 +43,14 @@ export const Avatar = ({
           />
         )}
         <Image
+          priority
           src={imageUrl}
           alt={altText}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Default sizes, can be overridden by className
-          className={`rounded-full object-cover ${(username || fid) ? "cursor-pointer" : ""} ${
-            isImageLoading ? "opacity-0" : "opacity-100"
-          }`}
+          className={`rounded-full object-cover ${
+            username || fid ? "cursor-pointer" : ""
+          } ${isImageLoading ? "opacity-0" : "opacity-100"}`}
           onLoad={() => setIsImageLoading(false)}
           onClick={
             (username || fid) && userData
@@ -61,7 +62,8 @@ export const Avatar = ({
           }
         />
       </div>
-
     </>
   );
 };
+
+export const Avatar = memo(AvatarComponent);

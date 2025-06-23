@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import { useSigner } from "@/providers/SignerProvider";
-import { usePostHog } from "posthog-js/react";
+import { sdk } from "@farcaster/frame-sdk";
+import { useAnalytics } from "./useAnalytics";
 
 interface UsePostOptions {
   feed?: Post[] | null;
@@ -36,17 +37,16 @@ export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const [recastedPosts, setRecastedPosts] = useState<Set<string>>(new Set());
   const [expandedTexts, setExpandedTexts] = useState<Set<string>>(new Set());
-  const { capture } = usePostHog();
+  const { trackEvent } = useAnalytics();
 
   const checkAuth = async () => {
     if (!sessionToken) {
       try {
         await signIn();
-        return false;
       } catch (error) {
         console.error("Failed to sign in", error);
-        return false;
       }
+      return false;
     }
 
     if (authLoading) return false;
@@ -124,6 +124,8 @@ export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
       }
     }
 
+    if (!isRemoving) await sdk.haptics.impactOccurred("medium");
+
     try {
       const endpoint = isRemoving
         ? "/api/reactions/delete"
@@ -144,11 +146,10 @@ export function usePost({ feed, setFeed }: UsePostOptions = {}): UsePostResult {
         throw new Error("Failed to update reaction");
       }
 
-      // capture("Reacted", {
-      //   senderFid: context?.user?.fid.toString(),
-      //   castHash: postId,
-      //   type,
-      // });
+      trackEvent(type === "like" ? "liked" : "recasted", {
+        user: context?.user.username,
+        castHash: postId,
+      });
     } catch (error) {
       // Revert optimistic update on error
       if (type === "like") {

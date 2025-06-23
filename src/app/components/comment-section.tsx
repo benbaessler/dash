@@ -7,7 +7,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { ArrowUpIcon } from "@heroicons/react/24/solid";
+import { ArrowUpIcon } from "@phosphor-icons/react";
 import { CommentItem } from "./comment-item";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "./avatar";
@@ -17,7 +17,8 @@ import { appUrl } from "@/constants";
 import { CommentSkeleton } from "./skeleton-loader";
 import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
+import { sdk } from "@farcaster/frame-sdk";
+import { useAnalytics } from "@/hooks/useAnalytics";
 interface CommentSectionProps {
   children: React.ReactNode;
   castHash: string;
@@ -114,9 +115,9 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const [replyingTo, setReplyingTo] = useState<CommentData | null>(null);
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user, sessionToken } = useFrame();
+  const { user, sessionToken, context } = useFrame();
   const { checkAuth } = usePost();
-  const { capture } = usePostHog();
+  const { trackEvent } = useAnalytics();
 
   const getKey = (
     pageIndex: number,
@@ -232,6 +233,8 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
 
     setComments((prevComments) => [newComment, ...prevComments]);
 
+    await sdk.haptics.impactOccurred("medium");
+
     setTimeout(() => {
       scrollableContainerRef.current?.scrollTo({
         top: 0,
@@ -263,10 +266,10 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         throw new Error(`Failed to post comment: ${errorDetails}`);
       }
 
-      // capture("Commented", {
-      //   senderFid: user?.fid.toString(),
-      //   castHash,
-      // });
+      trackEvent("commented", {
+        user: context?.user.username,
+        parentCastHash: castHash,
+      });
     } catch (error) {
       console.error("Error posting comment:", error);
       setComments((prevComments) =>
@@ -385,7 +388,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
             onClick={() => postComment(castHash, commentText)}
             className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-sm w-7 h-7 font-bold p-0"
           >
-            <ArrowUpIcon className="h-4 w-4" />
+            <ArrowUpIcon weight="bold" className="h-4 w-4" />
           </Button>
         )}
       </div>

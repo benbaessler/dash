@@ -1,5 +1,5 @@
 import { FarcasterIcon } from "@/assets/icons";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -17,7 +17,7 @@ import { User } from "@neynar/nodejs-sdk/build/api/models/user";
 import { useFrame } from "@/providers/FrameProvider";
 import { Loader } from "lucide-react";
 import { Avatar } from "./avatar";
-import { usePostHog } from "posthog-js/react";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface ShareProps {
   children: React.ReactNode;
@@ -28,7 +28,7 @@ export const Share = ({ children, post }: ShareProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const { context } = useFrame();
-  const { capture } = usePostHog();
+  const { trackEvent } = useAnalytics();
 
   const { data: friends, isLoading: isFriendsLoading } = useSWR<User[]>(
     context?.user?.fid ? `/api/friends/${context.user.fid}` : null,
@@ -70,7 +70,7 @@ export const Share = ({ children, post }: ShareProps) => {
     return [];
   }, [searchResults, friends, search]);
 
-  const trackShare = async (recipientFid: string) => {
+  const trackShare = async (recipient: User) => {
     if (!context?.user?.fid) return;
 
     try {
@@ -81,13 +81,13 @@ export const Share = ({ children, post }: ShareProps) => {
         },
         body: JSON.stringify({
           senderFid: context.user.fid.toString(),
-          recipientFid,
+          recipientFid: recipient.fid.toString(),
         }),
       });
 
-      capture("Sent video via DC", {
-        senderFid: context.user.fid.toString(),
-        recipientFid,
+      trackEvent("shared_post_dc", {
+        user: context.user.username,
+        recipient: recipient.username,
         castHash: post.id,
       });
     } catch (error) {
@@ -105,7 +105,7 @@ export const Share = ({ children, post }: ShareProps) => {
           </DrawerHeader>
           <div className="flex flex-col w-full h-full overflow-hidden">
             <div className="relative mb-4">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
+              <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -143,7 +143,7 @@ export const Share = ({ children, post }: ShareProps) => {
                       variant="secondaryAction"
                       className="gap-2"
                       onClick={() => {
-                        trackShare(user.fid.toString());
+                        trackShare(user);
                         sdk.actions.openUrl(
                           `https://farcaster.xyz/~/inbox/create/${
                             user.fid
@@ -170,10 +170,10 @@ export const Share = ({ children, post }: ShareProps) => {
                   });
 
                   if (result && result.cast) {
-                    capture("Shared embed in cast", {
-                      senderFid: context?.user?.fid.toString(),
-                      videoHash: post.id,
-                      castHash: result.cast.hash,
+                    trackEvent("shared_post_cast", {
+                      user: context?.user.username,
+                      postCastHash: post.id,
+                      shareCastHash: result.cast.hash,
                     });
                   }
                 }}

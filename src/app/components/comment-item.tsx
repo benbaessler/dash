@@ -1,12 +1,11 @@
-import { HeartIcon } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartIconSolid } from "@heroicons/react/24/solid";
+import { HeartIcon } from "@phosphor-icons/react";
 import { formatTimeAgo } from "@/utils/formatTime";
 import { useState, useEffect, useRef } from "react";
 import { Avatar } from "./avatar";
 import { usePost } from "@/hooks/usePost";
 import { useFrame } from "@/providers/FrameProvider";
 import { ClickableText } from "./text";
-import { usePostHog } from "posthog-js/react";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 export const CommentItem = ({
   comment,
@@ -22,7 +21,7 @@ export const CommentItem = ({
   const textRef = useRef<HTMLDivElement>(null);
   const { checkAuth } = usePost();
   const { sessionToken, context } = useFrame();
-  const { capture } = usePostHog();
+  const { trackEvent } = useAnalytics();
 
   useEffect(() => {
     if (comment.isExpanded) {
@@ -83,10 +82,10 @@ export const CommentItem = ({
         throw new Error("Failed to update reaction");
       }
 
-      // capture("Liked comment", {
-      //   senderFid: context?.user?.fid.toString(),
-      //   castHash: comment.hash,
-      // });
+      trackEvent("liked_comment", {
+        user: context?.user.username,
+        castHash: comment.hash,
+      });
     } catch (error) {
       // Revert optimistic update on error
       setIsLiked(!isLiked);
@@ -153,9 +152,9 @@ export const CommentItem = ({
                 onClick={(e) => likeComment(e)}
               >
                 {isLiked ? (
-                  <HeartIconSolid className="size-5 text-red-500 animate-heartbeat" />
+                  <HeartIcon weight="fill" size={20} className="text-red-500 animate-heartbeat" />
                 ) : (
-                  <HeartIcon className="size-5" />
+                  <HeartIcon weight="regular" size={20} />
                 )}
                 <span className="text-sm font-medium">
                   {comment.reactions.likes_count}

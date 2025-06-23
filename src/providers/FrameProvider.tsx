@@ -10,15 +10,14 @@ import { isMobile } from "@/utils/isMobile";
 import useSWR, { SWRResponse } from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { onboardUser } from "@/utils/onboarding";
-import { usePostHog } from "posthog-js/react";
 import { AddFrame } from "@farcaster/frame-core";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
   context: Context.FrameContext | undefined;
   added: boolean;
   notificationDetails: FrameNotificationDetails | null;
-  lastEvent: string;
   addFrameResult: string;
   sessionToken: string | null;
   mobile: boolean;
@@ -48,10 +47,9 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
   const [added, setAdded] = useState(false);
   const [notificationDetails, setNotificationDetails] =
     useState<FrameNotificationDetails | null>(null);
-  const [lastEvent, setLastEvent] = useState("");
   const [addFrameResult, setAddFrameResult] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
-  const { identify } = usePostHog();
+  const { identifyUser } = useAnalytics();
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [mobile, setMobile] = useState<boolean>(false);
 
@@ -100,7 +98,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
     const { token } = await sdk.experimental.quickAuth();
 
     setSessionToken(token);
-  }, []);
+  }, [sessionToken]);
 
   useEffect(() => {
     const triggerSignInOnMobile = async () => {
@@ -112,7 +110,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
     if (!sessionToken) {
       triggerSignInOnMobile();
     }
-  }, []);
+  }, [signIn, sessionToken]);
 
   useEffect(() => {
     const load = async () => {
@@ -128,9 +126,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
       });
 
       sdk.actions.ready({});
-      identify(context.user.username, {
-        fid: context.user.fid,
-      });
+      identifyUser(context.user);
     };
 
     if (sdk && !isSDKLoaded) {
@@ -140,14 +136,13 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
         sdk.removeAllListeners();
       };
     }
-  }, [isSDKLoaded]);
+  }, [isSDKLoaded, identifyUser]);
 
   const values = {
     isSDKLoaded,
     context,
     added,
     notificationDetails,
-    lastEvent,
     addFrame,
     addFrameResult,
     sessionToken,

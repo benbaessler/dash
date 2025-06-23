@@ -1,7 +1,11 @@
 "use client";
 import { useEffect, useMemo, useState, ReactNode } from "react";
-import { MediaPlayer, MediaProvider, type MediaPlayerInstance } from "@vidstack/react";
-import { PlayIcon, ForwardIcon } from "@heroicons/react/24/solid";
+import {
+  MediaPlayer,
+  MediaProvider,
+  type MediaPlayerInstance,
+} from "@vidstack/react";
+import { PlayIcon /*, ForwardIcon*/ } from "@phosphor-icons/react";
 import { useInView } from "react-intersection-observer";
 import { useProfile } from "@/providers/ProfileProvider";
 
@@ -26,14 +30,14 @@ export function VideoPlayer({
     threshold: 0.1,
     triggerOnce: false,
   });
-  const [playTimeout, setPlayTimeout] = useState<NodeJS.Timeout | null>(null);
   const [paused, setPaused] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
   const [player, setPlayer] = useState<MediaPlayerInstance | null>(null);
-  const [holdTimeout, setHoldTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [isSpeedUp, setIsSpeedUp] = useState(false);
-  const [lastTapTime, setLastTapTime] = useState(0);
+  // const [holdTimeout, setHoldTimeout] = useState<NodeJS.Timeout | null>(null);
+  // const [isSpeedUp, setIsSpeedUp] = useState(false);
+  // const [lastTapTime, setLastTapTime] = useState(0);
   const { isStackOpen } = useProfile();
+  const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const idle = useMemo(() => {
     return !inView || !isActive || loading || isStackOpen;
@@ -46,59 +50,26 @@ export function VideoPlayer({
     }
   }, [inView, isActive, shouldPreload]);
 
-  const handlePointerDown = () => {
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - lastTapTime;
-    
-    if (timeSinceLastTap < 300) {
-      if (playTimeout) {
-        clearTimeout(playTimeout);
-        setPlayTimeout(null);
-      }
-      if (holdTimeout) {
-        clearTimeout(holdTimeout);
-        setHoldTimeout(null);
-      }
-      return;
+  const handleClick = () => {
+    // Clear any existing timeout
+    if (clickTimeout) {
+      clearTimeout(clickTimeout);
+      setClickTimeout(null);
     }
 
-    setLastTapTime(currentTime);
+    const timeout = setTimeout(() => {
+      setPaused(!paused);
+      setClickTimeout(null);
+    }, 150);
 
-    if (playTimeout) {
-      clearTimeout(playTimeout);
-      setPlayTimeout(null);
-    }
-
-    // Set up hold detection for speed increase
-    const holdTimer = setTimeout(() => {
-      if (player && !paused) {
-        player.playbackRate = 2;
-        setIsSpeedUp(true);
-      }
-      setHoldTimeout(null);
-    }, 500);
-
-    setHoldTimeout(holdTimer);
+    setClickTimeout(timeout);
   };
 
-  const handlePointerUp = () => {
-    // Clear hold timeout if still pending
-    if (holdTimeout) {
-      clearTimeout(holdTimeout);
-      setHoldTimeout(null);
-      
-      // This was a short tap, toggle pause state
-      const timeout = setTimeout(() => {
-        setPaused(!paused);
-        setPlayTimeout(null);
-      }, 200);
-      setPlayTimeout(timeout);
-    }
-
-    // Reset playback speed if it was increased
-    if (isSpeedUp && player) {
-      player.playbackRate = 1;
-      setIsSpeedUp(false);
+  const handleDoubleClick = () => {
+    // Clear the pending pause timeout to prevent video from pausing on double-click
+    if (clickTimeout) {
+      clearTimeout(clickTimeout);
+      setClickTimeout(null);
     }
   };
 
@@ -106,13 +77,12 @@ export function VideoPlayer({
     if (!inView) setPaused(false);
   }, [inView, paused]);
 
-  // Cleanup timeouts on unmount
+  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (playTimeout) clearTimeout(playTimeout);
-      if (holdTimeout) clearTimeout(holdTimeout);
+      if (clickTimeout) clearTimeout(clickTimeout);
     };
-  }, [playTimeout, holdTimeout]);
+  }, [clickTimeout]);
 
   const handlePlayerReady = (media: MediaPlayerInstance) => {
     setPlayer(media);
@@ -122,12 +92,11 @@ export function VideoPlayer({
   };
 
   return (
-    <div 
-      ref={ref} 
-      className="relative w-full h-full" 
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerUp}
+    <div
+      ref={ref}
+      className="relative w-full h-full"
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
     >
       {shouldLoad ? (
         <MediaPlayer
@@ -147,22 +116,35 @@ export function VideoPlayer({
           ref={handlePlayerReady}
         >
           <MediaProvider className="w-full h-full" />
-          {player && renderTimeSlider && renderTimeSlider(player)}
+
+          {player && renderTimeSlider && (
+            <div
+              className="absolute flex justify-center bottom-8 left-0 right-0 w-full z-10"
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+            >
+              {renderTimeSlider(player)}
+            </div>
+          )}
         </MediaPlayer>
       ) : (
         <div className="w-full h-full bg-black"></div>
       )}
       {paused && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <PlayIcon className="size-12 text-white opacity-70 cursor-pointer" />
+          <PlayIcon
+            weight="fill"
+            size={48}
+            className="text-white opacity-70 cursor-pointer hover:opacity-90"
+          />
         </div>
       )}
-      {isSpeedUp && (
+      {/* {isSpeedUp && (
         <div className="absolute top-6 left-1/2 transform -translate-x-1/2 -translate-y-1/2 font-semibold flex gap-1 items-center drop-shadow">
           <ForwardIcon className="size-5" />
           2x
         </div>
-      )}
+      )} */}
     </div>
   );
 }
