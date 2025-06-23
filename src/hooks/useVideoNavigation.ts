@@ -3,12 +3,13 @@
 import { useState, useCallback } from "react";
 
 interface UseVideoNavigationOptions {
+  initialIndex?: number;
   onIndexChange?: (newIndex: number) => void;
   feedLength: number;
-  promotionPageIndexes: number[];
-  getPostIndex: (virtualIndex: number) => number;
+  promotionPageIndexes?: number[];
+  getPostIndex?: (virtualIndex: number) => number;
   fetchMoreContent?: (limit?: number) => Promise<void>;
-  fetching: boolean;
+  fetching?: boolean;
 }
 
 interface UseVideoNavigationResult {
@@ -19,14 +20,15 @@ interface UseVideoNavigationResult {
 }
 
 export function useVideoNavigation({
+  initialIndex = 0,
   onIndexChange,
   feedLength,
-  promotionPageIndexes,
-  getPostIndex,
+  promotionPageIndexes = [],
+  getPostIndex = (i) => i,
   fetchMoreContent,
   fetching,
 }: UseVideoNavigationOptions): UseVideoNavigationResult {
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const [activeVideoIndex, setActiveVideoIndex] = useState(initialIndex);
 
   // Handle scroll events to determine active video
   const handleScroll = useCallback(
@@ -57,13 +59,13 @@ export function useVideoNavigation({
       }
     },
     [
-      activeVideoIndex, 
-      onIndexChange, 
-      promotionPageIndexes, 
-      getPostIndex, 
-      fetchMoreContent, 
-      fetching, 
-      feedLength
+      activeVideoIndex,
+      onIndexChange,
+      promotionPageIndexes,
+      getPostIndex,
+      fetchMoreContent,
+      fetching,
+      feedLength,
     ]
   );
 

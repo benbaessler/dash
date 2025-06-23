@@ -11,6 +11,8 @@ import { Skeleton } from "@/app/components/skeleton";
 import { useFrame } from "@/providers/FrameProvider";
 import useSWR from "swr";
 import { VideoGrid } from "./video-grid";
+import { useState } from "react";
+import { VideoFeed } from "./video-feed";
 
 interface ProfileProps {
   user: User | null;
@@ -26,6 +28,10 @@ export function Profile({
   const { context } = useFrame();
   const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(
+    null
+  );
+
   const { data, isLoading } = useSWR<{
     posts: Post[];
     cursor: string | null;
@@ -35,6 +41,14 @@ export function Profile({
       : null,
     fetcher
   );
+
+  const handleVideoClick = (index: number) => {
+    setSelectedVideoIndex(index);
+  };
+
+  const handleCloseFeed = () => {
+    setSelectedVideoIndex(null);
+  };
 
   return (
     <div className="min-h-screen py-4 relative">
@@ -137,7 +151,18 @@ export function Profile({
           </div>
         )}
       </div>
-      <VideoGrid posts={data?.posts || []} isLoading={isLoading || !user} />
+      <VideoGrid
+        posts={data?.posts || []}
+        isLoading={isLoading || !user}
+        onVideoClick={handleVideoClick}
+      />
+      {selectedVideoIndex !== null && data?.posts && (
+        <VideoFeed
+          posts={data.posts}
+          initialIndex={selectedVideoIndex}
+          onClose={handleCloseFeed}
+        />
+      )}
     </div>
   );
 }
