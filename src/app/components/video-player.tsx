@@ -119,7 +119,7 @@ export function VideoPlayer({
 
           {player && renderTimeSlider && (
             <div
-              className="absolute flex justify-center bottom-8 left-0 right-0 w-full z-10"
+              className="absolute flex justify-center bottom-0 left-0 right-0 w-full z-10"
               onClick={(e) => e.stopPropagation()}
               onDoubleClick={(e) => e.stopPropagation()}
             >
