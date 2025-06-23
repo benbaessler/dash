@@ -45,6 +45,7 @@ export function useFeed({
   const { valid } = useSigner();
   const { isSDKLoaded, context, added } = useFrame();
   const [feed, setFeed] = useState<Post[] | null>(null);
+  const [feedEnded, setFeedEnded] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [promotionFrames, setPromotionFrames] = useState<PromotionFrame[]>([]);
 
@@ -91,7 +92,7 @@ export function useFeed({
 
   const fetchFeed = useCallback(
     async (limit: number = initialLimit) => {
-      if (!fid) return;
+      if (!fid || feedEnded) return;
 
       setFetching(true);
       try {
@@ -102,6 +103,11 @@ export function useFeed({
           throw new Error(`Failed to fetch feed: ${response.status}`);
         }
         const { data } = await response.json();
+        if (!data) {
+          setFeedEnded(true);
+          return;
+        }
+
         setFeed((prevFeed) => {
           const prevPosts = prevFeed || [];
           const uniquePosts = data.filter(
@@ -118,7 +124,7 @@ export function useFeed({
         setFetching(false);
       }
     },
-    [initialLimit, fid, feedType, setFetching, setFeed]
+    [initialLimit, fid, feedType, setFetching, setFeed, feedEnded]
   );
 
   return {

@@ -14,7 +14,8 @@ export async function GET(
   const { fid } = await params;
   const { searchParams } = new URL(request.url);
   const limit = Number(searchParams.get("limit")) || 10;
-  const feedType = searchParams.get("feedType") ?? ("explore" as FeedType);
+  const feedType = (searchParams.get("feedType") || "explore") as FeedType;
+  const feedId = FEED_IDS[feedType];
 
   if (!Number(fid)) {
     return NextResponse.json({ error: "Missing FID" }, { status: 400 });
@@ -34,7 +35,7 @@ export async function GET(
       body: JSON.stringify({
         filters: { publication_types: ["video"] },
         user_id: fid.toString(),
-        feed_id: FEED_IDS[feedType as keyof typeof FEED_IDS],
+        feed_id: feedId,
         return_metadata: true,
         top_k: limit,
         impression_count: limit,
@@ -42,7 +43,14 @@ export async function GET(
     });
     const data = await res.json();
 
-    const posts: Post[] = data.body
+    console.log(data.body)
+
+    const posts =
+      feedType === "explore"
+        ? data.body
+        : data.body.filter((item: any) => item.source_feed !== feedId);
+
+    const filteredPosts: Post[] = posts
       .filter((item: any) =>
         item.metadata.embed_items.find((url: string) => url.includes("video"))
       )
@@ -68,7 +76,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: posts,
+      data: filteredPosts.length > 0 ? filteredPosts : null,
     });
   } catch (error) {
     console.error(error);
