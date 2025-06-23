@@ -8,6 +8,9 @@ import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import sdk from "@farcaster/frame-sdk";
 import { Avatar } from "@/app/components/avatar";
 import { Skeleton } from "@/app/components/skeleton";
+import { useFrame } from "@/providers/FrameProvider";
+import useSWR from "swr";
+import { VideoGrid } from "./video-grid";
 
 interface ProfileProps {
   user: User | null;
@@ -20,6 +23,19 @@ export function Profile({
   isCurrentUser = false,
   onClose,
 }: ProfileProps) {
+  const { context } = useFrame();
+  const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+  const { data, isLoading } = useSWR<{
+    posts: Post[];
+    cursor: string | null;
+  }>(
+    user && context?.user?.fid
+      ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}`
+      : null,
+    fetcher
+  );
+
   return (
     <div className="min-h-screen py-4 relative">
       <div className="max-w-md mx-auto px-4">
@@ -35,12 +51,14 @@ export function Profile({
           ) : (
             <Skeleton className="h-6 w-24" />
           )}
-          {!isCurrentUser && <div
-            className="absolute right-0 cursor-pointer"
-            onClick={() => user && sdk.actions.viewProfile({ fid: user.fid })}
-          >
-            <FarcasterIcon className="w-6 h-6 text-white hover:text-slate-300 transition-colors" />
-          </div>}
+          {!isCurrentUser && (
+            <div
+              className="absolute right-0 cursor-pointer"
+              onClick={() => user && sdk.actions.viewProfile({ fid: user.fid })}
+            >
+              <FarcasterIcon className="w-6 h-6 text-white hover:text-slate-300 transition-colors" />
+            </div>
+          )}
         </div>
 
         <div className="flex justify-center mb-2">
@@ -65,7 +83,7 @@ export function Profile({
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-2 max-w-60 mx-auto">
+        <div className="grid grid-cols-2 gap-2 mb-2 max-w-40 mx-auto">
           <div className="text-center">
             {user ? (
               <div className="text-base font-bold text-white">
@@ -88,14 +106,16 @@ export function Profile({
             <div className="text-xs text-slate-400">Followers</div>
           </div>
 
-          <div className="text-center">
+          {/* <div className="text-center">
             {user ? (
-              <div className="text-base font-bold text-white">0</div>
+              <div className="text-base font-bold text-white">
+                {postsData?.data?.length ?? 0}
+              </div>
             ) : (
               <Skeleton className="h-6 w-10 mx-auto" />
             )}
             <div className="text-xs text-slate-400">Videos</div>
-          </div>
+          </div> */}
         </div>
 
         <div className="flex justify-center mb-4">
@@ -117,6 +137,7 @@ export function Profile({
           </div>
         )}
       </div>
+      <VideoGrid posts={data?.posts || []} isLoading={isLoading || !user} />
     </div>
   );
 }
