@@ -1,14 +1,10 @@
 "use client";
 
-import { ApproveSignerDialog } from "./approve-signer-dialog";
 import { Loading } from "./loading";
 import { Promotion } from "./promotion";
 import { Post } from "./post";
-import { useSigner } from "@/providers/SignerProvider";
 import { useFrame } from "@/providers/FrameProvider";
 import { useFeed, usePost, useVideoNavigation } from "@/hooks";
-import { Loader } from "lucide-react";
-import { createPortal } from "react-dom";
 import { PromotionFrame } from "@/hooks/useFeed";
 
 interface FeedProps {
@@ -17,7 +13,6 @@ interface FeedProps {
 
 export function Feed({ initialPost }: FeedProps) {
   const { loading } = useFrame();
-  const { showDialog, setShowDialog } = useSigner();
 
   const { feed, setFeed, fetching, fetchFeed, getPostIndex, promotionFrames } =
     useFeed();
@@ -122,17 +117,6 @@ export function Feed({ initialPost }: FeedProps) {
       onScroll={handleScroll}
     >
       {feedWithPromotionFrames}
-      <div className="z-[100]">
-        <ApproveSignerDialog open={showDialog} onOpenChange={setShowDialog} />
-      </div>
-      {loading &&
-        typeof window !== "undefined" &&
-        createPortal(
-          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[50]">
-            <Loader className="animate-spin" />
-          </div>,
-          document.body
-        )}
     </main>
   );
 }
