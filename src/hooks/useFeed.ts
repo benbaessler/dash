@@ -1,123 +1,52 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import { isDevelopment } from "@/constants";
-import useSWR from "swr";
-import { useSigner } from "@/providers/SignerProvider";
+import useSWRInfinite from "swr/infinite";
 
-export type PromotionFrame = {
-  promotionType: "add-frame" | "share-app" | "join-channel";
-  index: number;
-};
-
-interface UseFeedOptions {
-  initialLimit?: number;
-  defaultPromotionFrames?: PromotionFrame[];
-}
-
-interface UseFeedResult {
-  feed: Post[] | null;
-  setFeed: React.Dispatch<React.SetStateAction<Post[] | null>>;
-  fetching: boolean;
-  fetchFeed: (limit?: number) => Promise<void>;
-  getPostIndex: (virtualIndex: number) => number;
-  promotionFrames: PromotionFrame[];
-}
-
-const fetcher = async (url: string) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch feed: ${response.status}`);
-  }
-  const result = await response.json();
-  return result.data;
-};
-
-export function useFeed({
-  initialLimit = 15,
-}: UseFeedOptions = {}): UseFeedResult {
-  const { valid } = useSigner();
-  const { isSDKLoaded, context, added } = useFrame();
-  const [feed, setFeed] = useState<Post[] | null>(null);
-  const [fetching, setFetching] = useState(false);
-  const [promotionFrames, setPromotionFrames] = useState<PromotionFrame[]>([]);
-
-  useEffect(() => {
-    const updatePromotionFrames = async () => {
-      const result = [
-        !added
-          ? { promotionType: "add-frame", index: 7 }
-          : { promotionType: "share-app", index: 7 },
-        { promotionType: "join-channel", index: 15 },
-      ] as PromotionFrame[];
-
-      setPromotionFrames(result);
-    };
-
-    updatePromotionFrames();
-  }, [added, valid, context?.user.fid]);
-
-  const getPostIndex = (virtualIndex: number): number => {
-    const framesBefore = promotionFrames.filter(
-      (frame) => frame.index < virtualIndex
-    ).length;
-
-    return virtualIndex - framesBefore;
-  };
-
+export const useFeed = (initialLimit = 15) => {
+  const { isSDKLoaded, context } = useFrame();
   const fid = isDevelopment ? 367782 : context?.user.fid;
 
-  const { data, isValidating } = useSWR(
-    fid && isSDKLoaded ? `/api/feed/${fid}?limit=${initialLimit}` : null,
+  const getKey = (_: number, previousPageData: VideoData[]) => {
+    if (
+      !fid ||
+      !isSDKLoaded ||
+      // If previous page has no data, we've reached the end
+      (previousPageData && previousPageData.length === 0)
+    )
+      return null;
+    return `/api/feed/${fid}?limit=${initialLimit}`;
+  };
+
+  const fetcher = async (url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch feed: ${response.status}`);
+    }
+    const result = await response.json();
+    return result.data;
+  };
+
+  const { data, isValidating, setSize, size } = useSWRInfinite(
+    getKey,
     fetcher,
     {
       revalidateOnFocus: false,
+      dedupingInterval: 0,
+      persistSize: false,
     }
   );
 
-  useEffect(() => {
-    if (data && !feed) {
-      setFeed(data);
-    }
-  }, [data, feed]);
+  const feed = data ? ([] as FeedItem[]).concat(...data) : null;
 
-  const fetchFeed = useCallback(
-    async (limit: number = initialLimit) => {
-      if (!fid) return;
-
-      setFetching(true);
-      try {
-        const response = await fetch(`/api/feed/${fid}?limit=${limit}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch feed: ${response.status}`);
-        }
-        const { data } = await response.json();
-        setFeed((prevFeed) => {
-          const prevPosts = prevFeed || [];
-          const uniquePosts = data.filter(
-            (newPost: Post) =>
-              !prevPosts.some(
-                (existingPost: Post) => existingPost.id === newPost.id
-              )
-          );
-          return [...prevPosts, ...uniquePosts];
-        });
-      } catch (error) {
-        console.error("Error fetching feed:", error);
-      } finally {
-        setFetching(false);
-      }
-    },
-    [initialLimit, fid, setFetching, setFeed]
-  );
+  const fetchMore = async () => {
+    await setSize(size + 1);
+  };
 
   return {
     feed,
-    setFeed,
-    fetching: fetching || isValidating,
-    fetchFeed,
-    getPostIndex,
-    promotionFrames,
+    fetching: isValidating,
+    fetchMore,
   };
-}
+};

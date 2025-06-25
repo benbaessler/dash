@@ -1,4 +1,4 @@
-interface Post {
+interface VideoData {
   id: string;
   text: string;
   video_url?: string;
@@ -17,6 +17,13 @@ interface Post {
     recasted: boolean;
   };
 }
+
+interface PromotionData {
+  type: "add-frame" | "share-app" | "join-channel";
+  index: number;
+}
+
+type FeedItem = VideoData | PromotionData;
 
 interface CommentData {
   hash: string;
