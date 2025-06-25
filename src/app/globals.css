@@ -45,6 +45,40 @@ media-player::--webkit-media-controls-container {
   appearance: none !important;
 }
 
+.swiper {
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  
+  /* Prevent text selection during swipe */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch;
+}
+
+.swiper-slide {
+  /* Hardware acceleration for slides */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  
+  /* Prevent layout shifts */
+  contain: layout style paint;
+}
+
+/* Optimize video containers */
+video {
+  /* Hardware acceleration for videos */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
+
 @layer base {
   :root {
     --radius: 0.5rem;
