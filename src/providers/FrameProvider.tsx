@@ -6,11 +6,9 @@ import sdk, {
   type FrameNotificationDetails,
 } from "@farcaster/frame-sdk";
 import React from "react";
-import { isMobile } from "@/utils/isMobile";
 import useSWR, { SWRResponse } from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { onboardUser } from "@/utils/onboarding";
-import { AddFrame } from "@farcaster/frame-core";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface FrameContextType {
@@ -18,9 +16,7 @@ interface FrameContextType {
   context: Context.FrameContext | undefined;
   added: boolean;
   notificationDetails: FrameNotificationDetails | null;
-  addFrameResult: string;
   sessionToken: string | null;
-  mobile: boolean;
   signIn: () => Promise<void>;
   loading: boolean;
   setLoading: (loading: boolean) => void;
@@ -47,11 +43,9 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
   const [added, setAdded] = useState(false);
   const [notificationDetails, setNotificationDetails] =
     useState<FrameNotificationDetails | null>(null);
-  const [addFrameResult, setAddFrameResult] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const { identifyUser } = useAnalytics();
   const [sessionToken, setSessionToken] = useState<string | null>(null);
-  const [mobile, setMobile] = useState<boolean>(false);
 
   const fid = context?.user?.fid;
 
@@ -66,29 +60,12 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
   });
 
   const addFrame = useCallback(async () => {
-    try {
-      setNotificationDetails(null);
+    setNotificationDetails(null);
 
-      const result = await sdk.actions.addFrame();
+    const result = await sdk.actions.addFrame();
 
-      if (result.notificationDetails) {
-        setNotificationDetails(result.notificationDetails);
-      }
-      setAddFrameResult(
-        result.notificationDetails
-          ? `Added, got notificaton token ${result.notificationDetails.token} and url ${result.notificationDetails.url}`
-          : "Added, got no notification details"
-      );
-    } catch (error) {
-      if (error instanceof AddFrame.RejectedByUser) {
-        setAddFrameResult(`Not added: ${error.message}`);
-      }
-
-      if (error instanceof AddFrame.InvalidDomainManifest) {
-        setAddFrameResult(`Not added: ${error.message}`);
-      }
-
-      setAddFrameResult(`Error: ${error}`);
+    if (result.notificationDetails) {
+      setNotificationDetails(result.notificationDetails);
     }
   }, []);
 
@@ -99,18 +76,6 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
 
     setSessionToken(token);
   }, [sessionToken]);
-
-  useEffect(() => {
-    const triggerSignInOnMobile = async () => {
-      const mobile = await isMobile();
-      setMobile(mobile);
-      if (mobile) await signIn();
-    };
-
-    if (!sessionToken) {
-      triggerSignInOnMobile();
-    }
-  }, [signIn, sessionToken]);
 
   useEffect(() => {
     const load = async () => {
@@ -144,13 +109,11 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
     added,
     notificationDetails,
     addFrame,
-    addFrameResult,
     sessionToken,
     fid,
     user,
     userError,
     userLoading,
-    mobile,
     signIn,
     loading,
     setLoading,

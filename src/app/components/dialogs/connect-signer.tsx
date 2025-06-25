@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import sdk from "@farcaster/frame-sdk";
 import { Loader } from "lucide-react";
 import { useFrame } from "@/providers/FrameProvider";
+import { isMobile } from "@/utils/isMobile";
 
 interface SignerModalProps {
   open: boolean;
@@ -23,7 +24,7 @@ export const ConnectSignerDialog = ({
   open,
   onOpenChange,
 }: SignerModalProps) => {
-  const { mobile, loading, setLoading } = useFrame();
+  const { loading, setLoading } = useFrame();
   const { valid, signer, startPolling, stopPolling } = useSigner();
 
   const mobileUrl = useMemo(() => {
@@ -37,16 +38,21 @@ export const ConnectSignerDialog = ({
   }, [signer]);
 
   useEffect(() => {
-    if (open) {
+    const handleOpen = async () => {
+      const mobile = await isMobile();
       if (mobile && signer && signer?.signer_approval_url) {
         sdk.actions.openUrl(mobileUrl);
       }
       startPolling();
+    };
+
+    if (open) {
+      handleOpen();
     } else {
       stopPolling();
       setLoading(false);
     }
-  }, [open, signer, mobile, startPolling, stopPolling, setLoading, mobileUrl]);
+  }, [open, signer, startPolling, stopPolling, setLoading, mobileUrl]);
 
   useEffect(() => {
     if (valid) {
