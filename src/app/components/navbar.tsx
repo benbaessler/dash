@@ -1,25 +1,26 @@
 "use client";
 
 import { UserIcon, HouseIcon } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
 
-export function Navbar({ selected }: { selected: "home" | "profile" }) {
-  const router = useRouter();
-
+export function Navbar({
+  selected,
+  onTabChange,
+}: {
+  selected: "home" | "profile" | null;
+  onTabChange: (tab: "home" | "profile" | null) => void;
+}) {
   const navItems = [
     {
-      icon: <HouseIcon size={28} />,
+      icon: <HouseIcon weight="bold" size={28} />,
       selectedIcon: <HouseIcon weight="fill" size={28} />,
-      label: "Home",
-      href: "/",
       selected: selected === "home",
+      label: "home" as const,
     },
     {
-      icon: <UserIcon size={28} />,
+      icon: <UserIcon weight="bold" size={28} />,
       selectedIcon: <UserIcon weight="fill" size={28} />,
-      label: "Profile",
-      href: "/profile",
       selected: selected === "profile",
+      label: "profile" as const,
     },
   ];
 
@@ -35,7 +36,7 @@ export function Navbar({ selected }: { selected: "home" | "profile" }) {
                 key={item.label}
                 className="flex flex-col items-center justify-center p-2 space-y-1 rounded-lg transition-colors duration-200 min-w-[64px]"
                 onClick={() => {
-                  router.push(item.href);
+                  onTabChange(item.label);
                 }}
               >
                 {IconComponent}

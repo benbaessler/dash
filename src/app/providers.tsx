@@ -7,7 +7,7 @@ import { SignerProvider } from "@/providers/SignerProvider";
 import { ProfileProvider } from "@/providers/ProfileProvider";
 import { appDomain } from "@/constants";
 import { PostHogProvider } from "@/providers/PostHogProvider";
-import { AppLayout } from "./components/app-layout";
+import { AppLayout } from "./app";
 
 export function Providers({
   session,

@@ -34,7 +34,7 @@ export async function GET(
         )
     );
 
-    const posts: Post[] = castsWithVideo.map((cast) => {
+    const data: VideoData[] = castsWithVideo.map((cast) => {
       const videoEmbed: any = cast.embeds.find(
         (embed: any) =>
           embed.metadata &&
@@ -64,7 +64,7 @@ export async function GET(
     });
 
     return NextResponse.json({
-      posts,
+      data,
       cursor: response.next.cursor,
     });
   } catch (error) {

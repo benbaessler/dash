@@ -33,7 +33,7 @@ export function Profile({
   );
 
   const { data, isLoading } = useSWR<{
-    videos: VideoData[];
+    data: VideoData[];
     cursor: string | null;
   }>(
     user && context?.user?.fid
@@ -43,7 +43,7 @@ export function Profile({
   );
 
   return (
-    <div className="min-h-screen py-4 relative">
+    <div className="h-full overflow-y-auto py-4 relative">
       <div className="max-w-md mx-auto px-4">
         <div className="relative flex items-center justify-center mb-4">
           {!onClose || isCurrentUser && (
@@ -137,13 +137,13 @@ export function Profile({
         )}
       </div>
       <VideoGrid
-        data={data?.videos || []}
+        data={data?.data || []}
         isLoading={isLoading || !user}
         onItemClick={(index) => setSelectedVideoIndex(index)}
       />
-      {selectedVideoIndex !== null && data?.videos && (
+      {selectedVideoIndex !== null && data?.data && (
         <VideoFeed
-          data={data.videos}
+          data={data.data}
           initialIndex={selectedVideoIndex}
           onClose={() => setSelectedVideoIndex(null)}
         />
