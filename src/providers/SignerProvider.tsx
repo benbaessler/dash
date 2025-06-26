@@ -11,6 +11,7 @@ import { useFrame } from "@/providers/FrameProvider";
 interface SignerContextType {
   valid: boolean;
   signer: Signer | null;
+  verifySigner: () => Promise<boolean>;
   showDialog: boolean;
   setShowDialog: (show: boolean) => void;
   createSigner: () => Promise<void>;
@@ -24,7 +25,7 @@ const SignerContext = createContext<SignerContextType | undefined>(undefined);
 export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { isSDKLoaded, context, sessionToken } = useFrame();
+  const { isSDKLoaded, context, sessionToken, signIn } = useFrame();
   const [signer, setSigner] = useState<Signer | null>(null);
   const [valid, setValid] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -44,7 +45,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
 
     checkSigner();
     setLoading(false);
-  }, [isSDKLoaded, context]);
+  }, [isSDKLoaded, context, fid]);
 
   const startPolling = () => {
     console.log("Starting polling", { signer });
@@ -71,6 +72,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       console.log("Stopped polling");
+      setLoading(false);
     }
   };
 
@@ -111,8 +113,31 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const verifySigner = async () => {
+    if (!sessionToken) {
+      try {
+        await signIn();
+      } catch (error) {
+        console.error("Failed to sign in", error);
+      }
+      return false;
+    }
+
+    if (loading) return false;
+    if (!valid) {
+      if (!signer) {
+        setLoading(true);
+        await createSigner();
+      }
+      setShowDialog(true);
+      return false;
+    }
+    return true;
+  };
+
   const signerValue = {
     valid,
+    verifySigner,
     signer,
     createSigner,
     startPolling,
@@ -121,6 +146,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     showDialog,
     setShowDialog,
   };
+
   return (
     <SignerContext.Provider value={signerValue}>
       {children}

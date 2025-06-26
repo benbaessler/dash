@@ -12,7 +12,6 @@ import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import sdk from "@farcaster/frame-sdk";
 import { Loader } from "lucide-react";
-import { useFrame } from "@/providers/FrameProvider";
 import { isMobile } from "@/utils/isMobile";
 
 interface SignerModalProps {
@@ -24,13 +23,14 @@ export const ConnectSignerDialog = ({
   open,
   onOpenChange,
 }: SignerModalProps) => {
-  const { loading, setLoading } = useFrame();
-  const { valid, signer, startPolling, stopPolling } = useSigner();
+  // const { loading, setLoading } = useFrame();
+  const { valid, signer, startPolling, stopPolling, loading } = useSigner();
 
   const mobileUrl = useMemo(() => {
     if (signer && signer?.signer_approval_url) {
+      console.log(signer.signer_approval_url);
       return signer.signer_approval_url.replace(
-        "https://client.warpcast.com/deeplinks/",
+        "https://client.farcaster.xyz/deeplinks/",
         "farcaster://"
       );
     }
@@ -50,9 +50,8 @@ export const ConnectSignerDialog = ({
       handleOpen();
     } else {
       stopPolling();
-      setLoading(false);
     }
-  }, [open, signer, startPolling, stopPolling, setLoading, mobileUrl]);
+  }, [open, signer, startPolling, stopPolling, mobileUrl]);
 
   useEffect(() => {
     if (valid) {
