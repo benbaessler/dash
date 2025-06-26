@@ -42,8 +42,10 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
 
     if (event === "recasted") {
       setRecasted(state);
+      data.recastCount += state ? 1 : -1;
     } else {
       setLiked(state);
+      data.likeCount += state ? 1 : -1;
     }
 
     try {

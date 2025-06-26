@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar } from "./avatar";
 import { useFrame } from "@/providers/FrameProvider";
 import { appUrl } from "@/constants";
-import { CommentSkeleton } from "../../skeleton-loader";
+import { CommentSkeleton } from "../../common/skeleton-loader";
 import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
 import { sdk } from "@farcaster/frame-sdk";

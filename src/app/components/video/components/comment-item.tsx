@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { Avatar } from "./avatar";
 import { usePost } from "@/hooks/usePost";
 import { useFrame } from "@/providers/FrameProvider";
-import { ClickableText } from "@/app/components/text";
+import { ClickableText } from "@/app/components/common/text";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 export const CommentItem = memo(({ comment }: { comment: CommentData }) => {

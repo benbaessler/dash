@@ -5,6 +5,7 @@ export function Loading({ text }: { text?: string }) {
     <div className="fixed inset-0 flex items-center justify-center bg-black">
       <div className="flex flex-col items-center -mt-[55px]">
         <Image 
+          priority
           src="/splash.png" 
           alt="logo" 
           width={85} 
