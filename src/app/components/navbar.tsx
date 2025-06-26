@@ -1,39 +1,35 @@
 "use client";
 
-import { UserCircleIcon, BoltIcon } from "@heroicons/react/24/outline";
-import {
-  UserCircleIcon as SelectedUserCircleIcon,
-  BoltIcon as SelectedBoltIcon,
-} from "@heroicons/react/24/solid";
-import { useRouter, usePathname } from "next/navigation";
+import { UserIcon, HouseIcon } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 
-export function Navbar() {
+export function Navbar({ selected }: { selected: "home" | "profile" }) {
   const router = useRouter();
-  const pathname = usePathname();
 
   const navItems = [
     {
-      icon: BoltIcon,
-      selectedIcon: SelectedBoltIcon,
+      icon: <HouseIcon size={28} />,
+      selectedIcon: <HouseIcon weight="fill" size={28} />,
       label: "Home",
       href: "/",
+      selected: selected === "home",
     },
     {
-      icon: UserCircleIcon,
-      selectedIcon: SelectedUserCircleIcon,
+      icon: <UserIcon size={28} />,
+      selectedIcon: <UserIcon weight="fill" size={28} />,
       label: "Profile",
       href: "/profile",
+      selected: selected === "profile",
     },
   ];
 
   return (
-    <nav className="bg-black border-t border-gray-800">
+    <nav className="bg-black border-t border-gray-800 z-[10]">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-around pb-6 pt-2">
           {navItems.map((item) => {
-            const isSelected = pathname === item.href;
-            const IconComponent = isSelected ? item.selectedIcon : item.icon;
-            
+            const IconComponent = item.selected ? item.selectedIcon : item.icon;
+
             return (
               <button
                 key={item.label}
@@ -42,13 +38,7 @@ export function Navbar() {
                   router.push(item.href);
                 }}
               >
-                <IconComponent 
-                  className={`w-7 h-7 transition-colors duration-200 ${
-                    isSelected 
-                      ? "text-white" 
-                      : "text-gray-400 hover:text-gray-200"
-                  }`} 
-                />
+                {IconComponent}
               </button>
             );
           })}

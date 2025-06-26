@@ -2,17 +2,17 @@
 
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { Button } from "@/components/ui/button";
-import { ClickableText } from "@/app/components/text";
+import { ClickableText } from "@/app/components/common/text";
 import { FarcasterIcon } from "@/assets/icons";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import sdk from "@farcaster/frame-sdk";
-import { Avatar } from "@/app/components/avatar";
-import { Skeleton } from "@/app/components/skeleton";
+import { Avatar } from "@/app/components/video/components/avatar";
+import { Skeleton } from "@/app/components/common/skeleton";
 import { useFrame } from "@/providers/FrameProvider";
 import useSWR from "swr";
-import { VideoGrid } from "./video-grid";
+import { VideoGrid } from "./components/video-grid";
 import { useState } from "react";
-import { VideoFeed } from "./video-feed";
+import { VideoFeed } from "./components/video-feed";
 
 interface ProfileProps {
   user: User | null;
@@ -23,7 +23,7 @@ interface ProfileProps {
 export function Profile({
   user,
   isCurrentUser = false,
-  onClose,
+  onClose = undefined,
 }: ProfileProps) {
   const { context } = useFrame();
   const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -33,7 +33,7 @@ export function Profile({
   );
 
   const { data, isLoading } = useSWR<{
-    posts: Post[];
+    videos: VideoData[];
     cursor: string | null;
   }>(
     user && context?.user?.fid
@@ -42,19 +42,11 @@ export function Profile({
     fetcher
   );
 
-  const handleVideoClick = (index: number) => {
-    setSelectedVideoIndex(index);
-  };
-
-  const handleCloseFeed = () => {
-    setSelectedVideoIndex(null);
-  };
-
   return (
     <div className="min-h-screen py-4 relative">
       <div className="max-w-md mx-auto px-4">
         <div className="relative flex items-center justify-center mb-4">
-          {!isCurrentUser && (
+          {!onClose || isCurrentUser && (
             <ArrowLeftIcon
               className="absolute left-0 w-5 h-5 text-white hover:text-slate-300 transition-colors cursor-pointer"
               onClick={onClose}
@@ -78,8 +70,12 @@ export function Profile({
         <div className="flex justify-center mb-2">
           {user ? (
             <Avatar
-              imageUrl={user?.pfp_url || ""}
-              altText={user?.username || ""}
+              user={{
+                fid: user.fid,
+                username: user.username,
+                displayName: user.display_name || user.username,
+                pfpUrl: user.pfp_url || "",
+              }}
               className="w-20 h-20"
             />
           ) : (
@@ -119,17 +115,6 @@ export function Profile({
             )}
             <div className="text-xs text-slate-400">Followers</div>
           </div>
-
-          {/* <div className="text-center">
-            {user ? (
-              <div className="text-base font-bold text-white">
-                {postsData?.data?.length ?? 0}
-              </div>
-            ) : (
-              <Skeleton className="h-6 w-10 mx-auto" />
-            )}
-            <div className="text-xs text-slate-400">Videos</div>
-          </div> */}
         </div>
 
         <div className="flex justify-center mb-4">
@@ -142,7 +127,7 @@ export function Profile({
             {isCurrentUser ? "Update" : "Follow"}
           </Button>
         </div>
-
+        
         {user?.profile?.bio?.text && (
           <div className="text-center mx-4">
             <p className="text-sm text-gray-300 leading-relaxed">
@@ -152,15 +137,15 @@ export function Profile({
         )}
       </div>
       <VideoGrid
-        posts={data?.posts || []}
+        data={data?.videos || []}
         isLoading={isLoading || !user}
-        onVideoClick={handleVideoClick}
+        onItemClick={(index) => setSelectedVideoIndex(index)}
       />
-      {selectedVideoIndex !== null && data?.posts && (
+      {selectedVideoIndex !== null && data?.videos && (
         <VideoFeed
-          posts={data.posts}
+          data={data.videos}
           initialIndex={selectedVideoIndex}
-          onClose={handleCloseFeed}
+          onClose={() => setSelectedVideoIndex(null)}
         />
       )}
     </div>

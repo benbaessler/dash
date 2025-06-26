@@ -227,7 +227,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   }, [isOpen, setSize]);
 
   return (
-    <div onDoubleClick={(e) => e.stopPropagation()}>
+    <div onDoubleClick={(e) => e.stopPropagation()} className="z-[20]">
       <Drawer open={isOpen} onOpenChange={setIsOpen}>
         <DrawerTrigger asChild>{children}</DrawerTrigger>
         <DrawerContent className="h-[70vh] w-full flex flex-col pb-4">
