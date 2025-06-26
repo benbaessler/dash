@@ -12,6 +12,7 @@ import { PlayIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import sdk from "@farcaster/frame-sdk";
 import { useSigner } from "@/providers/SignerProvider";
+import { PlaybackSlider } from "./components/playback-slider";
 
 interface VideoItemProps {
   data: VideoData;
@@ -23,7 +24,6 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
   const { trackEvent } = useAnalytics();
   const { user, sessionToken } = useFrame();
   const { verifySigner } = useSigner();
-  
   const [paused, setPaused] = useState(false);
   const [liked, setLiked] = useState(data.viewerContext?.liked || false);
   const [recasted, setRecasted] = useState(
@@ -100,17 +100,18 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
   }, [active]);
 
   return (
-    <div
-      className="relative"
-      onDoubleClick={() => {
-        if (clickTimeout) {
-          clearTimeout(clickTimeout);
-          setClickTimeout(undefined);
-        }
-        if (!liked) handleInteraction("double_tap_like", true);
-      }}
-    >
-      <div onClick={handleClick}>
+    <div className="relative h-screen w-screen snap-start snap-always">
+      <div
+        onClick={handleClick}
+        onDoubleClick={() => {
+          if (clickTimeout) {
+            clearTimeout(clickTimeout);
+            setClickTimeout(undefined);
+          }
+          if (!liked) handleInteraction("double_tap_like", true);
+        }}
+        className="h-full w-full"
+      >
         <MediaPlayer
           aspectRatio="9 / 16"
           src={data.video_url}
@@ -124,18 +125,16 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
           onAutoPlayFail={() => setPaused(true)}
           fullscreenOrientation="none"
           autoFocus={false}
+          className="h-full w-full object-cover"
         >
-          <MediaProvider className="w-full h-full" />
-
-          {/* {player && renderTimeSlider && (
+          <MediaProvider />
           <div
-            className="absolute flex justify-center bottom-0 left-0 right-0 w-full z-10"
+            className="absolute flex justify-center bottom-3 left-0 right-0 w-full z-10"
             onClick={(e) => e.stopPropagation()}
             onDoubleClick={(e) => e.stopPropagation()}
           >
-            {renderTimeSlider(player)}
+            <PlaybackSlider />
           </div>
-        )} */}
         </MediaPlayer>
         {paused && (
           <div className="absolute inset-0 flex items-center justify-center">
