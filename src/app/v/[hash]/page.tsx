@@ -2,61 +2,55 @@
 
 import { useParams } from "next/navigation";
 import { useFrame } from "@/providers/FrameProvider";
-import { useCallback, useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import useSWR from "swr";
 import { FeedView } from "@/app/components/feed";
 import { Loading } from "@/app/components/common/loading";
-import { useToast } from "@/hooks/use-toast";
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Not found");
+  }
+  const { data } = await response.json();
+  return data;
+};
 
 export default function Video() {
   const { hash } = useParams();
   const { context } = useFrame();
-  const [post, setPost] = useState<VideoData>();
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
   const { toast } = useToast();
 
-  // TODO: optimize fetching
-  const getPost = useCallback(async () => {
-    const response = await fetch(`/api/post/${hash}?fid=${context?.user.fid}`);
-    if (!response.ok) {
-      setNotFound(true);
-      setLoading(false);
-      toast({
-        title: "Post not found",
-        description: "The linked cast could not be found",
-      });
-      return;
-    }
-    const { data } = await response.json();
-    console.log(data);
-
-    if (!data.video_url) {
-      setNotFound(true);
-      setLoading(false);
-      toast({
-        title: "Not a video",
-        description: "The linked cast is not a video",
-      });
-      return;
-    }
-
-    setPost(data);
-    setLoading(false);
-  }, [hash, context?.user.fid]);
-
-  useEffect(() => {
-    if (hash && !post && context?.user.fid && !notFound) {
-      getPost();
-    }
-  }, [hash, context, getPost]);
-
-  if (loading) return <Loading text={loading && "Loading video"} />;
-
-  return loading ? (
-    <Loading />
-  ) : (
-    <div className="h-screen w-screen flex flex-col">
-      <FeedView initialPost={post} />
-    </div>
+  const {
+    data: post,
+    error,
+    isLoading,
+  } = useSWR<VideoData>(
+    hash && context?.user.fid
+      ? `/api/post/${hash}?fid=${context.user.fid}`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false }
   );
+
+  if (error) {
+    toast({
+      title: "Post not found",
+      description: "The linked cast could not be found",
+    });
+    return <Loading text="Post not found" />;
+  }
+
+  if (post && !post.video_url) {
+    toast({
+      title: "Not a video",
+      description: "The linked cast is not a video",
+    });
+    return <Loading text="Not a video" />;
+  }
+
+  if (isLoading) return <Loading text="Loading video" />;
+  if (!post) return null;
+
+  return <FeedView initialPost={post} />;
 }
