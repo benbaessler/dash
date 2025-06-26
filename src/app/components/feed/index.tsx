@@ -33,7 +33,7 @@ export function FeedView({ initialPost }: FeedViewProps) {
 
   return (
     <div
-      className="flex-1 w-full overflow-y-scroll snap-y snap-mandatory"
+      className="flex-1 w-full h-full overflow-y-auto snap-y snap-mandatory"
       onScroll={handleScroll}
     >
       {feed.map((item, index) =>

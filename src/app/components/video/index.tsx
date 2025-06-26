@@ -102,7 +102,7 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
   }, [active]);
 
   return (
-    <div className="relative h-screen w-screen snap-start snap-always">
+    <div className="relative h-full w-screen max-h-[calc(100vh-64px)] snap-start snap-always">
       <div
         onClick={handleClick}
         onDoubleClick={() => {
@@ -131,7 +131,7 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
         >
           <MediaProvider />
           <div
-            className="absolute flex justify-center bottom-3 left-0 right-0 w-full z-10"
+            className="absolute flex justify-center bottom-0 left-0 right-0 w-full z-10"
             onClick={(e) => e.stopPropagation()}
             onDoubleClick={(e) => e.stopPropagation()}
           >

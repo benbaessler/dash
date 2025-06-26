@@ -2,10 +2,10 @@ import { HeartIcon } from "@phosphor-icons/react";
 import { formatTimeAgo } from "@/utils/formatTime";
 import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { Avatar } from "./avatar";
-import { usePost } from "@/hooks/usePost";
 import { useFrame } from "@/providers/FrameProvider";
 import { ClickableText } from "@/app/components/common/text";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useSigner } from "@/providers/SignerProvider";
 
 export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
   const { author, hash, reactions, text, timestamp, isExpanded } = comment;
@@ -13,8 +13,8 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isTextTruncated, setIsTextTruncated] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
-  const { checkAuth } = usePost();
   const { sessionToken, context } = useFrame();
+  const { verifySigner } = useSigner();
   const { trackEvent } = useAnalytics();
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
     async (e?: React.MouseEvent) => {
       if (e) e.stopPropagation();
 
-      const authorized = await checkAuth();
+      const authorized = await verifySigner();
       if (!authorized) return;
 
       // Optimistic update
@@ -71,7 +71,7 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
       }
     },
     [
-      checkAuth,
+      verifySigner,
       isLiked,
       reactions,
       comment,
@@ -133,25 +133,27 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
                 {isTextExpanded ? "Show less" : "Show more"}
               </div>
             )}
-            {!comment.hash.startsWith("temp-") && <div className="flex items-center gap-3 mt-2">
-              <div
-                className="flex items-center gap-1 text-gray-400 hover:text-gray-300 cursor-pointer"
-                onClick={(e) => likeComment(e)}
-              >
-                {isLiked ? (
-                  <HeartIcon
-                    weight="fill"
-                    size={20}
-                    className="text-red-500 animate-heartbeat"
-                  />
-                ) : (
-                  <HeartIcon weight="regular" size={20} />
-                )}
-                <span className="text-sm font-medium">
-                  {reactions.likes_count}
-                </span>
+            {!comment.hash.startsWith("temp-") && (
+              <div className="flex items-center gap-3 mt-2">
+                <div
+                  className="flex items-center gap-1 text-gray-400 hover:text-gray-300 cursor-pointer"
+                  onClick={(e) => likeComment(e)}
+                >
+                  {isLiked ? (
+                    <HeartIcon
+                      weight="fill"
+                      size={20}
+                      className="text-red-500 animate-heartbeat"
+                    />
+                  ) : (
+                    <HeartIcon weight="regular" size={20} />
+                  )}
+                  <span className="text-sm font-medium">
+                    {reactions.likes_count}
+                  </span>
+                </div>
               </div>
-            </div>}
+            )}
           </div>
         </div>
       </div>

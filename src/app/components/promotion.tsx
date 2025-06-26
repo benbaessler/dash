@@ -45,7 +45,7 @@ function PromotionLayout({
   return (
     <div
       ref={ref}
-      className="h-screen w-screen snap-start snap-always bg-black text-white flex flex-col items-center justify-center px-12 text-center gap-12"
+      className="h-full w-screen max-h-[calc(100vh-64px)] snap-start snap-always bg-black text-white flex flex-col items-center justify-center px-12 text-center gap-12"
     >
       <PromotionHeader title={title} />
       <PromotionContent description={description} />

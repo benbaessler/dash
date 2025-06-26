@@ -7,6 +7,7 @@ import { SignerProvider } from "@/providers/SignerProvider";
 import { ProfileProvider } from "@/providers/ProfileProvider";
 import { appDomain } from "@/constants";
 import { PostHogProvider } from "@/providers/PostHogProvider";
+import { AppLayout } from "./components/app-layout";
 
 export function Providers({
   session,
@@ -22,7 +23,9 @@ export function Providers({
       <SessionProvider session={session}>
         <FrameProvider>
           <SignerProvider>
-            <ProfileProvider>{children}</ProfileProvider>
+            <ProfileProvider>
+              <AppLayout>{children}</AppLayout>
+            </ProfileProvider>
           </SignerProvider>
         </FrameProvider>
       </SessionProvider>
