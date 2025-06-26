@@ -8,145 +8,181 @@ import { useInView } from "react-intersection-observer";
 import { useFrame } from "@/providers/FrameProvider";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
+type PromotionType = "add-frame" | "share-app" | "join-channel";
+
 type PromotionProps = {
-  type: "add-frame" | "share-app" | "join-channel";
+  type: PromotionType;
 };
 
-function AddFramePromotion() {
-  const { context } = useFrame();
-  const added = useMemo(() => context?.client.added, [context]);
+type PromotionConfig = {
+  title: string;
+  description: string[];
+  buttonText: string;
+  buttonAction: () => Promise<void>;
+  shouldAutoTrigger?: boolean;
+};
+
+/**
+ * Common layout component for all promotion types
+ */
+function PromotionLayout({
+  title,
+  description,
+  buttonText,
+  buttonAction,
+  shouldAutoTrigger = false,
+}: PromotionConfig) {
   const [ref, inView] = useInView({
     threshold: 1,
   });
 
   useEffect(() => {
-    if (inView && !added) {
+    if (inView && shouldAutoTrigger) {
       sdk.actions.addFrame();
     }
-  }, [inView]);
+  }, [inView, shouldAutoTrigger]);
 
   return (
     <div
       ref={ref}
-      className="bg-black text-white min-h-screen flex flex-col items-center justify-center px-12 text-center gap-12"
+      className="h-screen w-screen snap-start snap-always bg-black text-white flex flex-col items-center justify-center px-12 text-center gap-12"
     >
-      <div className="flex flex-col items-center justify-center gap-2">
-        <Image src="/icon.png" alt="Dash Logo" width={90} height={90} />
-        <h1 className="text-3xl font-semibold">Enjoying Dash?</h1>
-      </div>
-
-      <div className="flex flex-col items-center justify-center gap-4 font-regular">
-        {added ? (
-          <p className="text-lg">
-            Consider sharing the mini app with your friends!
-          </p>
-        ) : (
-          <>
-            <p className="text-lg">
-              {`Add the mini app to Farcaster so you don't miss out on updates! 👀`}
-            </p>
-
-            <p className="text-gray-400 text-md">
-              {`Don't worry, notifications will be kept to a minimum.`}
-            </p>
-          </>
-        )}
-      </div>
-
-      <ShareButton />
+      <PromotionHeader title={title} />
+      <PromotionContent description={description} />
+      <PromotionButton text={buttonText} onClick={buttonAction} />
     </div>
   );
 }
 
-function ShareAppPromotion() {
+/**
+ * Header component with logo and title
+ */
+function PromotionHeader({ title }: { title: string }) {
   return (
-    <div className="bg-black text-white min-h-screen flex flex-col items-center justify-center px-12 text-center gap-12">
-      <div className="flex flex-col items-center justify-center gap-2">
-        <Image src="/icon.png" alt="Dash Logo" width={90} height={90} />
-        <h1 className="text-3xl font-semibold">Enjoying Dash?</h1>
-      </div>
-
-      <div className="flex flex-col items-center justify-center gap-4 font-regular">
-        <p className="text-lg">
-          Consider sharing the mini app with your friends!
-        </p>
-      </div>
-
-      <ShareButton />
+    <div className="flex flex-col items-center justify-center gap-2">
+      <Image src="/icon.png" alt="Dash Logo" width={90} height={90} />
+      <h1 className="text-3xl font-semibold">{title}</h1>
     </div>
   );
 }
 
-function JoinChannelPromotion() {
-  const { trackEvent } = useAnalytics();
-
-  const { context } = useFrame();
-
+/**
+ * Content component for description text
+ */
+function PromotionContent({ description }: { description: string[] }) {
   return (
-    <div className="bg-black text-white min-h-screen flex flex-col items-center justify-center px-12 text-center gap-12">
-      <div className="flex flex-col items-center justify-center gap-2">
-        <Image src="/icon.png" alt="Dash Logo" width={90} height={90} />
-        <h1 className="text-3xl font-semibold">{`What's missing on Dash?`}</h1>
-      </div>
-
-      <div className="flex flex-col items-center justify-center gap-4 font-regular">
-        <p className="text-lg">
-          Join the /dash channel, share your ideas, and shape what comes next.
+    <div className="flex flex-col items-center justify-center gap-4 font-regular">
+      {description.map((text, index) => (
+        <p
+          key={index}
+          className={index === 0 ? "text-lg" : "text-gray-400 text-md"}
+        >
+          {text}
         </p>
-      </div>
-
-      <Button
-        variant="action"
-        className="w-full text-md [&_svg]:!size-5 gap-2"
-        onClick={async () => {
-          await sdk.actions.openUrl(`https://farcaster.xyz/~/channel/dash`);
-
-          trackEvent("opened_channel", {
-            user: context?.user.username,
-          });
-        }}
-      >
-        <FarcasterIcon />
-        Join channel
-      </Button>
+      ))}
     </div>
   );
 }
 
-function ShareButton() {
-  const { trackEvent } = useAnalytics();
-  const { context } = useFrame();
-
+/**
+ * Reusable button component for promotions
+ */
+function PromotionButton({
+  text,
+  onClick,
+}: {
+  text: string;
+  onClick: () => Promise<void>;
+}) {
   return (
     <Button
       variant="action"
       className="w-full text-md [&_svg]:!size-5 gap-2"
-      onClick={async () => {
-        const result = await sdk.actions.composeCast({
-          text: "Scroll your feed TikTok-style on /dash! ⚡️",
-          embeds: [`${appUrl}?utm_source=share_app`],
-        });
-
-        if (result && result.cast) {
-          trackEvent("shared_app", {
-            user: context?.user.username,
-            castHash: result.cast.hash,
-          });
-        }
-      }}
+      onClick={onClick}
     >
       <FarcasterIcon />
-      Share to support
+      {text}
     </Button>
   );
 }
 
+/**
+ * Hook to get promotion configuration based on type
+ */
+function usePromotionConfig(type: PromotionType): PromotionConfig {
+  const { context } = useFrame();
+  const { trackEvent } = useAnalytics();
+  const added = useMemo(() => context?.client.added, [context]);
+
+  return useMemo(() => {
+    const configs: Record<PromotionType, PromotionConfig> = {
+      "add-frame": {
+        title: "Enjoying Dash?",
+        description: added
+          ? ["Consider sharing the mini app with your friends!"]
+          : [
+              "Add the mini app to Farcaster so you don't miss out on updates! 👀",
+              "Don't worry, notifications will be kept to a minimum.",
+            ],
+        buttonText: added ? "Share to support" : "Share to support",
+        shouldAutoTrigger: !added,
+        buttonAction: async () => {
+          const result = await sdk.actions.composeCast({
+            text: "Scroll your feed TikTok-style on /dash! ⚡️",
+            embeds: [`${appUrl}?utm_source=share_app`],
+          });
+
+          if (result?.cast) {
+            trackEvent("shared_app", {
+              user: context?.user.username,
+              castHash: result.cast.hash,
+            });
+          }
+        },
+      },
+
+      "share-app": {
+        title: "Enjoying Dash?",
+        description: ["Consider sharing the mini app with your friends!"],
+        buttonText: "Share to support",
+        buttonAction: async () => {
+          const result = await sdk.actions.composeCast({
+            text: "Scroll your feed TikTok-style on /dash! ⚡️",
+            embeds: [`${appUrl}?utm_source=share_app`],
+          });
+
+          if (result?.cast) {
+            trackEvent("shared_app", {
+              user: context?.user.username,
+              castHash: result.cast.hash,
+            });
+          }
+        },
+      },
+
+      "join-channel": {
+        title: "What's missing on Dash?",
+        description: [
+          "Join the /dash channel, share your ideas, and shape what comes next.",
+        ],
+        buttonText: "Join channel",
+        buttonAction: async () => {
+          await sdk.actions.openUrl("https://farcaster.xyz/~/channel/dash");
+          trackEvent("opened_channel", {
+            user: context?.user.username,
+          });
+        },
+      },
+    };
+
+    return configs[type];
+  }, [type, added, context, trackEvent]);
+}
+
+/**
+ * Main promotion component that renders the appropriate promotion based on type
+ */
 export function Promotion({ type }: PromotionProps) {
-  return type === "add-frame" ? (
-    <AddFramePromotion />
-  ) : type === "share-app" ? (
-    <ShareAppPromotion />
-  ) : (
-    <JoinChannelPromotion />
-  );
+  const config = usePromotionConfig(type);
+  return <PromotionLayout {...config} />;
 }

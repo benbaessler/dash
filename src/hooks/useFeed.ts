@@ -2,8 +2,9 @@
 
 import { useFrame } from "@/providers/FrameProvider";
 import { isDevelopment } from "@/constants";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
+import { insertPromotions } from "@/utils/insertPromotions";
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
@@ -36,28 +37,27 @@ export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
     }
   );
 
-  // useEffect(() => {
-  //   const updatePromotionPages = async () => {
-  //     const promotions = [
-  //       !added
-  //         ? { type: "add-frame", index: 7 }
-  //         : { type: "share-app", index: 7 },
-  //       { type: "join-channel", index: 15 },
-  //     ] as PromotionData[];
-  //   };
-
-  // }, [added, isSDKLoaded]);
+  const promotions = useMemo(
+    () => [
+      !added
+        ? { type: "add-frame" as const, index: 7 }
+        : { type: "share-app" as const, index: 7 },
+      { type: "join-channel" as const, index: 15 },
+    ],
+    [added]
+  );
 
   useEffect(() => {
     if (data && feed.length <= 1) {
-      setFeed(
-        initialPost
-          ? [
-              initialPost,
-              ...data.filter((item: VideoData) => item.id !== initialPost.id),
-            ]
-          : data
-      );
+      const videos = initialPost
+      ? [
+          initialPost,
+          ...data.filter((item: VideoData) => item.id !== initialPost.id),
+        ]
+      : data
+
+      const feedWithPromotions = insertPromotions(videos, promotions);
+      setFeed(feedWithPromotions);
     }
   }, [data]);
 
