@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { Navbar } from "./components/navbar";
 import { useSigner } from "@/providers/SignerProvider";
 import { ConnectSignerDialog } from "./components/dialogs/connect-signer";
-import { FeedView } from "./components/content/feed-view";
+import { FeedView } from "./components/feed";
 
 export default function App() {
   const { sessionToken, signIn } = useFrame();

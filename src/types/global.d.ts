@@ -31,6 +31,7 @@ interface CommentData {
     fid: number;
     pfp_url: string;
     display_name: string;
+    username: string;
   };
   timestamp: string;
   text: string;

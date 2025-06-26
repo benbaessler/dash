@@ -21,10 +21,10 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface ShareProps {
   children: React.ReactNode;
-  post: Post;
+  data: VideoData;
 }
 
-export const Share = ({ children, post }: ShareProps) => {
+export const Share = ({ children, data }: ShareProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const { context } = useFrame();
@@ -88,7 +88,7 @@ export const Share = ({ children, post }: ShareProps) => {
       trackEvent("shared_post_dc", {
         user: context.user.username,
         recipient: recipient.username,
-        castHash: post.id,
+        castHash: data.id,
       });
     } catch (error) {
       console.error("Failed to track share:", error);
@@ -105,7 +105,10 @@ export const Share = ({ children, post }: ShareProps) => {
           </DrawerHeader>
           <div className="flex flex-col w-full h-full overflow-hidden">
             <div className="relative mb-4">
-              <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
+              <MagnifyingGlassIcon
+                weight="bold"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none"
+              />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -126,9 +129,12 @@ export const Share = ({ children, post }: ShareProps) => {
                     className="flex items-center justify-between py-2 px-1 gap-3 hover:bg-accent/40 rounded-md"
                   >
                     <Avatar
-                      imageUrl={user.pfp_url ?? ""}
-                      altText={user.username}
-                      fid={user.fid}
+                      user={{
+                        fid: user.fid,
+                        username: user.username,
+                        displayName: user.display_name || user.username,
+                        pfpUrl: user.pfp_url || "",
+                      }}
                     />
                     <div className="flex flex-col flex-1 min-w-0">
                       <span className="text-sm font-semibold truncate">
@@ -148,7 +154,7 @@ export const Share = ({ children, post }: ShareProps) => {
                           `https://farcaster.xyz/~/inbox/create/${
                             user.fid
                           }?text=${encodeURIComponent(
-                            `Check out this video by @${post.author.username} on /dash!\n\n${appUrl}/share/${post.id}?utm_source=dc`
+                            `Check out this video by @${data.author.username} on /dash!\n\n${appUrl}/share/${data.id}?utm_source=dc`
                           )}`
                         );
                       }}
@@ -165,14 +171,16 @@ export const Share = ({ children, post }: ShareProps) => {
                 className="w-full text-md [&_svg]:!size-5 gap-2"
                 onClick={async () => {
                   const result = await sdk.actions.composeCast({
-                    text: `Check out this video by @${post.author.username} on /dash!`,
-                    embeds: [`${appUrl}/share/${post.id}?utm_source=share_post`],
+                    text: `Check out this video by @${data.author.username} on /dash!`,
+                    embeds: [
+                      `${appUrl}/share/${data.id}?utm_source=share_post`,
+                    ],
                   });
 
                   if (result && result.cast) {
                     trackEvent("shared_post_cast", {
                       user: context?.user.username,
-                      postCastHash: post.id,
+                      postCastHash: data.id,
                       shareCastHash: result.cast.hash,
                     });
                   }
