@@ -12,10 +12,14 @@ export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get("Authorization") as string;
 
-    const payload = await verify(authHeader?.split(" ")[1]);
+    const payload = await verify(authHeader);
     const fid = payload.sub;
 
+    console.log({ fid });
+
     const { castHash, type } = await request.json();
+
+    console.log({ castHash, type });
 
     if (!castHash || !type) {
       return NextResponse.json(

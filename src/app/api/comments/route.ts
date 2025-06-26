@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get("Authorization") as string;
 
-    const payload = await verify(authHeader?.split(" ")[1]);
+    const payload = await verify(authHeader);
 
     const fid = payload.sub;
     const { castHash, text } = await request.json();
