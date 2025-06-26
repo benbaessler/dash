@@ -14,11 +14,18 @@ const fetcher = async (url: string) => {
   return data;
 };
 
-export const useFeed = (initialLimit = 15) => {
+interface UseFeedProps {
+  initialLimit?: number;
+  initialPost?: VideoData;
+}
+
+export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
   const { isSDKLoaded, context, added } = useFrame();
   const fid = isDevelopment ? 367782 : context?.user.fid;
 
-  const [feed, setFeed] = useState<FeedItem[]>([]);
+  const [feed, setFeed] = useState<FeedItem[]>(
+    initialPost ? [initialPost] : []
+  );
   const [fetching, setFetching] = useState(false);
 
   const { data, isValidating } = useSWR(
@@ -42,10 +49,17 @@ export const useFeed = (initialLimit = 15) => {
   // }, [added, isSDKLoaded]);
 
   useEffect(() => {
-    if (data && feed.length === 0) {
-      setFeed(data);
+    if (data && feed.length <= 1) {
+      setFeed(
+        initialPost
+          ? [
+              initialPost,
+              ...data.filter((item: VideoData) => item.id !== initialPost.id),
+            ]
+          : data
+      );
     }
-  }, [data, feed]);
+  }, [data]);
 
   const fetchMore = useCallback(
     async (limit: number = initialLimit) => {

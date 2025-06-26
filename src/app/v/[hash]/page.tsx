@@ -3,14 +3,14 @@
 import { useParams } from "next/navigation";
 import { useFrame } from "@/providers/FrameProvider";
 import { useCallback, useEffect, useState } from "react";
-import { Feed } from "../components/feed";
-import { Loading } from "../components/loading";
+import { FeedView } from "@/app/components/feed";
+import { Loading } from "@/app/components/common/loading";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Video() {
   const { hash } = useParams();
   const { context } = useFrame();
-  const [post, setPost] = useState<Post>();
+  const [post, setPost] = useState<VideoData>();
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const { toast } = useToast();
@@ -28,6 +28,7 @@ export default function Video() {
       return;
     }
     const { data } = await response.json();
+    console.log(data);
 
     if (!data.video_url) {
       setNotFound(true);
@@ -51,5 +52,11 @@ export default function Video() {
 
   if (loading) return <Loading text={loading && "Loading video"} />;
 
-  return loading ? <Loading /> : <Feed initialPost={post} />;
+  return loading ? (
+    <Loading />
+  ) : (
+    <div className="h-screen w-screen flex flex-col">
+      <FeedView initialPost={post} />
+    </div>
+  );
 }

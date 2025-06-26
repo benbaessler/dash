@@ -4,10 +4,14 @@ import { Promotion } from "../promotion";
 import { VideoItem } from "../video";
 import { useFeed } from "@/hooks";
 import { useEffect, useCallback, useState } from "react";
-import { Loading } from "../loading";
+import { Loading } from "../common/loading";
 
-export function FeedView() {
-  const { feed, fetching, fetchMore } = useFeed();
+interface FeedViewProps {
+  initialPost?: VideoData;
+}
+
+export function FeedView({ initialPost }: FeedViewProps) {
+  const { feed, fetching, fetchMore } = useFeed({ initialPost });
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -25,29 +29,25 @@ export function FeedView() {
     setActiveIndex(newIndex);
   }, []);
 
-  if (!feed) return <Loading />;
+  if (feed.length === 0) return <Loading />;
 
   return (
     <div
       className="flex-1 w-full overflow-y-scroll snap-y snap-mandatory"
       onScroll={handleScroll}
     >
-      {feed.map((item, index) => (
-        <div
-          key={index}
-          className="h-full w-full flex-shrink-0 relative snap-start snap-always"
-        >
-          {"type" in item ? (
-            <Promotion type={item.type} />
-          ) : (
-            <VideoItem
-              data={item as VideoData}
-              active={activeIndex === index}
-              preload={Math.abs(index - activeIndex) <= 3}
-            />
-          )}
-        </div>
-      ))}
+      {feed.map((item, index) =>
+        "type" in item ? (
+          <Promotion key={index} type={item.type} />
+        ) : (
+          <VideoItem
+            key={index}
+            data={item as VideoData}
+            active={activeIndex === index}
+            preload={Math.abs(index - activeIndex) <= 3}
+          />
+        )
+      )}
     </div>
   );
 }

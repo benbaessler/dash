@@ -30,7 +30,9 @@ export async function GET(
 
     try {
       videoEmbed = cast.embeds.find(
-        (embed: any) => embed.metadata.content_type === "application/x-mpegurl"
+        (embed: any) =>
+          embed.metadata &&
+          embed.metadata.content_type === "application/x-mpegurl"
       );
     } catch {}
 
