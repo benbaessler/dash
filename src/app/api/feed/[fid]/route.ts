@@ -41,7 +41,7 @@ export async function GET(
     });
     const data = await res.json();
     
-    const posts: Post[] = data.body
+    const posts: VideoData[] = data.body
       .filter((item: any) =>
         item.metadata.embed_items.find((url: string) => url.includes("video"))
       )
