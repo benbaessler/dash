@@ -8,7 +8,7 @@ interface Props {
 
 export const GridItem = ({ data, onClick }: Props) => (
   <div
-    className={`relative aspect-[9/13] w-full bg-slate-800 group cursor-pointer`}
+    className={`relative aspect-[9/13] w-full bg-slate-800 hover:opacity-90 transition-opacity duration-150 group cursor-pointer`}
     onClick={onClick}
   >
     <div className="absolute inset-0 flex items-center justify-center p-4">
