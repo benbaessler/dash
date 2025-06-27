@@ -4,12 +4,12 @@ import { User } from "@neynar/nodejs-sdk/build/api";
 import { Button } from "@/components/ui/button";
 import { ClickableText } from "@/app/components/common/text";
 import { FarcasterIcon } from "@/assets/icons";
-import { ArrowLeftIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, PlusIcon } from "@phosphor-icons/react";
 import sdk from "@farcaster/frame-sdk";
 import { Avatar } from "@/app/components/video/components/avatar";
-import { Skeleton } from "@/app/components/common/skeleton";
 import { useFrame } from "@/providers/FrameProvider";
 import useSWRInfinite from "swr/infinite";
+import { Skeleton } from "@/app/components/common/skeleton";
 import { VideoGrid } from "./components/video-grid";
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { VideoFeed } from "./components/video-feed";
@@ -180,10 +180,8 @@ export function Profile({
               onClick={onClose}
             />
           )}
-          {user ? (
+          {user && (
             <h1 className="font-medium text-center">@{user.username}</h1>
-          ) : (
-            <Skeleton className="h-6 w-24" />
           )}
           {!isCurrentUser && (
             <div
@@ -212,35 +210,25 @@ export function Profile({
         </div>
 
         <div className="text-center mb-2">
-          {user ? (
+          {user && (
             <h2 className="text-lg font-bold text-white">
               {user.display_name || user.username}
             </h2>
-          ) : (
-            <Skeleton className="h-7 w-24 mx-auto" />
           )}
         </div>
 
         <div className="grid grid-cols-2 gap-2 mb-2 max-w-40 mx-auto">
           <div className="text-center">
-            {user ? (
-              <div className="text-base font-bold text-white">
-                {user.following_count}
-              </div>
-            ) : (
-              <Skeleton className="h-6 w-10 mx-auto" />
-            )}
+            <div className="text-base font-bold text-white">
+              {user?.following_count || "-"}
+            </div>
             <div className="text-xs text-slate-400">Following</div>
           </div>
 
           <div className="text-center">
-            {user ? (
-              <div className="text-base font-bold text-white">
-                {user.follower_count}
-              </div>
-            ) : (
-              <Skeleton className="h-6 w-10 mx-auto" />
-            )}
+            <div className="text-base font-bold text-white">
+              {user?.follower_count || "-"}
+            </div>
             <div className="text-xs text-slate-400">Followers</div>
           </div>
         </div>
@@ -249,15 +237,16 @@ export function Profile({
           <Button
             variant={following ? "outlineAction" : "action"}
             size="sm"
-            className="max-w-60 w-full"
+            className="max-w-48 w-full"
             disabled={!user}
             onClick={() =>
               isCurrentUser
-                ? sdk.actions.viewProfile({ fid: context?.user?.fid || 0 })
+                ? sdk.actions.composeCast({})
                 : handleFollowChange(!following)
             }
           >
-            {isCurrentUser ? "Update" : following ? "Following" : "Follow"}
+            {isCurrentUser && <PlusIcon weight="bold" />}
+            {isCurrentUser ? "Upload" : following ? "Following" : "Follow"}
           </Button>
         </div>
 
@@ -271,13 +260,13 @@ export function Profile({
       </div>
       <VideoGrid
         data={displayedData}
-        isLoading={isLoading || !user}
+        isLoading={isLoading}
         onItemClick={(index) => setSelectedVideoIndex(index)}
       />
       {!hasReachedEnd && (
         <div
           ref={loadingSpinnerRef}
-          className="flex justify-center items-center py-4"
+          className="flex justify-center items-center py-8"
         >
           <Loader className="w-5 h-5 animate-spin text-slate-400" />
         </div>
