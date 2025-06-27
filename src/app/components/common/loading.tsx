@@ -13,7 +13,7 @@ export function Loading({ text }: { text?: string }) {
           className="animate-pulse"
         />
         <div className="mt-2 text-gray-400 text-sm text-center whitespace-nowrap">
-          {text || "Building a feed for you"}
+          {text || "Loading..."}
         </div>
       </div>
     </div>

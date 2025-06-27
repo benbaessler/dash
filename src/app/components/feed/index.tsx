@@ -30,7 +30,7 @@ export function FeedView({ initialPost, idle = false }: FeedViewProps) {
     setActiveIndex(newIndex);
   }, []);
 
-  if (feed.length === 0) return <Loading />;
+  if (feed.length <= 1) return <Loading />;
 
   return (
     <div
