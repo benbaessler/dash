@@ -22,6 +22,7 @@ interface VideoItemProps {
   active: boolean;
   preload: boolean;
   disableProfile?: boolean;
+  render?: boolean;
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -31,7 +32,14 @@ export const VideoItem = ({
   active,
   preload,
   disableProfile = false,
+  render = true,
 }: VideoItemProps) => {
+  if (!render) {
+    return (
+      <div className="relative h-full w-screen max-h-[calc(100vh-64px)] snap-start snap-always bg-black" />
+    );
+  }
+
   const { trackEvent } = useAnalytics();
   const { user, sessionToken } = useFrame();
   const { verifySigner } = useSigner();

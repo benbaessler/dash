@@ -45,6 +45,7 @@ export function FeedView({ initialPost }: FeedViewProps) {
             data={item as VideoData}
             active={activeIndex === index}
             preload={Math.abs(index - activeIndex) <= 3}
+            render={Math.abs(index - activeIndex) <= 5}
           />
         )
       )}
