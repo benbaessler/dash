@@ -2,7 +2,7 @@
 
 import { Promotion } from "../promotion";
 import { VideoItem } from "../video";
-import { useFeed } from "@/hooks";
+import { useFeed } from "@/hooks/useFeed";
 import { useEffect, useCallback, useState, useRef } from "react";
 import { Loading } from "../common/loading";
 
