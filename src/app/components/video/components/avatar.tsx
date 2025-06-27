@@ -21,6 +21,7 @@ const AvatarComponent = ({
       src={user.pfpUrl}
       alt={user.displayName}
       fill
+      sizes="45px"
       className={`rounded-full object-cover ${
         user.username || user.fid ? "cursor-pointer" : ""
       }`}
