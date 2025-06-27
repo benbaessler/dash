@@ -7,6 +7,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const cursor = searchParams.get("cursor") || undefined;
   const hash = searchParams.get("hash") || undefined;
+  const viewerFid = Number(searchParams.get("viewerFid")) || undefined;
 
   if (!hash) {
     return NextResponse.json(
@@ -21,6 +22,7 @@ export async function GET(req: Request) {
       type: "hash",
       sortType: "algorithmic",
       cursor,
+      viewerFid
     });
 
     // Filter out duplicate comments based on hash

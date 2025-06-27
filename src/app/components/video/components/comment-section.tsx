@@ -48,18 +48,18 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     pageIndex: number,
     previousPageData: { data: CommentData[]; cursor?: string } | null
   ) => {
-    const url = new URL(`/api/comments`, appUrl);
-    url.searchParams.append("hash", castHash);
-
-    if (pageIndex === 0) {
-      return url.toString();
-    }
-
-    if (previousPageData && !previousPageData.cursor) {
+    if (!user?.fid || (previousPageData && !previousPageData.cursor))
       return null;
+
+    const url = new URL(
+      `/api/comments?viewerFid=${user?.fid}&hash=${castHash}`,
+      appUrl
+    );
+
+    if (pageIndex !== 0) {
+      url.searchParams.append("cursor", previousPageData?.cursor || "");
     }
 
-    url.searchParams.append("cursor", previousPageData?.cursor || "");
     return url.toString();
   };
 
