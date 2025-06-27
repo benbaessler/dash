@@ -1,5 +1,6 @@
 "use client";
 
+import sdk from "@farcaster/frame-sdk";
 import { UserIcon, HouseIcon } from "@phosphor-icons/react";
 
 export function Navbar({
@@ -25,7 +26,7 @@ export function Navbar({
   ];
 
   return (
-    <nav className="bg-black border-t border-gray-800 z-[20]">
+    <nav className="bg-black border-t border-gray-800 z-[80]">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-around pb-6 pt-2">
           {navItems.map((item) => {
@@ -35,7 +36,8 @@ export function Navbar({
               <button
                 key={item.label}
                 className="flex flex-col items-center justify-center p-2 space-y-1 rounded-lg transition-colors duration-200 min-w-[64px]"
-                onClick={() => {
+                onClick={async () => {
+                  await sdk.haptics.impactOccurred("light");
                   onTabChange(item.label);
                 }}
               >

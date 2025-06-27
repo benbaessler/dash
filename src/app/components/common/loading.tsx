@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function Loading({ text }: { text?: string }) {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black">
+    <div className="fixed inset-0 flex items-center justify-center bg-black z-[50]">
       <div className="flex flex-col items-center -mt-[55px]">
         <Image 
           priority

@@ -147,6 +147,7 @@ export function Profile({
     const valid = await verifySigner();
     if (!valid) return;
 
+    if (state) await sdk.haptics.impactOccurred("medium");
     setFollowing(state);
 
     const response = await fetch(

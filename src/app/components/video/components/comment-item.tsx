@@ -32,6 +32,8 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
       const authorized = await verifySigner();
       if (!authorized) return;
 
+      if (!isLiked) await sdk.haptics.impactOccurred("medium");
+
       // Optimistic update
       setIsLiked((prev) => !prev);
       const initialLikesCount = reactions.likes_count;

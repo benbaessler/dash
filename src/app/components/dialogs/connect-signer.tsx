@@ -61,42 +61,39 @@ export const ConnectSignerDialog = ({
 
   return (
     <>
-      <div className="z-100">
-        <Dialog open={open} onOpenChange={onOpenChange}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Scan to connect</DialogTitle>
-              <DialogDescription>
-                Registering a signer key enables you to interact with videos on
-                Dash.
-              </DialogDescription>
-              <div className="flex flex-col items-center justify-center gap-4 pt-4">
-                <div className="flex p-3 bg-white rounded items-center justify-center mb-2">
-                  <QRCodeSVG
-                    value={signer?.signer_approval_url || ""}
-                    size={230}
-                  />
-                </div>
-                <Button
-                  variant="action"
-                  className="w-64"
-                  onClick={() => sdk.actions.openUrl(mobileUrl)}
-                >
-                  Already on mobile?
-                  <ArrowRightIcon weight="bold" size={20} />
-                </Button>
-                <div className="flex items-center justify-center gap-2">
-                  <Loader className="w-4 h-4 animate-spin" />
-                  <p className="text-sm">Awaiting approval...</p>
-                </div>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="z-[100]">
+          <DialogHeader>
+            <DialogTitle>Scan to connect</DialogTitle>
+            <DialogDescription>
+              Registering a signer key enables you to perform actions from your profile on Dash.
+            </DialogDescription>
+            <div className="flex flex-col items-center justify-center gap-4 pt-4">
+              <div className="flex p-3 bg-white rounded items-center justify-center mb-2">
+                <QRCodeSVG
+                  value={signer?.signer_approval_url || ""}
+                  size={230}
+                />
               </div>
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <Button
+                variant="action"
+                className="w-64"
+                onClick={() => sdk.actions.openUrl(mobileUrl)}
+              >
+                Already on mobile?
+                <ArrowRightIcon weight="bold" size={20} />
+              </Button>
+              <div className="flex items-center justify-center gap-2">
+                <Loader className="w-4 h-4 animate-spin" />
+                <p className="text-sm">Awaiting approval...</p>
+              </div>
+            </div>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
       {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-90">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[70]">
           <Loader className="animate-spin" />
         </div>
       )}
