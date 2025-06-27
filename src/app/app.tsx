@@ -37,9 +37,11 @@ export function AppLayout({ children }: Props) {
     <>
       <div className="h-screen w-screen flex flex-col">
         <div className="flex-1 min-h-0 overflow-hidden">
-          {selectedTab === "home" && <FeedView />}
+          <FeedView idle={selectedTab === "profile"} />
           {selectedTab === "profile" && (
-            <Profile user={user || null} isCurrentUser />
+            <div className="fixed inset-0 bg-black z-[10]">
+              <Profile user={user || null} isCurrentUser />
+            </div>
           )}
           {selectedTab === null && children}
         </div>

@@ -8,9 +8,10 @@ import { Loading } from "../common/loading";
 
 interface FeedViewProps {
   initialPost?: VideoData;
+  idle?: boolean;
 }
 
-export function FeedView({ initialPost }: FeedViewProps) {
+export function FeedView({ initialPost, idle = false }: FeedViewProps) {
   const { feed, fetching, fetchMore } = useFeed({ initialPost });
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -43,7 +44,7 @@ export function FeedView({ initialPost }: FeedViewProps) {
           <VideoItem
             key={index}
             data={item as VideoData}
-            active={activeIndex === index}
+            active={activeIndex === index && !idle}
             preload={Math.abs(index - activeIndex) <= 3}
             render={Math.abs(index - activeIndex) <= 5}
           />
