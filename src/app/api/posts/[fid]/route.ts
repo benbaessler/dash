@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
+import { convertISOToUnix } from "@/utils/formatTime";
 
 export async function GET(
   request: Request,
@@ -55,7 +56,7 @@ export async function GET(
         likeCount: cast.reactions.likes_count,
         recastCount: cast.reactions.recasts_count,
         commentCount: cast.replies.count,
-        timestamp: Number(cast.timestamp),
+        timestamp: convertISOToUnix(cast.timestamp),
         author: {
           fid: cast.author.fid,
           displayName: cast.author.display_name || "",

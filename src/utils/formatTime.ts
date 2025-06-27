@@ -52,3 +52,7 @@ export const formatDuration = (duration: number): string => {
   
   return `${minutes}:${formattedSeconds}`;
 }
+
+export const convertISOToUnix = (isoString: string): number => {
+  return Math.floor(new Date(isoString).getTime() / 1000);
+};
