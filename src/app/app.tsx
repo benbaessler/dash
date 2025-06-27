@@ -8,10 +8,9 @@ import { useFrame } from "@/providers/FrameProvider";
 import { usePathname } from "next/navigation";
 import { Profile } from "./components/profile";
 import { FeedView } from "./components/feed";
-// import ProfileComponent from "./profile"; // Adjust path as needed
 
 interface Props {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export function AppLayout({ children }: Props) {
