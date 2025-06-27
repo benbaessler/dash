@@ -1,7 +1,7 @@
 import {
   ShareFatIcon,
   HeartIcon,
-  ChatTeardropTextIcon,
+  ChatCircleDotsIcon,
   RepeatIcon,
 } from "@phosphor-icons/react";
 import { CommentSection } from "./comment-section";
@@ -44,7 +44,7 @@ export const InteractionButtons = ({
       />
 
       <InteractionButton
-        icon={<ChatTeardropTextIcon size={35} weight="fill" />}
+        icon={<ChatCircleDotsIcon size={35} weight="fill" />}
         count={data.commentCount}
         wrapper={(children) => (
           <CommentSection castHash={data.id}>{children}</CommentSection>

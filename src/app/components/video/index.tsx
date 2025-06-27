@@ -64,16 +64,20 @@ export const VideoItem = ({
     const valid = await verifySigner();
     if (!valid) return;
 
-    await sdk.haptics.impactOccurred("medium");
+    if (state) await sdk.haptics.impactOccurred("medium");
 
     if (event === "recasted") {
       setRecasted(state);
       data.recastCount += state ? 1 : -1;
-      data.viewerContext!.recasted = state;
+      if (data.viewerContext) {
+        data.viewerContext.recasted = state;
+      }
     } else {
       setLiked(state);
       data.likeCount += state ? 1 : -1;
-      data.viewerContext!.liked = state;
+      if (data.viewerContext) {
+        data.viewerContext.liked = state;
+      }
     }
 
     try {
@@ -105,11 +109,15 @@ export const VideoItem = ({
       if (event === "recasted") {
         setRecasted(!state);
         data.recastCount += state ? -1 : 1;
-        data.viewerContext!.recasted = !state;
+        if (data.viewerContext) {
+          data.viewerContext.recasted = !state;
+        }
       } else {
         setLiked(!state);
         data.likeCount += state ? -1 : 1;
-        data.viewerContext!.liked = !state;
+        if (data.viewerContext) {
+          data.viewerContext.liked = !state;
+        }
       }
     }
   };
