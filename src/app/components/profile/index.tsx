@@ -9,11 +9,12 @@ import sdk from "@farcaster/frame-sdk";
 import { Avatar } from "@/app/components/video/components/avatar";
 import { Skeleton } from "@/app/components/common/skeleton";
 import { useFrame } from "@/providers/FrameProvider";
-import useSWR from "swr";
+import useSWRInfinite from "swr/infinite";
 import { VideoGrid } from "./components/video-grid";
-import { useState } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { VideoFeed } from "./components/video-feed";
 import { useSigner } from "@/providers/SignerProvider";
+import { Loader } from "lucide-react";
 
 interface ProfileProps {
   user: User | null;
@@ -39,20 +40,82 @@ export function Profile({
     user?.viewer_context?.following || false
   );
 
-  const { data, isLoading } = useSWR<{
-    data: VideoData[];
-    cursor: string | null;
-  }>(
-    user && context?.user?.fid
-      ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}`
-      : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-      revalidateOnReconnect: false,
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const getKey = (
+    pageIndex: number,
+    previousPageData: { data: VideoData[]; cursor: string | null } | null
+  ) => {
+    if (pageIndex === 0) {
+      return user && context?.user?.fid
+        ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}`
+        : null;
     }
-  );
+    if (previousPageData && !previousPageData.cursor) {
+      return null;
+    }
+    return user && context?.user?.fid
+      ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}&cursor=${previousPageData?.cursor || ""}`
+      : null;
+  };
+
+  const {
+    data: pagesData,
+    setSize,
+    isLoading,
+    isValidating,
+  } = useSWRInfinite(getKey, fetcher, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+    revalidateOnReconnect: false,
+    persistSize: true,
+    revalidateAll: false,
+  });
+
+  const flattenedData = useMemo(() => {
+    if (!pagesData) return [];
+    return pagesData.flatMap((page) => page.data);
+  }, [pagesData]);
+
+  const nextCursor = pagesData?.[pagesData.length - 1]?.cursor;
+
+  const loadMore = useCallback(() => {
+    const canLoadMore = nextCursor && !isLoading && !isValidating;
+    if (canLoadMore) {
+      setSize((prevSize) => prevSize + 1);
+    }
+  }, [nextCursor, isLoading, isValidating, setSize]);
+
+  const handleScroll = useCallback(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    debounceTimeoutRef.current = setTimeout(() => {
+      const container = scrollContainerRef.current;
+      if (!container || isLoading || isValidating || !nextCursor) return;
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+      if (scrollPercentage >= 0.8) {
+        loadMore();
+      }
+    }, 200);
+  }, [loadMore, isLoading, isValidating, nextCursor]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener("scroll", handleScroll);
+      }
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [handleScroll]);
 
   const handleFollowChange = async (state: boolean) => {
     const valid = await verifySigner();
@@ -78,7 +141,10 @@ export function Profile({
   };
 
   return (
-    <div className="h-full max-h-[calc(100vh-64px)] overflow-y-auto py-4 relative">
+    <div
+      ref={scrollContainerRef}
+      className="h-full max-h-[calc(100vh-64px)] overflow-y-auto py-4 relative"
+    >
       <div className="max-w-md mx-auto px-4">
         <div className="relative flex items-center justify-center mb-4">
           {onClose && (
@@ -178,13 +244,18 @@ export function Profile({
         )}
       </div>
       <VideoGrid
-        data={data?.data || []}
+        data={flattenedData}
         isLoading={isLoading || !user}
         onItemClick={(index) => setSelectedVideoIndex(index)}
       />
-      {selectedVideoIndex !== null && data?.data && (
+      {(isLoading || isValidating) && nextCursor && (
+        <div className="flex justify-center items-center py-4">
+          <Loader className="w-5 h-5 animate-spin text-slate-400" />
+        </div>
+      )}
+      {selectedVideoIndex !== null && flattenedData && (
         <VideoFeed
-          data={data.data}
+          data={flattenedData}
           initialIndex={selectedVideoIndex}
           onClose={() => setSelectedVideoIndex(null)}
         />
