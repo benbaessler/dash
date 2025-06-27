@@ -3,10 +3,7 @@ import { Caption } from "./components/caption";
 import { InteractionButtons } from "./components/interaction-buttons";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useFrame } from "@/providers/FrameProvider";
-import {
-  MediaPlayer,
-  MediaProvider,
-} from "@vidstack/react";
+import { MediaPlayer, MediaProvider } from "@vidstack/react";
 import { PlayIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import sdk from "@farcaster/frame-sdk";
@@ -20,6 +17,7 @@ interface VideoItemProps {
   data: VideoData;
   active: boolean;
   preload: boolean;
+  isScrolling?: boolean;
   disableProfile?: boolean;
   render?: boolean;
 }
@@ -30,6 +28,7 @@ export const VideoItem = ({
   data,
   active,
   preload,
+  isScrolling = false,
   disableProfile = false,
   render = true,
 }: VideoItemProps) => {
@@ -171,14 +170,16 @@ export const VideoItem = ({
           >
             <MediaProvider />
             <div
-              className="absolute flex justify-center bottom-0 left-0 right-0 w-full z-10"
+              className={`absolute flex justify-center bottom-0 left-0 right-0 w-full z-10 ${
+                isScrolling ? "opacity-70" : "opacity-100"
+              } transition-opacity duration-200`}
               onClick={(e) => e.stopPropagation()}
               onDoubleClick={(e) => e.stopPropagation()}
             >
               <PlaybackSlider />
             </div>
           </MediaPlayer>
-          {paused && (
+          {paused ? (
             <div className="absolute inset-0 flex items-center justify-center">
               <PlayIcon
                 weight="fill"
@@ -186,18 +187,26 @@ export const VideoItem = ({
                 className="text-white opacity-70 cursor-pointer hover:opacity-90"
               />
             </div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center"></div>
           )}
         </div>
 
-        <Caption data={data} />
-        <InteractionButtons
-          data={data}
-          handleInteraction={handleInteraction}
-          liked={liked}
-          recasted={recasted}
-          openProfile={() => setIsProfileOpen(true)}
-          disableProfile={disableProfile}
-        />
+        <div
+          className={`transition-opacity duration-200 ${
+            isScrolling ? "opacity-70" : "opacity-100"
+          }`}
+        >
+          <Caption data={data} />
+          <InteractionButtons
+            data={data}
+            handleInteraction={handleInteraction}
+            liked={liked}
+            recasted={recasted}
+            openProfile={() => setIsProfileOpen(true)}
+            disableProfile={disableProfile}
+          />
+        </div>
       </div>
       {isProfileOpen && (
         <div className="fixed inset-0 bg-black z-[10]">

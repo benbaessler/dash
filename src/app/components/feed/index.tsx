@@ -3,7 +3,7 @@
 import { Promotion } from "../promotion";
 import { VideoItem } from "../video";
 import { useFeed } from "@/hooks";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { Loading } from "../common/loading";
 
 interface FeedViewProps {
@@ -14,6 +14,8 @@ interface FeedViewProps {
 export function FeedView({ initialPost, idle = false }: FeedViewProps) {
   const { feed, fetching, fetchMore } = useFeed({ initialPost });
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (feed.length > 10 && !fetching && activeIndex > feed.length - 10) {
@@ -21,11 +23,27 @@ export function FeedView({ initialPost, idle = false }: FeedViewProps) {
     }
   }, [activeIndex, feed.length, fetching, fetchMore]);
 
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
     const scrollPosition = container.scrollTop;
     const windowHeight = container.clientHeight;
     const newIndex = Math.round(scrollPosition / windowHeight);
+
+    setIsScrolling(true);
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 100);
 
     setActiveIndex(newIndex);
   }, []);
@@ -47,6 +65,7 @@ export function FeedView({ initialPost, idle = false }: FeedViewProps) {
             active={activeIndex === index && !idle}
             preload={Math.abs(index - activeIndex) <= 3}
             render={Math.abs(index - activeIndex) <= 5}
+            isScrolling={isScrolling}
           />
         )
       )}

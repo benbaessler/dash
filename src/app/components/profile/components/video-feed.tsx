@@ -12,7 +12,9 @@ interface VideoFeedProps {
 
 export function VideoFeed({ data, initialIndex = 0, onClose }: VideoFeedProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [isScrolling, setIsScrolling] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (scrollContainerRef.current) {
@@ -36,6 +38,14 @@ export function VideoFeed({ data, initialIndex = 0, onClose }: VideoFeedProps) {
     }
   }, [initialIndex]);
 
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement>) => {
       const container = e.currentTarget;
@@ -43,6 +53,14 @@ export function VideoFeed({ data, initialIndex = 0, onClose }: VideoFeedProps) {
       const windowHeight = container.clientHeight;
       const newIndex = Math.round(scrollPosition / windowHeight);
       const clampedIndex = Math.max(0, Math.min(data.length - 1, newIndex));
+
+      setIsScrolling(true);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 100);
 
       setActiveIndex(clampedIndex);
     },
@@ -63,6 +81,7 @@ export function VideoFeed({ data, initialIndex = 0, onClose }: VideoFeedProps) {
             active={activeIndex === index}
             preload={Math.abs(index - activeIndex) <= 3}
             render={Math.abs(index - activeIndex) <= 5}
+            isScrolling={isScrolling}
             disableProfile
           />
         ))}
