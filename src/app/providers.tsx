@@ -6,6 +6,7 @@ import { FrameProvider } from "@/providers/FrameProvider";
 import { SignerProvider } from "@/providers/SignerProvider";
 import { appDomain } from "@/constants";
 import { PostHogProvider } from "@/providers/PostHogProvider";
+import { AppLayout } from "./app";
 
 export function Providers({
   session,
@@ -20,7 +21,9 @@ export function Providers({
     <PostHogProvider>
       <SessionProvider session={session}>
         <FrameProvider>
-          <SignerProvider>{children}</SignerProvider>
+          <SignerProvider>
+            <AppLayout>{children}</AppLayout>
+          </SignerProvider>
         </FrameProvider>
       </SessionProvider>
     </PostHogProvider>

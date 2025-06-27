@@ -1,72 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import { isDevelopment } from "@/constants";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
-import { useSigner } from "@/providers/SignerProvider";
-
-export type PromotionFrame = {
-  promotionType: "add-frame" | "share-app" | "join-channel";
-  index: number;
-};
-
-interface UseFeedOptions {
-  initialLimit?: number;
-  defaultPromotionFrames?: PromotionFrame[];
-}
-
-interface UseFeedResult {
-  feed: Post[] | null;
-  setFeed: React.Dispatch<React.SetStateAction<Post[] | null>>;
-  fetching: boolean;
-  fetchFeed: (limit?: number) => Promise<void>;
-  getPostIndex: (virtualIndex: number) => number;
-  promotionFrames: PromotionFrame[];
-}
+import { insertPromotions } from "@/utils/insertPromotions";
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch feed: ${response.status}`);
   }
-  const result = await response.json();
-  return result.data;
+  const { data } = await response.json();
+  return data;
 };
 
-export function useFeed({
-  initialLimit = 15,
-}: UseFeedOptions = {}): UseFeedResult {
-  const { valid } = useSigner();
+interface UseFeedProps {
+  initialLimit?: number;
+  initialPost?: VideoData;
+}
+
+export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
   const { isSDKLoaded, context, added } = useFrame();
-  const [feed, setFeed] = useState<Post[] | null>(null);
-  const [fetching, setFetching] = useState(false);
-  const [promotionFrames, setPromotionFrames] = useState<PromotionFrame[]>([]);
-
-  useEffect(() => {
-    const updatePromotionFrames = async () => {
-      const result = [
-        !added
-          ? { promotionType: "add-frame", index: 7 }
-          : { promotionType: "share-app", index: 7 },
-        { promotionType: "join-channel", index: 15 },
-      ] as PromotionFrame[];
-
-      setPromotionFrames(result);
-    };
-
-    updatePromotionFrames();
-  }, [added, valid, context?.user.fid]);
-
-  const getPostIndex = (virtualIndex: number): number => {
-    const framesBefore = promotionFrames.filter(
-      (frame) => frame.index < virtualIndex
-    ).length;
-
-    return virtualIndex - framesBefore;
-  };
-
   const fid = isDevelopment ? 367782 : context?.user.fid;
+
+  const [feed, setFeed] = useState<FeedItem[]>(
+    initialPost ? [initialPost] : []
+  );
+  const [fetching, setFetching] = useState(false);
 
   const { data, isValidating } = useSWR(
     fid && isSDKLoaded ? `/api/feed/${fid}?limit=${initialLimit}` : null,
@@ -76,13 +37,31 @@ export function useFeed({
     }
   );
 
-  useEffect(() => {
-    if (data && !feed) {
-      setFeed(data);
-    }
-  }, [data, feed]);
+  const promotions = useMemo(
+    () => [
+      !added
+        ? { type: "add-frame" as const, index: 7 }
+        : { type: "share-app" as const, index: 7 },
+      { type: "join-channel" as const, index: 15 },
+    ],
+    [added]
+  );
 
-  const fetchFeed = useCallback(
+  useEffect(() => {
+    if (data && feed.length <= 1) {
+      const videos = initialPost
+      ? [
+          initialPost,
+          ...data.filter((item: VideoData) => item.id !== initialPost.id),
+        ]
+      : data
+
+      const feedWithPromotions = insertPromotions(videos, promotions);
+      setFeed(feedWithPromotions);
+    }
+  }, [data]);
+
+  const fetchMore = useCallback(
     async (limit: number = initialLimit) => {
       if (!fid) return;
 
@@ -93,15 +72,15 @@ export function useFeed({
           throw new Error(`Failed to fetch feed: ${response.status}`);
         }
         const { data } = await response.json();
-        setFeed((prevFeed) => {
-          const prevPosts = prevFeed || [];
-          const uniquePosts = data.filter(
-            (newPost: Post) =>
-              !prevPosts.some(
-                (existingPost: Post) => existingPost.id === newPost.id
+        setFeed((prev) => {
+          const existingFeed = prev || [];
+          const uniqueVideos = data.filter(
+            (newVideo: VideoData) =>
+              !existingFeed.some(
+                (item: FeedItem) => "id" in item && item.id === newVideo.id
               )
           );
-          return [...prevPosts, ...uniquePosts];
+          return [...existingFeed, ...uniqueVideos];
         });
       } catch (error) {
         console.error("Error fetching feed:", error);
@@ -114,10 +93,7 @@ export function useFeed({
 
   return {
     feed,
-    setFeed,
     fetching: fetching || isValidating,
-    fetchFeed,
-    getPostIndex,
-    promotionFrames,
+    fetchMore,
   };
-}
+};

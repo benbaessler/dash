@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
-import { ReactionType } from "@neynar/nodejs-sdk/build/api";
 import prisma from "@/lib/prisma";
 import { verify } from "@/utils/verify";
-
-// Valid reaction types
-const VALID_REACTION_TYPES = ["like", "recast"] as const;
-type ValidReactionType = (typeof VALID_REACTION_TYPES)[number];
 
 export async function POST(request: Request) {
   try {
@@ -15,23 +10,11 @@ export async function POST(request: Request) {
     const payload = await verify(authHeader);
     const fid = payload.sub;
 
-    console.log({ fid });
+    const { fid: targetFid } = await request.json();
 
-    const { castHash, type } = await request.json();
-
-    console.log({ castHash, type });
-
-    if (!castHash || !type) {
+    if (!targetFid) {
       return NextResponse.json(
         { error: "Missing required parameters" },
-        { status: 400 }
-      );
-    }
-
-    // Validate reaction type
-    if (!VALID_REACTION_TYPES.includes(type as ValidReactionType)) {
-      return NextResponse.json(
-        { error: "Invalid reaction type" },
         { status: 400 }
       );
     }
@@ -44,22 +27,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const result = await neynar.publishReaction({
+    const result = await neynar.unfollowUser({
       signerUuid: user.signerUuid,
-      reactionType: type as ReactionType,
-      target: castHash,
+      targetFids: [targetFid],
     });
 
     if (!result.success) {
       return NextResponse.json(
-        { error: "Failed to publish reaction" },
+        { error: "Failed to unfollow user" },
         { status: 500 }
       );
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error publishing reaction:", error);
+    console.error("Error unfollowing user:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

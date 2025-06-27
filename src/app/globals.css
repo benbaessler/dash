@@ -45,6 +45,42 @@ media-player::--webkit-media-controls-container {
   appearance: none !important;
 }
 
+/* Add smooth snap scroll behavior */
+.snap-y {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Prevent scroll momentum issues */
+.snap-container {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+}
+
+html, body {
+  overflow: hidden;
+  touch-action: none;
+  -webkit-overflow-scrolling: auto;
+}
+
+.video-container {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Optimize video containers */
+video {
+  /* Hardware acceleration for videos */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
+
 @layer base {
   :root {
     --radius: 0.5rem;

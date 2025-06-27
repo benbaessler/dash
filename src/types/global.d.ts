@@ -1,7 +1,8 @@
-interface Post {
+interface VideoData {
   id: string;
   text: string;
-  video_url?: string;
+  video_url: string;
+  duration?: number;
   likeCount: number;
   recastCount: number;
   commentCount: number;
@@ -18,12 +19,20 @@ interface Post {
   };
 }
 
+interface PromotionData {
+  type: "add-frame" | "share-app" | "join-channel";
+  index: number;
+}
+
+type FeedItem = VideoData | PromotionData;
+
 interface CommentData {
   hash: string;
   author: {
     fid: number;
     pfp_url: string;
     display_name: string;
+    username: string;
   };
   timestamp: string;
   text: string;

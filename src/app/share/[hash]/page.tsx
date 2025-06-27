@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           action: {
             type: "launch_frame",
             name: "Dash",
-            url: `${appUrl}/${hash}`,
+            url: `${appUrl}/v/${hash}`,
             splashImageUrl: `${appUrl}/splash.png`,
             splashBackgroundColor: backgroundColor,
           },
