@@ -13,6 +13,7 @@ import useSWR from "swr";
 import { VideoGrid } from "./components/video-grid";
 import { useState } from "react";
 import { VideoFeed } from "./components/video-feed";
+import { useSigner } from "@/providers/SignerProvider";
 
 interface ProfileProps {
   user: User | null;
@@ -27,10 +28,15 @@ export function Profile({
   isCurrentUser = false,
   onClose = undefined,
 }: ProfileProps) {
-  const { context } = useFrame();
+  const { context, sessionToken } = useFrame();
+  const { verifySigner } = useSigner();
 
   const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(
     null
+  );
+
+  const [following, setFollowing] = useState(
+    user?.viewer_context?.following || false
   );
 
   const { data, isLoading } = useSWR<{
@@ -40,11 +46,39 @@ export function Profile({
     user && context?.user?.fid
       ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}`
       : null,
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+    }
   );
 
+  const handleFollowChange = async (state: boolean) => {
+    const valid = await verifySigner();
+    if (!valid) return;
+
+    setFollowing(state);
+
+    const response = await fetch(
+      state ? `/api/follow/${user?.fid}` : `/api/unfollow/${user?.fid}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({ fid: user?.fid }),
+      }
+    );
+
+    if (!response.ok) {
+      setFollowing(!state);
+    }
+  };
+
   return (
-    <div className="h-full overflow-y-auto py-4 relative">
+    <div className="h-full max-h-[calc(100vh-64px)] overflow-y-auto py-4 relative">
       <div className="max-w-md mx-auto px-4">
         <div className="relative flex items-center justify-center mb-4">
           {onClose && (
@@ -121,18 +155,17 @@ export function Profile({
 
         <div className="flex justify-center mb-4">
           <Button
-            variant={
-              user?.viewer_context?.following ? "outlineAction" : "action"
-            }
+            variant={following ? "outlineAction" : "action"}
             size="sm"
             className="max-w-60 w-full"
             disabled={!user}
+            onClick={() =>
+              isCurrentUser
+                ? sdk.actions.viewProfile({ fid: context?.user?.fid || 0 })
+                : handleFollowChange(!following)
+            }
           >
-            {isCurrentUser
-              ? "Update"
-              : user?.viewer_context?.following
-              ? "Following"
-              : "Follow"}
+            {isCurrentUser ? "Update" : following ? "Following" : "Follow"}
           </Button>
         </div>
 

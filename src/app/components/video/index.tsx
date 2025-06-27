@@ -44,10 +44,10 @@ export const VideoItem = ({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const { data: authorData } = useSWR<User>(
-    data.author.username
-      ? `/api/user/handle/${data.author.username}`
-      : data.author.fid
-      ? `/api/user/${data.author.fid}`
+    data.author.username && user?.fid
+      ? `/api/user/handle/${data.author.username}?viewerFid=${user?.fid}`
+      : data.author.fid && user?.fid
+      ? `/api/user/${data.author.fid}?viewerFid=${user?.fid}`
       : null,
     fetcher,
     {
