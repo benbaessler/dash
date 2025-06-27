@@ -42,6 +42,8 @@ export function Profile({
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const loadingSpinnerRef = useRef<HTMLDivElement>(null);
+  const [hasReachedEnd, setHasReachedEnd] = useState(false);
 
   const getKey = (
     pageIndex: number,
@@ -52,11 +54,16 @@ export function Profile({
         ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}`
         : null;
     }
-    if (previousPageData && !previousPageData.cursor) {
+    if (
+      previousPageData &&
+      (!previousPageData.cursor || previousPageData.data.length === 0)
+    ) {
       return null;
     }
     return user && context?.user?.fid
-      ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}&cursor=${previousPageData?.cursor || ""}`
+      ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}&cursor=${
+          previousPageData?.cursor || ""
+        }`
       : null;
   };
 
@@ -78,44 +85,63 @@ export function Profile({
     return pagesData.flatMap((page) => page.data);
   }, [pagesData]);
 
+  const displayedData = useMemo(() => {
+    if (!flattenedData.length) return [];
+
+    if (hasReachedEnd) return flattenedData;
+
+    const completeRows = Math.floor(flattenedData.length / 3);
+    return flattenedData.slice(0, completeRows * 3);
+  }, [flattenedData, hasReachedEnd]);
+
+  useEffect(() => {
+    if (pagesData && pagesData.length > 0) {
+      const lastPage = pagesData[pagesData.length - 1];
+      if (lastPage.data.length === 0) {
+        setHasReachedEnd(true);
+      }
+    }
+  }, [pagesData]);
+
   const nextCursor = pagesData?.[pagesData.length - 1]?.cursor;
 
   const loadMore = useCallback(() => {
-    const canLoadMore = nextCursor && !isLoading && !isValidating;
+    const canLoadMore =
+      nextCursor && !isLoading && !isValidating && !hasReachedEnd;
     if (canLoadMore) {
       setSize((prevSize) => prevSize + 1);
     }
-  }, [nextCursor, isLoading, isValidating, setSize]);
-
-  const handleScroll = useCallback(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    debounceTimeoutRef.current = setTimeout(() => {
-      const container = scrollContainerRef.current;
-      if (!container || isLoading || isValidating || !nextCursor) return;
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
-      if (scrollPercentage >= 0.8) {
-        loadMore();
-      }
-    }, 200);
-  }, [loadMore, isLoading, isValidating, nextCursor]);
+  }, [nextCursor, isLoading, isValidating, hasReachedEnd, setSize]);
 
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-    }
+    const spinner = loadingSpinnerRef.current;
+    if (!spinner) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !hasReachedEnd) {
+          // Debounce the loading to prevent rapid successive calls
+          if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+          }
+          debounceTimeoutRef.current = setTimeout(() => {
+            loadMore();
+          }, 200);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(spinner);
+
     return () => {
-      if (container) {
-        container.removeEventListener("scroll", handleScroll);
-      }
+      observer.disconnect();
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
     };
-  }, [handleScroll]);
+  }, [loadMore, hasReachedEnd]);
 
   const handleFollowChange = async (state: boolean) => {
     const valid = await verifySigner();
@@ -244,12 +270,15 @@ export function Profile({
         )}
       </div>
       <VideoGrid
-        data={flattenedData}
+        data={displayedData}
         isLoading={isLoading || !user}
         onItemClick={(index) => setSelectedVideoIndex(index)}
       />
-      {(isLoading || isValidating) && nextCursor && (
-        <div className="flex justify-center items-center py-4">
+      {!hasReachedEnd && (
+        <div
+          ref={loadingSpinnerRef}
+          className="flex justify-center items-center py-4"
+        >
           <Loader className="w-5 h-5 animate-spin text-slate-400" />
         </div>
       )}
