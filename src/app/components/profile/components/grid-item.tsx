@@ -12,8 +12,9 @@ export const GridItem = ({ data, onClick }: Props) => (
     onClick={onClick}
   >
     <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
-      <span className="text-white text-balance text-xs leading-snug drop-shadow-md">
-        {data.text.slice(0, 60)}...
+      <span className="text-white text-balance text-xs leading-snug drop-shadow-md line-clamp-2 overflow-hidden w-full block">
+        {data.text.slice(0, 60)}
+        {data.text.length > 60 && "..."}
       </span>
     </div>
     <div className="absolute left-0 right-0 bottom-0 flex items-center justify-between p-2">
@@ -27,7 +28,9 @@ export const GridItem = ({ data, onClick }: Props) => (
         <HeartIcon
           size={13}
           weight={data.viewerContext?.liked ? "fill" : "bold"}
-          className={data.viewerContext?.liked ? "text-red-400" : "text-white/80"}
+          className={
+            data.viewerContext?.liked ? "text-red-400" : "text-white/80"
+          }
         />
         <span className="text-white text-xs font-medium">{data.likeCount}</span>
       </div>
