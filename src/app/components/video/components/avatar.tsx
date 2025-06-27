@@ -18,7 +18,7 @@ const AvatarComponent = ({
   <div className={`relative aspect-square ${className}`}>
     <Image
       priority={!isComment}
-      src={user.pfpUrl}
+      src={user.pfpUrl || "/fallback-pfp.png"}
       alt={user.displayName}
       fill
       sizes="45px"
