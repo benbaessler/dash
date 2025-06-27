@@ -6,6 +6,7 @@ import { useFrame } from "@/providers/FrameProvider";
 import { ClickableText } from "@/app/components/common/text";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useSigner } from "@/providers/SignerProvider";
+import sdk from "@farcaster/frame-sdk";
 
 export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
   const { author, hash, reactions, text, timestamp, isExpanded } = comment;
@@ -104,6 +105,8 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
               displayName: author.display_name,
               username: author.username,
             }}
+            onClick={() => sdk.actions.viewProfile({ fid: author.fid })}
+            isComment
           />
           <div className="flex-grow text-sm min-w-0">
             <div className="flex items-center gap-2">

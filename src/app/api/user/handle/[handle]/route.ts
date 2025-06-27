@@ -7,14 +7,20 @@ export async function GET(
   { params }: { params: Promise<{ handle: string }> }
 ) {
   const { handle } = await params;
+  const { searchParams } = new URL(request.url);
+  const viewerFid = Number(searchParams.get("viewerFid")) || undefined;
 
   if (!handle || handle.length < 1) {
     return NextResponse.json({ error: "Invalid handle" }, { status: 400 });
   }
 
   try {
-    const response = await neynar.searchUser({ q: handle, limit: 1 });
-    
+    const response = await neynar.searchUser({
+      q: handle,
+      limit: 1,
+      viewerFid,
+    });
+
     const user = response.result.users.find(
       (user: User) => user.username.toLowerCase() === handle.toLowerCase()
     );

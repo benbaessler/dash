@@ -17,6 +17,8 @@ interface InteractionButtonsProps {
   ) => void;
   liked: boolean;
   recasted: boolean;
+  openProfile?: () => void;
+  disableProfile?: boolean;
 }
 
 export const InteractionButtons = ({
@@ -24,10 +26,14 @@ export const InteractionButtons = ({
   handleInteraction,
   liked,
   recasted,
+  openProfile,
+  disableProfile = false,
 }: InteractionButtonsProps) => {
   return (
     <div className="absolute bottom-10 right-4 flex flex-col gap-5 items-center text-white drop-shadow-sm z-10">
-      <Avatar user={data.author} className="w-10 h-10" />
+      {!disableProfile && (
+        <Avatar user={data.author} onClick={openProfile} />
+      )}
 
       <InteractionButton
         icon={<HeartIcon size={35} weight="fill" />}

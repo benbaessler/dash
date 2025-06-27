@@ -13,14 +13,25 @@ import { useEffect, useState } from "react";
 import sdk from "@farcaster/frame-sdk";
 import { useSigner } from "@/providers/SignerProvider";
 import { PlaybackSlider } from "./components/playback-slider";
+import { Profile } from "../profile";
+import useSWR from "swr";
+import { User } from "@neynar/nodejs-sdk/build/api";
 
 interface VideoItemProps {
   data: VideoData;
   active: boolean;
   preload: boolean;
+  disableProfile?: boolean;
 }
 
-export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export const VideoItem = ({
+  data,
+  active,
+  preload,
+  disableProfile = false,
+}: VideoItemProps) => {
   const { trackEvent } = useAnalytics();
   const { user, sessionToken } = useFrame();
   const { verifySigner } = useSigner();
@@ -30,6 +41,21 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
     data.viewerContext?.recasted || false
   );
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout>();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const { data: authorData } = useSWR<User>(
+    data.author.username
+      ? `/api/user/handle/${data.author.username}`
+      : data.author.fid
+      ? `/api/user/${data.author.fid}`
+      : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+    }
+  );
 
   const handleInteraction = async (
     event: "liked" | "recasted" | "double_tap_like",
@@ -108,60 +134,72 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
   }, [active]);
 
   return (
-    <div className="relative h-full w-screen max-h-[calc(100vh-64px)] snap-start snap-always">
-      <div
-        onClick={handleClick}
-        onDoubleClick={() => {
-          if (clickTimeout) {
-            clearTimeout(clickTimeout);
-            setClickTimeout(undefined);
-          }
-          if (!liked) handleInteraction("double_tap_like", true);
-        }}
-        className="h-full w-full"
-      >
-        <MediaPlayer
-          aspectRatio="9 / 16"
-          src={data.video_url}
-          streamType="on-demand"
-          load={preload ? "eager" : "idle"}
-          preload={preload ? "auto" : "none"}
-          playsInline
-          loop
-          autoPlay={active}
-          paused={!active || paused}
-          onAutoPlayFail={() => setPaused(true)}
-          fullscreenOrientation="none"
-          autoFocus={false}
-          className="h-full w-full object-cover"
+    <>
+      <div className="relative h-full w-screen max-h-[calc(100vh-64px)] snap-start snap-always">
+        <div
+          onClick={handleClick}
+          onDoubleClick={() => {
+            if (clickTimeout) {
+              clearTimeout(clickTimeout);
+              setClickTimeout(undefined);
+            }
+            if (!liked) handleInteraction("double_tap_like", true);
+          }}
+          className="h-full w-full"
         >
-          <MediaProvider />
-          <div
-            className="absolute flex justify-center bottom-0 left-0 right-0 w-full z-10"
-            onClick={(e) => e.stopPropagation()}
-            onDoubleClick={(e) => e.stopPropagation()}
+          <MediaPlayer
+            aspectRatio="9 / 16"
+            src={data.video_url}
+            streamType="on-demand"
+            load={preload ? "eager" : "idle"}
+            preload={preload ? "auto" : "none"}
+            playsInline
+            loop
+            autoPlay={active}
+            paused={isProfileOpen || !active || paused}
+            onAutoPlayFail={() => setPaused(true)}
+            fullscreenOrientation="none"
+            autoFocus={false}
+            className="h-full w-full object-cover"
           >
-            <PlaybackSlider />
-          </div>
-        </MediaPlayer>
-        {paused && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <PlayIcon
-              weight="fill"
-              size={48}
-              className="text-white opacity-70 cursor-pointer hover:opacity-90"
-            />
-          </div>
-        )}
-      </div>
+            <MediaProvider />
+            <div
+              className="absolute flex justify-center bottom-0 left-0 right-0 w-full z-10"
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+            >
+              <PlaybackSlider />
+            </div>
+          </MediaPlayer>
+          {paused && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <PlayIcon
+                weight="fill"
+                size={48}
+                className="text-white opacity-70 cursor-pointer hover:opacity-90"
+              />
+            </div>
+          )}
+        </div>
 
-      <Caption data={data} />
-      <InteractionButtons
-        data={data}
-        handleInteraction={handleInteraction}
-        liked={liked}
-        recasted={recasted}
-      />
-    </div>
+        <Caption data={data} />
+        <InteractionButtons
+          data={data}
+          handleInteraction={handleInteraction}
+          liked={liked}
+          recasted={recasted}
+          openProfile={() => setIsProfileOpen(true)}
+          disableProfile={disableProfile}
+        />
+      </div>
+      {isProfileOpen && (
+        <div className="fixed inset-0 bg-black z-[10]">
+          <Profile
+            user={authorData || null}
+            onClose={() => setIsProfileOpen(false)}
+          />
+        </div>
+      )}
+    </>
   );
 };

@@ -25,7 +25,7 @@ export function Navbar({
   ];
 
   return (
-    <nav className="bg-black border-t border-gray-800 z-[10]">
+    <nav className="bg-black border-t border-gray-800 z-[20]">
       <div className="max-w-md mx-auto">
         <div className="flex items-center justify-around pb-6 pt-2">
           {navItems.map((item) => {

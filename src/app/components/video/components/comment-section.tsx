@@ -227,7 +227,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   }, [isOpen, setSize]);
 
   return (
-    <div onDoubleClick={(e) => e.stopPropagation()} className="z-[20]">
+    <div onDoubleClick={(e) => e.stopPropagation()} className="z-[30]">
       <Drawer open={isOpen} onOpenChange={setIsOpen}>
         <DrawerTrigger asChild>{children}</DrawerTrigger>
         <DrawerContent className="h-[70vh] w-full flex flex-col pb-4">
@@ -272,7 +272,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
                 displayName: user?.display_name ?? "",
                 username: user?.username ?? "",
               }}
-              className="w-8 h-8"
+              isComment
             />
             <div className="relative flex-grow">
               <Input

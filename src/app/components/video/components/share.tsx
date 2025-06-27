@@ -135,6 +135,7 @@ export const Share = ({ children, data }: ShareProps) => {
                         displayName: user.display_name || user.username,
                         pfpUrl: user.pfp_url || "",
                       }}
+                      onClick={() => sdk.actions.viewProfile({ fid: user.fid })}
                     />
                     <div className="flex flex-col flex-1 min-w-0">
                       <span className="text-sm font-semibold truncate">

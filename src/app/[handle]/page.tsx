@@ -4,14 +4,18 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { Profile } from "@/app/components/profile";
+import { useFrame } from "@/providers/FrameProvider";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ProfilePage() {
   const { handle } = useParams();
+  const { context } = useFrame();
 
   const { data: userData } = useSWR<User>(
-    `/api/user/handle/${handle}`,
+    context?.user?.fid
+      ? `/api/user/handle/${handle}?viewerFid=${context?.user?.fid}`
+      : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -20,9 +24,5 @@ export default function ProfilePage() {
     }
   );
 
-  return (
-    <Profile 
-      user={userData || null} 
-    />
-  );
+  return <Profile user={userData || null} />;
 }

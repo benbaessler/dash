@@ -6,13 +6,20 @@ export async function GET(
   { params }: { params: Promise<{ fid: string }> }
 ) {
   const { fid } = await params;
+  const { searchParams } = new URL(request.url);
+  const viewerFid = Number(searchParams.get("viewerFid")) || undefined;
+
+  console.log(viewerFid);
 
   if (isNaN(Number(fid))) {
     return NextResponse.json({ error: "Invalid FID" }, { status: 400 });
   }
 
   try {
-    const response = await neynar.fetchBulkUsers({ fids: [Number(fid)] });
+    const response = await neynar.fetchBulkUsers({
+      fids: [Number(fid)],
+      viewerFid,
+    });
     const user = response.users[0];
 
     if (!user) {

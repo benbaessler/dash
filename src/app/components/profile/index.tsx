@@ -4,7 +4,7 @@ import { User } from "@neynar/nodejs-sdk/build/api";
 import { Button } from "@/components/ui/button";
 import { ClickableText } from "@/app/components/common/text";
 import { FarcasterIcon } from "@/assets/icons";
-import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon } from "@phosphor-icons/react";
 import sdk from "@farcaster/frame-sdk";
 import { Avatar } from "@/app/components/video/components/avatar";
 import { Skeleton } from "@/app/components/common/skeleton";
@@ -20,13 +20,14 @@ interface ProfileProps {
   onClose?: () => void;
 }
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export function Profile({
   user,
   isCurrentUser = false,
   onClose = undefined,
 }: ProfileProps) {
   const { context } = useFrame();
-  const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
   const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(
     null
@@ -46,9 +47,10 @@ export function Profile({
     <div className="h-full overflow-y-auto py-4 relative">
       <div className="max-w-md mx-auto px-4">
         <div className="relative flex items-center justify-center mb-4">
-          {!onClose || isCurrentUser && (
+          {onClose && (
             <ArrowLeftIcon
-              className="absolute left-0 w-5 h-5 text-white hover:text-slate-300 transition-colors cursor-pointer"
+              className="absolute left-0 top-0 w-6 h-6 text-white hover:text-slate-300 transition-colors cursor-pointer"
+              weight="bold"
               onClick={onClose}
             />
           )}
@@ -119,15 +121,21 @@ export function Profile({
 
         <div className="flex justify-center mb-4">
           <Button
-            variant="action"
+            variant={
+              user?.viewer_context?.following ? "outlineAction" : "action"
+            }
             size="sm"
             className="max-w-60 w-full"
             disabled={!user}
           >
-            {isCurrentUser ? "Update" : "Follow"}
+            {isCurrentUser
+              ? "Update"
+              : user?.viewer_context?.following
+              ? "Following"
+              : "Follow"}
           </Button>
         </div>
-        
+
         {user?.profile?.bio?.text && (
           <div className="text-center mx-4">
             <p className="text-sm text-gray-300 leading-relaxed">

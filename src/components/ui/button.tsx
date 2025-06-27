@@ -20,6 +20,7 @@ const buttonVariants = cva(
         link: "text-neutral-900 underline-offset-4 hover:underline dark:text-neutral-50",
         action: "bg-violet-700 text-neutral-50 hover:bg-violet-700/90 dark:bg-violet-900 dark:text-neutral-50 dark:hover:bg-violet-900/90 border border-violet-700 focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-violet-700",
         secondaryAction: "bg-indigo-700 text-neutral-50 hover:bg-indigo-700/90 dark:bg-indigo-900 dark:text-neutral-50 dark:hover:bg-indigo-900/90 border border-indigo-700 focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-indigo-700",
+        outlineAction: "bg-gray-900 text-white hover:bg-indigo-700/10 dark:border-indigo-700 dark:text-indigo-700 dark:hover:bg-indigo-700/10 focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-indigo-700",
       },
       size: {
         default: "h-10 px-4 py-2",
