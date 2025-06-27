@@ -42,10 +42,16 @@ export async function GET(
           embed.metadata.content_type === "application/x-mpegurl"
       );
 
+      const duration =
+        videoEmbed && videoEmbed.metadata && videoEmbed.metadata.video
+          ? videoEmbed.metadata.video.duration_s
+          : undefined;
+
       return {
         id: cast.hash,
         text: cast.text,
         video_url: videoEmbed ? videoEmbed.url : undefined,
+        duration,
         likeCount: cast.reactions.likes_count,
         recastCount: cast.reactions.recasts_count,
         commentCount: cast.replies.count,

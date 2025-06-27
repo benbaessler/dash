@@ -1,4 +1,5 @@
 import { Skeleton } from "@/app/components/common/skeleton";
+import { GridItem } from "./grid-item";
 
 interface VideoGridProps {
   data: VideoData[];
@@ -30,14 +31,12 @@ export function VideoGrid({ data, isLoading, onItemClick }: VideoGridProps) {
   return (
     <div className="grid grid-cols-3 gap-px pt-4">
       {data.map((item, index) => (
-        <div
+        <GridItem
           key={item.id}
-          className="relative aspect-[9/13] w-full bg-slate-800 group cursor-pointer"
+          data={item}
           onClick={() => onItemClick?.(index)}
-        >
-          <div className="w-full h-full bg-slate-700 transition-opacity group-hover:opacity-75"></div>
-        </div>
+        />
       ))}
     </div>
   );
-} 
+}

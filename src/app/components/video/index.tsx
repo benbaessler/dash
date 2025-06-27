@@ -43,9 +43,11 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
     if (event === "recasted") {
       setRecasted(state);
       data.recastCount += state ? 1 : -1;
+      data.viewerContext!.recasted = state;
     } else {
       setLiked(state);
       data.likeCount += state ? 1 : -1;
+      data.viewerContext!.liked = state;
     }
 
     try {
@@ -76,8 +78,12 @@ export const VideoItem = ({ data, active, preload }: VideoItemProps) => {
       console.error(error);
       if (event === "recasted") {
         setRecasted(!state);
+        data.recastCount += state ? -1 : 1;
+        data.viewerContext!.recasted = !state;
       } else {
         setLiked(!state);
+        data.likeCount += state ? -1 : 1;
+        data.viewerContext!.liked = !state;
       }
     }
   };

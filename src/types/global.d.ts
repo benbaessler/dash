@@ -1,7 +1,8 @@
 interface VideoData {
   id: string;
   text: string;
-  video_url?: string;
+  video_url: string;
+  duration?: number;
   likeCount: number;
   recastCount: number;
   commentCount: number;
