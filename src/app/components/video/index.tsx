@@ -6,7 +6,6 @@ import { useFrame } from "@/providers/FrameProvider";
 import {
   MediaPlayer,
   MediaProvider,
-  type MediaPlayerInstance,
 } from "@vidstack/react";
 import { PlayIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
@@ -34,12 +33,6 @@ export const VideoItem = ({
   disableProfile = false,
   render = true,
 }: VideoItemProps) => {
-  if (!render) {
-    return (
-      <div className="relative h-full w-screen max-h-[calc(100vh-64px)] snap-start snap-always bg-black" />
-    );
-  }
-
   const { trackEvent } = useAnalytics();
   const { user, sessionToken } = useFrame();
   const { verifySigner } = useSigner();
@@ -52,9 +45,9 @@ export const VideoItem = ({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const { data: authorData } = useSWR<User>(
-    data.author.username && user?.fid
+    render && data.author.username && user?.fid
       ? `/api/user/handle/${data.author.username}?viewerFid=${user?.fid}`
-      : data.author.fid && user?.fid
+      : render && data.author.fid && user?.fid
       ? `/api/user/${data.author.fid}?viewerFid=${user?.fid}`
       : null,
     fetcher,
@@ -140,6 +133,12 @@ export const VideoItem = ({
   useEffect(() => {
     if (!active) setPaused(false);
   }, [active]);
+
+  if (!render) {
+    return (
+      <div className="relative h-full w-screen max-h-[calc(100vh-64px)] snap-start snap-always bg-black" />
+    );
+  }
 
   return (
     <>
