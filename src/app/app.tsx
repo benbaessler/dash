@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Navbar } from "./components/navbar";
 import { ConnectSignerDialog } from "./components/dialogs/connect-signer";
 import { useSigner } from "@/providers/SignerProvider";
@@ -42,16 +42,20 @@ export function App({ children }: Props) {
     { revalidateOnFocus: false }
   );
 
-  const initialTab = () => {
+  const initialTab = useMemo(() => {
     if (pathname === "/profile") return "profile";
     if (pathname === "/" || pathname.startsWith("/v")) return "home";
     if (pathname === `/u/${user?.username}`) return "profile";
     return null;
-  };
+  }, [pathname, user?.username]);
 
   const [selectedTab, setSelectedTab] = useState<"home" | "profile" | null>(
-    initialTab()
+    initialTab
   );
+
+  useEffect(() => {
+    setSelectedTab(initialTab);
+  }, [initialTab]);
 
   useEffect(() => {
     if (!sessionToken) signIn();
