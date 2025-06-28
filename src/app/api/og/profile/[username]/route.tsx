@@ -85,7 +85,7 @@ export async function GET(
             </Text>
             <Box marginTop="12" opacity={0.8}>
               <Text size="24" weight="400" wrap>
-                {truncateText(user.profile.bio.text, 80)}
+                {truncateText(user.profile.bio.text ?? "", 80)}
               </Text>
             </Box>
           </VStack>
