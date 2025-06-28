@@ -45,7 +45,7 @@ export function App({ children }: Props) {
   const initialTab = () => {
     if (pathname === "/profile") return "profile";
     if (pathname === "/" || pathname.startsWith("/v")) return "home";
-    if (pathname === `/${user?.username}`) return "profile";
+    if (pathname === `/u/${user?.username}`) return "profile";
     return null;
   };
 
