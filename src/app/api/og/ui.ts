@@ -1,5 +1,5 @@
-import { createSystem } from "frog/ui"
-import { heroicons } from "frog/ui/icons"
+import { createSystem } from "frog/ui";
+import { heroicons } from "frog/ui/icons";
 
 export const {
   Box,
@@ -17,24 +17,25 @@ export const {
   vars,
 } = createSystem({
   colors: {
-    background: '#000000',
+    background: "#000000",
     secondaryBg: "#2C2C2C",
-    text: '#FFFFFF',
-    textSecondary: '#9C9C9C',
+    text: "#FFFFFF",
+    textSecondary: "#9C9C9C",
+    border: "#6547de",
   },
   fonts: {
     default: [
       {
-        name: 'Inter',
-        source: 'google',
+        name: "Inter",
+        source: "google",
         weight: 400,
       },
       {
-        name: 'Inter Bold',
-        source: 'google',
+        name: "Inter Bold",
+        source: "google",
         weight: 700,
       },
     ],
   },
   icons: heroicons,
-})
+});

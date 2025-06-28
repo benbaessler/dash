@@ -5,7 +5,6 @@ import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { Box, HStack, VStack, Text, Image, Icon } from "@/app/api/og/ui";
 import { loadGoogleFont } from "@/app/api/og/methods";
-import { appUrl } from "@/constants";
 import { truncateText } from "@/utils/truncate";
 import { formatDuration } from "@/utils/formatTime";
 
