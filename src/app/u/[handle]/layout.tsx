@@ -39,6 +39,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function Page() {
-  return "";
+export default function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return children;
 }
