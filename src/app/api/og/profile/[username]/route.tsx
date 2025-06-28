@@ -41,7 +41,7 @@ export async function GET(
           paddingTop="32"
           gap="4"
         >
-          <Image src="https://i.imgur.com/vVpASFu.png" height="28" />
+          <Image src="https://i.imgur.com/qSiQIU6.png" height="28" />
         </Box>
         <HStack
           grow
