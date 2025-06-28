@@ -15,11 +15,7 @@ export async function POST(request: Request) {
     const payload = await verify(authHeader);
     const fid = payload.sub;
 
-    console.log({ fid });
-
     const { castHash, type } = await request.json();
-
-    console.log({ castHash, type });
 
     if (!castHash || !type) {
       return NextResponse.json(

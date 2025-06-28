@@ -110,7 +110,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
 
     debounceTimeoutRef.current = setTimeout(() => {
       const container = scrollableContainerRef.current;
-      if (!container || isLoading || !isValidating || !nextCursor) return;
+      if (!container || isLoading || isValidating || !nextCursor) return;
 
       const { scrollTop, scrollHeight, clientHeight } = container;
       const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;

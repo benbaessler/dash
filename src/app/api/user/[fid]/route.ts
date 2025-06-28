@@ -9,8 +9,6 @@ export async function GET(
   const { searchParams } = new URL(request.url);
   const viewerFid = Number(searchParams.get("viewerFid")) || undefined;
 
-  console.log(viewerFid);
-
   if (isNaN(Number(fid))) {
     return NextResponse.json({ error: "Invalid FID" }, { status: 400 });
   }
