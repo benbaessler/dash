@@ -62,6 +62,9 @@ export async function GET(
               <Image
                 src={user.pfp_url ?? ""}
                 borderRadius="12"
+                objectFit="cover"
+                width="100%"
+                height="100%"
               />
             </Box>
           </Box>
@@ -83,8 +86,8 @@ export async function GET(
             <Text size="24" weight="500">
               @{user.username}
             </Text>
-            <Box marginTop="12" opacity={0.8}>
-              <Text size="24" weight="400" wrap>
+            <Box marginTop="12" opacity={0.8} paddingRight="12">
+              <Text size="24" weight="400" wrap overflow="clip" align="start">
                 {truncateText(user.profile.bio.text ?? "", 80)}
               </Text>
             </Box>
