@@ -3,11 +3,17 @@ import { GridItem } from "./grid-item";
 interface VideoGridProps {
   data: VideoData[];
   isLoading: boolean;
+  hasReachedEnd: boolean;
   onItemClick?: (index: number) => void;
 }
 
-export function VideoGrid({ data, isLoading, onItemClick }: VideoGridProps) {
-  if (!isLoading && (!data || data.length === 0)) {
+export function VideoGrid({
+  data,
+  isLoading,
+  hasReachedEnd,
+  onItemClick,
+}: VideoGridProps) {
+  if (!isLoading && hasReachedEnd && (!data || data.length === 0)) {
     return (
       <div className="mt-4 text-center py-10">
         <p className="text-slate-400">No videos yet.</p>

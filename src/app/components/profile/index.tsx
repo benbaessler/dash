@@ -275,6 +275,7 @@ export function Profile({
       <VideoGrid
         data={displayedData}
         isLoading={isLoading}
+        hasReachedEnd={hasReachedEnd}
         onItemClick={(index) => {
           setSelectedVideoIndex(index);
           trackEvent("opened_profile_video", {
