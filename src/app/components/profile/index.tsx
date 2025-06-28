@@ -4,7 +4,7 @@ import { User } from "@neynar/nodejs-sdk/build/api";
 import { Button } from "@/components/ui/button";
 import { ClickableText } from "@/app/components/common/text";
 import { FarcasterIcon } from "@/assets/icons";
-import { ArrowLeftIcon, PlusIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, ExportIcon } from "@phosphor-icons/react";
 import sdk from "@farcaster/frame-sdk";
 import { Avatar } from "@/app/components/video/components/avatar";
 import { useFrame } from "@/providers/FrameProvider";
@@ -16,6 +16,7 @@ import { VideoFeed } from "./components/video-feed";
 import { useSigner } from "@/providers/SignerProvider";
 import { Loader } from "lucide-react";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { appUrl } from "@/constants";
 
 interface ProfileProps {
   user: User | null;
@@ -174,12 +175,21 @@ export function Profile({
     });
   };
 
-  const handleUpload = async () => {
-    sdk.actions.composeCast({});
-
-    trackEvent("upload_btn_clicked", {
-      user: currentUser?.username,
+  const handleShare = async () => {
+    const result = await sdk.actions.composeCast({
+      text: isCurrentUser
+        ? `Check out my profile on /dash! `
+        : `Check out @${user?.username} on /dash!`,
+      embeds: [`${appUrl}/u/${user?.username}?utm_source=share_profile`],
     });
+
+    if (result && result.cast) {
+      trackEvent("shared_profile", {
+        user: currentUser?.username,
+        target: user?.username,
+        castHash: result.cast.hash,
+      });
+    }
   };
 
   return (
@@ -249,19 +259,28 @@ export function Profile({
           </div>
         </div>
 
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-4 max-w-48 mx-auto gap-2">
           <Button
             variant={following ? "outlineAction" : "action"}
             size="sm"
-            className="max-w-48 w-full"
+            className="flex-grow"
             disabled={!user}
             onClick={() =>
-              isCurrentUser ? handleUpload() : handleFollowChange(!following)
+              isCurrentUser ? handleShare() : handleFollowChange(!following)
             }
           >
-            {isCurrentUser && <PlusIcon weight="bold" />}
-            {isCurrentUser ? "Upload" : following ? "Following" : "Follow"}
+            {isCurrentUser && <FarcasterIcon />}
+            {isCurrentUser ? "Share" : following ? "Following" : "Follow"}
           </Button>
+          {!isCurrentUser && (
+            <Button
+              variant="secondaryAction"
+              size="iconSm"
+              onClick={handleShare}
+            >
+              <ExportIcon weight="bold" />
+            </Button>
+          )}
         </div>
 
         {user?.profile?.bio?.text && (
