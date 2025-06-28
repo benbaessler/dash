@@ -15,6 +15,7 @@ import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { VideoFeed } from "./components/video-feed";
 import { useSigner } from "@/providers/SignerProvider";
 import { Loader } from "lucide-react";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface ProfileProps {
   user: User | null;
@@ -29,8 +30,9 @@ export function Profile({
   isCurrentUser = false,
   onClose = undefined,
 }: ProfileProps) {
-  const { context, sessionToken } = useFrame();
+  const { context, sessionToken, user: currentUser } = useFrame();
   const { verifySigner } = useSigner();
+  const { trackEvent } = useAnalytics();
 
   const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(
     null
@@ -165,6 +167,19 @@ export function Profile({
     if (!response.ok) {
       setFollowing(!state);
     }
+
+    trackEvent(state ? "followed_from_profile" : "unfollowed", {
+      user: currentUser?.username,
+      target: user?.username,
+    });
+  };
+
+  const handleUpload = async () => {
+    sdk.actions.composeCast({});
+
+    trackEvent("upload_btn_clicked", {
+      user: currentUser?.username,
+    });
   };
 
   return (
@@ -241,9 +256,7 @@ export function Profile({
             className="max-w-48 w-full"
             disabled={!user}
             onClick={() =>
-              isCurrentUser
-                ? sdk.actions.composeCast({})
-                : handleFollowChange(!following)
+              isCurrentUser ? handleUpload() : handleFollowChange(!following)
             }
           >
             {isCurrentUser && <PlusIcon weight="bold" />}
@@ -262,7 +275,14 @@ export function Profile({
       <VideoGrid
         data={displayedData}
         isLoading={isLoading}
-        onItemClick={(index) => setSelectedVideoIndex(index)}
+        onItemClick={(index) => {
+          setSelectedVideoIndex(index);
+          trackEvent("opened_profile_video", {
+            user: currentUser?.username,
+            target: user?.username,
+            castHash: flattenedData[index].id,
+          });
+        }}
       />
       {!hasReachedEnd && (
         <div

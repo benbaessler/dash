@@ -1,5 +1,7 @@
 "use client";
 
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useFrame } from "@/providers/FrameProvider";
 import sdk from "@farcaster/frame-sdk";
 import { UserIcon, HouseIcon } from "@phosphor-icons/react";
 
@@ -10,6 +12,9 @@ export function Navbar({
   selected: "home" | "profile" | null;
   onTabChange: (tab: "home" | "profile" | null) => void;
 }) {
+  const { trackEvent } = useAnalytics();
+  const { user } = useFrame();
+
   const navItems = [
     {
       icon: <HouseIcon weight="bold" size={28} />,
@@ -39,6 +44,12 @@ export function Navbar({
                 onClick={async () => {
                   await sdk.haptics.impactOccurred("light");
                   onTabChange(item.label);
+
+                  if (item.label === "profile") {
+                    trackEvent("opened_own_profile", {
+                      user: user?.username,
+                    });
+                  }
                 }}
               >
                 {IconComponent}

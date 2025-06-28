@@ -1,4 +1,3 @@
-import { Skeleton } from "@/app/components/common/skeleton";
 import { GridItem } from "./grid-item";
 
 interface VideoGridProps {

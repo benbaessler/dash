@@ -137,6 +137,15 @@ export const VideoItem = ({
     setClickTimeout(timeout);
   };
 
+  const handleOpenProfile = () => {
+    setIsProfileOpen(true);
+
+    trackEvent("opened_user_profile", {
+      user: user?.username,
+      target: data.author.username,
+    });
+  };
+
   useEffect(() => {
     if (!active) setPaused(false);
   }, [active]);
@@ -211,7 +220,7 @@ export const VideoItem = ({
             handleInteraction={handleInteraction}
             liked={liked}
             recasted={recasted}
-            openProfile={() => setIsProfileOpen(true)}
+            openProfile={handleOpenProfile}
             disableProfile={disableProfile}
           />
         </div>
