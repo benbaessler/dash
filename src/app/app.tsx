@@ -24,7 +24,7 @@ const fetcher = async (url: string) => {
   return data;
 };
 
-export function AppLayout({ children }: Props) {
+export function App({ children }: Props) {
   const { showDialog, setShowDialog } = useSigner();
   const { sessionToken, signIn, user, context } = useFrame();
   const pathname = usePathname();
@@ -75,7 +75,7 @@ export function AppLayout({ children }: Props) {
     <>
       <div className="h-screen w-screen flex flex-col">
         <div className="flex-1 min-h-0 overflow-hidden">
-          <FeedView idle={selectedTab === "profile"} initialPost={videoData} />
+          <FeedView idle={selectedTab !== "home"} initialPost={videoData} />
           {selectedTab === "profile" && (
             <div className="fixed inset-0 bg-black z-[10]">
               <Profile user={user || null} isCurrentUser />

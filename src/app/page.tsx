@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { AppLayout } from "./app";
+import { App } from "./app";
 import { appUrl, backgroundColor } from "@/constants";
 
 export const revalidate = 300;
@@ -30,5 +30,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <AppLayout />;
+  return <App />;
 }
