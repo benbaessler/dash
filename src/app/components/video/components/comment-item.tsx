@@ -14,7 +14,7 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isTextTruncated, setIsTextTruncated] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
-  const { sessionToken, context } = useFrame();
+  const { sessionToken, user } = useFrame();
   const { verifySigner } = useSigner();
   const { trackEvent } = useAnalytics();
 
@@ -63,7 +63,7 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
         }
 
         trackEvent("liked_comment", {
-          user: context?.user.username,
+          user: user?.username,
           castHash: hash,
         });
       } catch (error) {
@@ -81,7 +81,7 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
       sessionToken,
       hash,
       trackEvent,
-      context,
+      user,
     ]
   );
 
@@ -165,3 +165,5 @@ export const CommentItem = memo(({ comment }: { comment: CommentData }) => {
     </div>
   );
 });
+
+CommentItem.displayName = "CommentItem";
