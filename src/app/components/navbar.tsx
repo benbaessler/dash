@@ -4,6 +4,7 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 import { useFrame } from "@/providers/FrameProvider";
 import sdk from "@farcaster/frame-sdk";
 import { UserIcon, HouseIcon, PlusIcon } from "@phosphor-icons/react";
+import { motion } from "motion/react";
 
 type Tab = "home" | "profile";
 
@@ -45,7 +46,9 @@ export function Navbar({
           const IconComponent = item.selected ? item.selectedIcon : item.icon;
 
           return (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: 0.2 }}
               key={item.label}
               className="flex flex-col items-center justify-center p-2 space-y-1 rounded-lg transition-colors duration-200 min-w-[64px]"
               onClick={async () => {
@@ -69,7 +72,7 @@ export function Navbar({
               }}
             >
               {IconComponent}
-            </button>
+            </motion.button>
           );
         })}
       </div>
