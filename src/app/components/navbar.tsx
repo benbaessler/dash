@@ -5,7 +5,7 @@ import { useFrame } from "@/providers/FrameProvider";
 import sdk from "@farcaster/frame-sdk";
 import { UserIcon, HouseIcon, PlusIcon } from "@phosphor-icons/react";
 
-type Tab = "home" | "profile" | "create";
+type Tab = "home" | "profile";
 
 export function Navbar({
   selected,
