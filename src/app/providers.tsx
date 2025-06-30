@@ -7,6 +7,8 @@ import { SignerProvider } from "@/providers/SignerProvider";
 import { appDomain } from "@/constants";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 import { App } from "./app";
+import { Suspense } from "react";
+import { NotFound } from "./components/common/not-found";
 
 export function Providers({
   session,
@@ -22,7 +24,9 @@ export function Providers({
       <SessionProvider session={session}>
         <FrameProvider>
           <SignerProvider>
-            <App>{children}</App>
+            <Suspense fallback={<NotFound />}>
+              <App>{children}</App>
+            </Suspense>
           </SignerProvider>
         </FrameProvider>
       </SessionProvider>

@@ -12,6 +12,7 @@ interface FrameMetadata {
     name: string;
     iconUrl: string;
     homeUrl: string;
+    castShareUrl: string;
     imageUrl: string;
     buttonTitle: string;
     splashImageUrl: string;
@@ -127,6 +128,7 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
       name: "Dash",
       iconUrl: `${appUrl}/icon.png`,
       homeUrl: appUrl,
+      castShareUrl: `${appUrl}/v`,
       imageUrl: `${appUrl}/opengraph-image.png`,
       buttonTitle: "Launch 📲",
       splashImageUrl: `${appUrl}/splash.png`,
