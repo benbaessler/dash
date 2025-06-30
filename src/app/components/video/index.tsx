@@ -12,6 +12,7 @@ import { PlaybackSlider } from "./components/playback-slider";
 import { Profile } from "../profile";
 import useSWR from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
+import { motion, AnimatePresence } from "motion/react";
 
 interface VideoItemProps {
   data: VideoData;
@@ -159,80 +160,95 @@ export const VideoItem = ({
   return (
     <>
       <div className="relative h-full w-screen max-h-[calc(100vh-64px)] snap-start snap-always">
-        <div
-          onClick={handleClick}
-          onDoubleClick={() => {
-            if (clickTimeout) {
-              clearTimeout(clickTimeout);
-              setClickTimeout(undefined);
-            }
-            if (!liked) handleInteraction("double_tap_like", true);
+        <motion.div
+          className="absolute inset-0"
+          animate={{
+            x: isProfileOpen ? "-50%" : "0%",
+            opacity: isProfileOpen ? 0 : 1,
           }}
-          className="h-full w-full"
+          transition={{
+            type: "tween",
+            duration: 0.15,
+            ease: "easeInOut",
+            opacity: { duration: 0.15 },
+          }}
         >
-          <MediaPlayer
-            aspectRatio="9 / 16"
-            src={data.video_url}
-            streamType="on-demand"
-            load={preload ? "eager" : "idle"}
-            preload={preload ? "auto" : "none"}
-            playsInline
-            loop
-            autoPlay={active}
-            paused={isProfileOpen || !active || paused}
-            onAutoPlayFail={() => setPaused(true)}
-            fullscreenOrientation="none"
-            autoFocus={false}
-            className="h-full w-full object-cover"
+          <div
+            onClick={handleClick}
+            onDoubleClick={() => {
+              if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                setClickTimeout(undefined);
+              }
+              if (!liked) handleInteraction("double_tap_like", true);
+            }}
+            className="h-full w-full"
           >
-            <MediaProvider />
-            <div
-              className={`absolute flex justify-center bottom-0 left-0 right-0 w-full z-10 ${
-                isScrolling ? "opacity-70" : "opacity-100"
-              } transition-opacity duration-200`}
-              onClick={(e) => e.stopPropagation()}
-              onDoubleClick={(e) => e.stopPropagation()}
+            <MediaPlayer
+              aspectRatio="9 / 16"
+              src={data.video_url}
+              streamType="on-demand"
+              load={preload ? "eager" : "idle"}
+              preload={preload ? "auto" : "none"}
+              playsInline
+              loop
+              autoPlay={active}
+              paused={isProfileOpen || !active || paused}
+              onAutoPlayFail={() => setPaused(true)}
+              fullscreenOrientation="none"
+              autoFocus={false}
+              className="h-full w-full object-cover"
             >
-              <PlaybackSlider />
-            </div>
-          </MediaPlayer>
-          {paused ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <PlayIcon
-                weight="fill"
-                size={48}
-                className="text-white opacity-70 cursor-pointer hover:opacity-90"
-              />
-            </div>
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center"></div>
-          )}
-        </div>
+              <MediaProvider />
+              <div
+                className={`absolute flex justify-center bottom-0 left-0 right-0 w-full z-10 ${
+                  isScrolling ? "opacity-70" : "opacity-100"
+                } transition-opacity duration-200`}
+                onClick={(e) => e.stopPropagation()}
+                onDoubleClick={(e) => e.stopPropagation()}
+              >
+                <PlaybackSlider />
+              </div>
+            </MediaPlayer>
+            {paused ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <PlayIcon
+                  weight="fill"
+                  size={48}
+                  className="text-white opacity-70 cursor-pointer hover:opacity-90"
+                />
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center"></div>
+            )}
+          </div>
 
-        <div
-          className={`transition-opacity duration-200 ${
-            isScrolling ? "opacity-70" : "opacity-100"
-          }`}
-        >
-          <Caption data={data} />
-          <InteractionButtons
-            data={data}
-            handleInteraction={handleInteraction}
-            liked={liked}
-            recasted={recasted}
-            openProfile={handleOpenProfile}
-            disableProfile={disableProfile}
-          />
-        </div>
+          <div
+            className={`transition-opacity duration-200 ${
+              isScrolling ? "opacity-70" : "opacity-100"
+            }`}
+          >
+            <Caption data={data} />
+            <InteractionButtons
+              data={data}
+              handleInteraction={handleInteraction}
+              liked={liked}
+              recasted={recasted}
+              openProfile={handleOpenProfile}
+              disableProfile={disableProfile}
+            />
+          </div>
+        </motion.div>
       </div>
-      {isProfileOpen && (
-        <div className="fixed inset-0 bg-black z-[10]">
+      
+      <AnimatePresence>
+        {isProfileOpen && (
           <Profile
             user={authorData || null}
             onClose={() => setIsProfileOpen(false)}
           />
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </>
   );
 };
