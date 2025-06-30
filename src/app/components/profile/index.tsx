@@ -101,7 +101,7 @@ export function Profile({
   useEffect(() => {
     if (pagesData && pagesData.length > 0) {
       const lastPage = pagesData[pagesData.length - 1];
-      if (lastPage.data.length === 0) {
+      if (lastPage.data.length === 0 || !lastPage.cursor) {
         setHasReachedEnd(true);
       }
     }
