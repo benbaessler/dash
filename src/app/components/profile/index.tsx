@@ -179,7 +179,7 @@ export function Profile({
   const handleShare = async () => {
     const result = await sdk.actions.composeCast({
       text: isCurrentUser
-        ? `Check out my profile on /dash!`
+        ? `Check out my videos on /dash!`
         : `Check out @${user?.username} on /dash!`,
       embeds: [`${appUrl}/u/${user?.username}?utm_source=share_profile`],
     });
