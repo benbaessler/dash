@@ -6,7 +6,7 @@ import { Navbar } from "./components/navbar";
 import { ConnectSignerDialog } from "./components/dialogs/connect-signer";
 import { useSigner } from "@/providers/SignerProvider";
 import { useFrame } from "@/providers/FrameProvider";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Profile } from "./components/profile";
 import { FeedView } from "./components/feed";
 import useSWR from "swr";
@@ -29,10 +29,11 @@ export function App({ children }: Props) {
   const { showDialog, setShowDialog } = useSigner();
   const { sessionToken, signIn, user, context } = useFrame();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const hash = pathname.startsWith("/v")
-    ? pathname.split("/").pop()
+    ? searchParams.get("castHash")
     : undefined;
 
   const { data: videoData, error } = useSWR<VideoData>(
@@ -62,19 +63,23 @@ export function App({ children }: Props) {
     if (!sessionToken) signIn();
   }, [sessionToken, signIn]);
 
-  if (error) {
-    toast({
-      title: "Video not found",
-      description: "The linked cast could not be found",
-    });
-  }
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Video not found",
+        description: "The linked cast could not be found",
+      });
+    }
+  }, [error, toast]);
 
-  if (videoData && !videoData.video_url) {
-    toast({
-      title: "Not a video",
-      description: "The linked cast is not a video",
-    });
-  }
+  useEffect(() => {
+    if (videoData && !videoData.video_url) {
+      toast({
+        title: "Not a video",
+        description: "The linked cast is not a video",
+      });
+    }
+  }, [videoData, toast]);
 
   return (
     <>
