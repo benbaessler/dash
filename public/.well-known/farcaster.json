@@ -10,6 +10,7 @@
     "iconUrl": "https://dash.bnbs.dev/icon.png",
     "homeUrl": "https://dash.bnbs.dev",
     "splashImageUrl": "https://dash.bnbs.dev/splash.png",
+    "castShareUrl": "https://dash.bnbs.dev/share",
     "splashBackgroundColor": "#000000",
     "webhookUrl": "https://api.neynar.com/f/app/8709b138-0a15-4044-827e-c17bd2ab3a09/event",
     "subtitle": "Explore videos on Farcaster",
