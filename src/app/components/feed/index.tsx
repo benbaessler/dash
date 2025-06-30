@@ -18,7 +18,7 @@ export function FeedView({ initialPost, idle = false }: FeedViewProps) {
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    if (feed.length > 10 && !fetching && activeIndex > feed.length - 10) {
+    if (feed.length > 1 && !fetching && activeIndex > feed.length - 10) {
       fetchMore();
     }
   }, [activeIndex, feed.length, fetching, fetchMore]);
