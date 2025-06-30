@@ -17,7 +17,7 @@ import { useSigner } from "@/providers/SignerProvider";
 import { Loader } from "lucide-react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { appUrl } from "@/constants";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 interface ProfileProps {
   user: User | null;
@@ -207,9 +207,17 @@ export function Profile({
         opacity: { duration: 0.15 },
       }}
     >
-      <div
+      <motion.div
         ref={scrollContainerRef}
         className="h-full max-h-[calc(100vh-64px)] overflow-y-auto py-4 relative"
+        animate={{
+          opacity: selectedVideoIndex !== null ? 0 : 1,
+        }}
+        transition={{
+          type: "tween",
+          duration: 0.2,
+          ease: "easeInOut",
+        }}
       >
         <div className="max-w-md mx-auto px-4">
           <div className="relative flex items-center justify-center mb-4">
@@ -326,6 +334,9 @@ export function Profile({
             <Loader className="w-5 h-5 animate-spin text-slate-400" />
           </div>
         )}
+      </motion.div>
+
+      <AnimatePresence>
         {selectedVideoIndex !== null && flattenedData && (
           <VideoFeed
             data={flattenedData}
@@ -333,7 +344,7 @@ export function Profile({
             onClose={() => setSelectedVideoIndex(null)}
           />
         )}
-      </div>
+      </AnimatePresence>
     </motion.div>
   );
 }
