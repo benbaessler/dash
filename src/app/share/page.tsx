@@ -4,16 +4,16 @@ import { appUrl, backgroundColor } from "@/constants";
 import { neynar } from "@/lib/neynar";
 
 type Props = {
-  params: Promise<{
-    hash: string;
+  searchParams: Promise<{
+    castHash: string;
   }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { hash } = await params;
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { castHash } = await searchParams;
 
   const { cast } = await neynar.lookupCastByHashOrWarpcastUrl({
-    identifier: hash,
+    identifier: castHash,
     type: "hash",
   });
 
@@ -30,20 +30,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `Video by @${cast.author.username}`,
     openGraph: {
       title: `Video by @${cast.author.username}`,
-      images: [`${appUrl}/api/og/post/${hash}`],
+      images: [`${appUrl}/api/og/post/${castHash}`],
       description: `Watch a video by @${cast.author.username} on Dash`,
     },
     metadataBase: new URL(appUrl || ""),
     other: {
       "fc:frame": JSON.stringify({
         version: "next",
-        imageUrl: `${appUrl}/api/og/post/${hash}`,
+        imageUrl: `${appUrl}/api/og/post/${castHash}`,
         button: {
           title: "Watch 📲",
           action: {
             type: "launch_frame",
             name: "Dash",
-            url: `${appUrl}/v/${hash}`,
+            url: `${appUrl}/v/${castHash}`,
             splashImageUrl: `${appUrl}/splash.png`,
             splashBackgroundColor: backgroundColor,
           },
