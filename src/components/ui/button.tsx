@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -18,9 +19,9 @@ const buttonVariants = cva(
           "bg-neutral-100 text-neutral-900 hover:bg-neutral-100/80 dark:bg-neutral-800 dark:text-neutral-50 dark:hover:bg-neutral-800/80",
         ghost: "hover:bg-slate-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-50",
         link: "text-neutral-900 underline-offset-4 hover:underline dark:text-neutral-50",
-        action: "bg-violet-700 text-neutral-50 hover:bg-violet-700/90 dark:bg-violet-900 dark:text-neutral-50 dark:hover:bg-violet-900/90 border border-violet-700 focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-violet-700",
-        secondaryAction: "bg-indigo-700 text-neutral-50 hover:bg-indigo-700/90 dark:bg-indigo-900 dark:text-neutral-50 dark:hover:bg-indigo-900/90 border border-indigo-700 focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-indigo-700",
-        outlineAction: "bg-gray-900 text-white hover:bg-gray-800 dark:border-indigo-700 dark:text-indigo-700 dark:hover:bg-indigo-700/10 focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-indigo-700",
+        action: "bg-violet-700 text-neutral-50 hover:bg-violet-700/90 dark:bg-violet-900 dark:text-neutral-50 dark:hover:bg-violet-900/90 focus:outline-none focus:ring-0 focus-visible:ring-0",
+        secondaryAction: "bg-indigo-700 text-neutral-50 hover:bg-indigo-700/90 dark:bg-indigo-900 dark:text-neutral-50 dark:hover:bg-indigo-900/90 focus:outline-none focus:ring-0 focus-visible:ring-0",
+        outlineAction: "bg-gray-900 text-white hover:bg-gray-800 dark:border-indigo-700 dark:text-indigo-700 dark:hover:bg-indigo-700/10 focus:outline-none focus:ring-0 focus-visible:ring-0",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -45,11 +46,23 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        />
+      )
+    }
+    
     return (
-      <Comp
+      // @ts-expect-error - Motion props conflict with React HTML props
+      <motion.button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        whileTap={{ scale: 0.9 }}
+        transition={{ duration: 0.2 }}
         {...props}
       />
     )
