@@ -128,7 +128,7 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
       name: "Dash",
       iconUrl: `${appUrl}/icon.png`,
       homeUrl: appUrl,
-      castShareUrl: `${appUrl}/share`,
+      castShareUrl: `${appUrl}/v`,
       imageUrl: `${appUrl}/opengraph-image.png`,
       buttonTitle: "Launch 📲",
       splashImageUrl: `${appUrl}/splash.png`,
