@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Navbar } from "./components/navbar";
 import { ConnectSignerDialog } from "./components/dialogs/connect-signer";
 import { useSigner } from "@/providers/SignerProvider";
@@ -78,13 +79,29 @@ export function App({ children }: Props) {
   return (
     <>
       <div className="h-screen w-screen flex flex-col">
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <FeedView idle={selectedTab !== "home"} initialPost={videoData} />
-          {selectedTab === "profile" && (
-            <div className="fixed inset-0 bg-black z-[10]">
+        <div className="flex-1 min-h-0 overflow-hidden relative">
+          <motion.div
+            className="absolute inset-0"
+            animate={{
+              x: selectedTab === "profile" ? "-50%" : "0%",
+              opacity: selectedTab === "profile" ? 0 : 1,
+            }}
+            transition={{
+              type: "tween",
+              duration: 0.15,
+              ease: "easeInOut",
+              opacity: { duration: 0.15 },
+            }}
+          >
+            <FeedView idle={selectedTab !== "home"} initialPost={videoData} />
+          </motion.div>
+
+          <AnimatePresence>
+            {selectedTab === "profile" && (
               <Profile user={user || null} isCurrentUser />
-            </div>
-          )}
+            )}
+          </AnimatePresence>
+
           {selectedTab === null && children}
         </div>
         <Navbar selected={selectedTab} onTabChange={setSelectedTab} />

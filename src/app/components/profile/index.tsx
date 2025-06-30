@@ -17,6 +17,7 @@ import { useSigner } from "@/providers/SignerProvider";
 import { Loader } from "lucide-react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { appUrl } from "@/constants";
+import { motion, AnimatePresence } from "motion/react";
 
 interface ProfileProps {
   user: User | null;
@@ -193,132 +194,157 @@ export function Profile({
   };
 
   return (
-    <div
-      ref={scrollContainerRef}
-      className="h-full max-h-[calc(100vh-64px)] overflow-y-auto py-4 relative"
+    <motion.div
+      key="profile"
+      className="fixed inset-0 bg-black z-[10]"
+      initial={{ x: "50%", opacity: 0 }}
+      animate={{ x: "0%", opacity: 1 }}
+      exit={{ x: "50%", opacity: 0 }}
+      transition={{
+        type: "tween",
+        duration: 0.15,
+        ease: "easeInOut",
+        opacity: { duration: 0.15 },
+      }}
     >
-      <div className="max-w-md mx-auto px-4">
-        <div className="relative flex items-center justify-center mb-4">
-          {onClose && (
-            <ArrowLeftIcon
-              className="absolute left-0 top-0 w-6 h-6 text-white hover:text-slate-300 transition-colors cursor-pointer"
-              weight="bold"
-              onClick={onClose}
-            />
-          )}
-          {user && (
-            <h1 className="font-medium text-center">@{user.username}</h1>
-          )}
-          {!isCurrentUser && (
-            <div className="absolute right-0 gap-3 cursor-pointer flex items-center">
-              <div
-                onClick={handleShare}
-                className="hover:text-slate-300 transition-colors"
-              >
-                <ExportIcon weight="bold" size={21} />
+      <motion.div
+        ref={scrollContainerRef}
+        className="h-full max-h-[calc(100vh-64px)] overflow-y-auto py-4 relative"
+        animate={{
+          opacity: selectedVideoIndex !== null ? 0 : 1,
+        }}
+        transition={{
+          type: "tween",
+          duration: 0.2,
+          ease: "easeInOut",
+        }}
+      >
+        <div className="max-w-md mx-auto px-4">
+          <div className="relative flex items-center justify-center mb-4">
+            {onClose && (
+              <ArrowLeftIcon
+                className="absolute left-0 top-0 w-6 h-6 text-white hover:text-slate-300 transition-colors cursor-pointer"
+                weight="bold"
+                onClick={onClose}
+              />
+            )}
+            {user && (
+              <h1 className="font-medium text-center">@{user.username}</h1>
+            )}
+            {!isCurrentUser && (
+              <div className="absolute right-0 gap-3 cursor-pointer flex items-center">
+                <div
+                  onClick={handleShare}
+                  className="hover:text-slate-300 transition-colors"
+                >
+                  <ExportIcon weight="bold" size={21} />
+                </div>
+                <div
+                  onClick={() =>
+                    user && sdk.actions.viewProfile({ fid: user.fid })
+                  }
+                >
+                  <FarcasterIcon className="w-6 h-6 text-white hover:text-slate-300 transition-colors" />
+                </div>
               </div>
-              <div
-                onClick={() =>
-                  user && sdk.actions.viewProfile({ fid: user.fid })
-                }
-              >
-                <FarcasterIcon className="w-6 h-6 text-white hover:text-slate-300 transition-colors" />
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-center mb-2">
-          {user ? (
-            <Avatar
-              user={{
-                fid: user.fid,
-                username: user.username,
-                displayName: user.display_name || user.username,
-                pfpUrl: user.pfp_url || "",
-              }}
-              className="w-20 h-20"
-            />
-          ) : (
-            <Skeleton className="w-20 h-20 rounded-full" />
-          )}
-        </div>
-
-        <div className="text-center mb-2">
-          {user && (
-            <h2 className="text-lg font-bold text-white">
-              {user.display_name || user.username}
-            </h2>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-2 max-w-40 mx-auto">
-          <div className="text-center">
-            <div className="text-base font-bold text-white">
-              {user?.following_count || "-"}
-            </div>
-            <div className="text-xs text-slate-400">Following</div>
+            )}
           </div>
 
-          <div className="text-center">
-            <div className="text-base font-bold text-white">
-              {user?.follower_count || "-"}
-            </div>
-            <div className="text-xs text-slate-400">Followers</div>
+          <div className="flex justify-center mb-2">
+            {user ? (
+              <Avatar
+                user={{
+                  fid: user.fid,
+                  username: user.username,
+                  displayName: user.display_name || user.username,
+                  pfpUrl: user.pfp_url || "",
+                }}
+                className="w-20 h-20"
+              />
+            ) : (
+              <Skeleton className="w-20 h-20 rounded-full" />
+            )}
           </div>
-        </div>
 
-        <div className="flex justify-center mb-4 max-w-48 mx-auto gap-2">
-          <Button
-            variant={following ? "outlineAction" : "action"}
-            size="sm"
-            className="flex-grow"
-            disabled={!user}
-            onClick={() =>
-              isCurrentUser ? handleShare() : handleFollowChange(!following)
-            }
+          <div className="text-center mb-2">
+            {user && (
+              <h2 className="text-lg font-bold text-white">
+                {user.display_name || user.username}
+              </h2>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mb-2 max-w-40 mx-auto">
+            <div className="text-center">
+              <div className="text-base font-bold text-white">
+                {user?.following_count || "-"}
+              </div>
+              <div className="text-xs text-slate-400">Following</div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-base font-bold text-white">
+                {user?.follower_count || "-"}
+              </div>
+              <div className="text-xs text-slate-400">Followers</div>
+            </div>
+          </div>
+
+          <div className="flex justify-center mb-4 max-w-48 mx-auto gap-2">
+            <Button
+              variant={following ? "outlineAction" : "action"}
+              size="sm"
+              className="flex-grow"
+              disabled={!user}
+              onClick={() =>
+                isCurrentUser ? handleShare() : handleFollowChange(!following)
+              }
+            >
+              {isCurrentUser && <ExportIcon size={16} weight="bold" />}
+              {isCurrentUser ? "Share" : following ? "Following" : "Follow"}
+            </Button>
+          </div>
+
+          {user?.profile?.bio?.text && (
+            <div className="text-center mx-4">
+              <p className="text-sm text-gray-300 leading-relaxed">
+                <ClickableText text={user.profile.bio.text} />
+              </p>
+            </div>
+          )}
+        </div>
+        <VideoGrid
+          data={displayedData}
+          isLoading={isLoading}
+          hasReachedEnd={hasReachedEnd}
+          onItemClick={(index) => {
+            setSelectedVideoIndex(index);
+            trackEvent("opened_profile_video", {
+              user: currentUser?.username,
+              target: user?.username,
+              castHash: flattenedData[index].id,
+            });
+          }}
+        />
+        {!hasReachedEnd && (
+          <div
+            ref={loadingSpinnerRef}
+            className="flex justify-center items-center py-8"
           >
-            {isCurrentUser && <ExportIcon size={16} weight="bold" />}
-            {isCurrentUser ? "Share" : following ? "Following" : "Follow"}
-          </Button>
-        </div>
-
-        {user?.profile?.bio?.text && (
-          <div className="text-center mx-4">
-            <p className="text-sm text-gray-300 leading-relaxed">
-              <ClickableText text={user.profile.bio.text} />
-            </p>
+            <Loader className="w-5 h-5 animate-spin text-slate-400" />
           </div>
         )}
-      </div>
-      <VideoGrid
-        data={displayedData}
-        isLoading={isLoading}
-        hasReachedEnd={hasReachedEnd}
-        onItemClick={(index) => {
-          setSelectedVideoIndex(index);
-          trackEvent("opened_profile_video", {
-            user: currentUser?.username,
-            target: user?.username,
-            castHash: flattenedData[index].id,
-          });
-        }}
-      />
-      {!hasReachedEnd && (
-        <div
-          ref={loadingSpinnerRef}
-          className="flex justify-center items-center py-8"
-        >
-          <Loader className="w-5 h-5 animate-spin text-slate-400" />
-        </div>
-      )}
-      {selectedVideoIndex !== null && flattenedData && (
-        <VideoFeed
-          data={flattenedData}
-          initialIndex={selectedVideoIndex}
-          onClose={() => setSelectedVideoIndex(null)}
-        />
-      )}
-    </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {selectedVideoIndex !== null && flattenedData && (
+          <VideoFeed
+            data={flattenedData}
+            initialIndex={selectedVideoIndex}
+            onClose={() => setSelectedVideoIndex(null)}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
