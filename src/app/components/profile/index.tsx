@@ -178,7 +178,7 @@ export function Profile({
   const handleShare = async () => {
     const result = await sdk.actions.composeCast({
       text: isCurrentUser
-        ? `Check out my profile on /dash! `
+        ? `Check out my profile on /dash!`
         : `Check out @${user?.username} on /dash!`,
       embeds: [`${appUrl}/u/${user?.username}?utm_source=share_profile`],
     });
@@ -210,11 +210,20 @@ export function Profile({
             <h1 className="font-medium text-center">@{user.username}</h1>
           )}
           {!isCurrentUser && (
-            <div
-              className="absolute right-0 cursor-pointer"
-              onClick={() => user && sdk.actions.viewProfile({ fid: user.fid })}
-            >
-              <FarcasterIcon className="w-6 h-6 text-white hover:text-slate-300 transition-colors" />
+            <div className="absolute right-0 gap-3 cursor-pointer flex items-center">
+              <div
+                onClick={handleShare}
+                className="hover:text-slate-300 transition-colors"
+              >
+                <ExportIcon weight="bold" size={21} />
+              </div>
+              <div
+                onClick={() =>
+                  user && sdk.actions.viewProfile({ fid: user.fid })
+                }
+              >
+                <FarcasterIcon className="w-6 h-6 text-white hover:text-slate-300 transition-colors" />
+              </div>
             </div>
           )}
         </div>
@@ -269,18 +278,9 @@ export function Profile({
               isCurrentUser ? handleShare() : handleFollowChange(!following)
             }
           >
-            {isCurrentUser && <FarcasterIcon />}
+            {isCurrentUser && <ExportIcon size={16} weight="bold" />}
             {isCurrentUser ? "Share" : following ? "Following" : "Follow"}
           </Button>
-          {!isCurrentUser && (
-            <Button
-              variant="secondaryAction"
-              size="iconSm"
-              onClick={handleShare}
-            >
-              <ExportIcon weight="bold" />
-            </Button>
-          )}
         </div>
 
         {user?.profile?.bio?.text && (
