@@ -1,6 +1,20 @@
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
-export function Loading({ text }: { text?: string }) {
+export function Loading() {
+  const [loadingDots, setLoadingDots] = useState("");
+
+  useEffect(() => {
+    const dotsInterval = setInterval(() => {
+      setLoadingDots((prev) => {
+        if (prev.length >= 3) return "";
+        return prev + ".";
+      });
+    }, 300);
+
+    return () => clearInterval(dotsInterval);
+  }, []);
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black z-[40]">
       <div className="flex flex-col items-center -mt-[55px]">
@@ -12,8 +26,11 @@ export function Loading({ text }: { text?: string }) {
           height={85} 
           className="animate-pulse"
         />
-        <div className="mt-2 text-gray-400 text-sm text-center whitespace-nowrap">
-          {text || "Loading..."}
+        <div className="mt-2 text-gray-400 text-sm flex justify-center">
+          <div className="relative w-18 text-left">
+            <span>Loading</span>  
+            <span className="absolute">{loadingDots}</span>
+          </div>
         </div>
       </div>
     </div>
