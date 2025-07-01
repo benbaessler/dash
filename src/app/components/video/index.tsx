@@ -13,6 +13,7 @@ import { Profile } from "../profile";
 import useSWR from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { motion, AnimatePresence } from "motion/react";
+import { Loader } from "lucide-react";
 
 interface VideoItemProps {
   data: VideoData;
@@ -37,6 +38,7 @@ export const VideoItem = ({
   const { user, sessionToken } = useFrame();
   const { verifySigner } = useSigner();
   const [paused, setPaused] = useState(false);
+  const [buffering, setBuffering] = useState(false);
   const [liked, setLiked] = useState(data.viewerContext?.liked || false);
   const [recasted, setRecasted] = useState(
     data.viewerContext?.recasted || false
@@ -195,6 +197,10 @@ export const VideoItem = ({
               autoPlay={active}
               paused={isProfileOpen || !active || paused}
               onAutoPlayFail={() => setPaused(true)}
+              onWaiting={() => setBuffering(true)}
+              onCanPlay={() => setBuffering(false)}
+              onLoadStart={() => setBuffering(true)}
+              onLoadedData={() => setBuffering(false)}
               fullscreenOrientation="none"
               autoFocus={false}
               className="h-full w-full object-cover"
@@ -240,6 +246,12 @@ export const VideoItem = ({
           </div>
         </motion.div>
       </div>
+
+      {buffering && active && (
+        <div className="fixed inset-0 flex items-center justify-center">
+          <Loader className="w-4 h-4 animate-spin text-white" />
+        </div>
+      )}
       
       <AnimatePresence>
         {isProfileOpen && (
