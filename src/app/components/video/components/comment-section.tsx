@@ -18,7 +18,7 @@ import useSWRInfinite from "swr/infinite";
 import { Loader } from "lucide-react";
 import { sdk } from "@farcaster/frame-sdk";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { toast } from "@/hooks/use-toast";
+import { useSigner } from "@/providers/SignerProvider";
 
 interface CommentSectionProps {
   children: React.ReactNode;
@@ -43,6 +43,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const { user, sessionToken, context } = useFrame();
   const { trackEvent } = useAnalytics();
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { verifySigner } = useSigner();
 
   const getKey = (
     pageIndex: number,
@@ -68,7 +69,6 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     setSize,
     isLoading,
     isValidating,
-    mutate,
   } = useSWRInfinite(getKey, fetcher, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
@@ -140,13 +140,8 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const postComment = async (parentHash: string, textToPost: string) => {
     if (!user || !user.fid) return;
 
-    if (!sessionToken) {
-      toast({
-        title: "Connect your wallet",
-        description: "You must connect your wallet to comment.",
-      });
-      return;
-    }
+    const valid = await verifySigner();
+    if (!valid) return;
 
     const tempId = `temp-${Date.now()}`;
     const newComment: CommentData = {
@@ -210,8 +205,6 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
         user: context?.user.username,
         parentCastHash: castHash,
       });
-
-      mutate();
     } catch (error) {
       console.error("Error posting comment:", error);
       setComments((prevComments) =>
