@@ -6,13 +6,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSigner } from "@/providers/SignerProvider";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import sdk from "@farcaster/frame-sdk";
 import { Loader } from "lucide-react";
 import { isMobile } from "@/utils/isMobile";
+import { useToast } from "@/hooks/use-toast";
 
 interface SignerModalProps {
   open: boolean;
@@ -23,12 +24,12 @@ export const ConnectSignerDialog = ({
   open,
   onOpenChange,
 }: SignerModalProps) => {
-  // const { loading, setLoading } = useFrame();
   const { valid, signer, startPolling, stopPolling, loading } = useSigner();
+  const [onMobile, setOnMobile] = useState(false);
+  const { toast } = useToast();
 
   const mobileUrl = useMemo(() => {
     if (signer && signer?.signer_approval_url) {
-      console.log(signer.signer_approval_url);
       return signer.signer_approval_url.replace(
         "https://client.farcaster.xyz/deeplinks/",
         "farcaster://"
@@ -40,6 +41,7 @@ export const ConnectSignerDialog = ({
   useEffect(() => {
     const handleOpen = async () => {
       const mobile = await isMobile();
+      setOnMobile(mobile);
       if (mobile && signer && signer?.signer_approval_url) {
         sdk.actions.openUrl(mobileUrl);
       }
@@ -78,7 +80,15 @@ export const ConnectSignerDialog = ({
               <Button
                 variant="action"
                 className="w-64"
-                onClick={() => sdk.actions.openUrl(mobileUrl)}
+                onClick={() => {
+                  sdk.actions.openUrl(mobileUrl);
+                  if (onMobile) {
+                    toast({
+                      title: "Nothing happening?",
+                      description: "Minimize the mini app with the 🔽 button above.",
+                    });
+                  }
+                }}
               >
                 Already on mobile?
                 <ArrowRightIcon weight="bold" size={20} />
