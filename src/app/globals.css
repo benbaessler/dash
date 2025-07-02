@@ -13,12 +13,6 @@ body {
   font-family: var(--font-inter), sans-serif;
 }
 
-* {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  -webkit-overflow-scrolling: auto;
-}
-
 *::-webkit-scrollbar {
   display: none;
 }
@@ -64,8 +58,33 @@ media-player::--webkit-media-controls-container {
 
 html, body {
   overflow: hidden;
-  touch-action: none;
+  touch-action: manipulation;
   -webkit-overflow-scrolling: auto;
+  /* Disable text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Disable iOS callouts and adjustments */
+  -webkit-touch-callout: none;
+  -webkit-text-size-adjust: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Apply text selection and touch behavior restrictions globally */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: auto;
+  /* Disable text selection on all elements */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Disable touch callouts */
+  -webkit-touch-callout: none;
+  /* Remove tap highlights */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .video-container {
