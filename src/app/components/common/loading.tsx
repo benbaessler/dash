@@ -18,19 +18,16 @@ export function Loading() {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black z-[40]">
       <div className="flex flex-col items-center -mt-[55px]">
-        <Image 
+        <Image
           priority
-          src="/splash.png" 
-          alt="logo" 
-          width={85} 
-          height={85} 
+          src="/splash.png"
+          alt="logo"
+          width={85}
+          height={85}
           className="animate-pulse"
         />
         <div className="mt-2 text-gray-400 text-sm flex justify-center">
-          <div className="relative w-18 text-left">
-            <span>Loading</span>  
-            <span className="absolute">{loadingDots}</span>
-          </div>
+          <span>Loading</span>
         </div>
       </div>
     </div>
