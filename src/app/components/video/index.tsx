@@ -245,14 +245,13 @@ export const VideoItem = ({
             />
           </div>
         </motion.div>
+        {buffering && active && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <Loader className="w-4 h-4 animate-spin text-white" />
+          </div>
+        )}
       </div>
 
-      {buffering && active && (
-        <div className="fixed inset-0 flex items-center justify-center">
-          <Loader className="w-4 h-4 animate-spin text-white" />
-        </div>
-      )}
-      
       <AnimatePresence>
         {isProfileOpen && (
           <Profile
