@@ -98,7 +98,12 @@ export function App({ children }: Props) {
               opacity: { duration: 0.15 },
             }}
           >
-            <FeedView idle={selectedTab !== "home"} initialPost={videoData} />
+            <FeedView
+              idle={selectedTab !== "home"}
+              initialPost={
+                videoData && videoData.video_url ? videoData : undefined
+              }
+            />
           </motion.div>
 
           <AnimatePresence>
