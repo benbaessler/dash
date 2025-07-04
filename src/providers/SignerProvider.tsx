@@ -28,7 +28,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
   const { isSDKLoaded, context, sessionToken, signIn } = useFrame();
   const [signer, setSigner] = useState<Signer | null>(null);
   const [valid, setValid] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout>();
 
@@ -44,11 +44,9 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     checkSigner();
-    setLoading(false);
   }, [isSDKLoaded, context, fid]);
 
   const startPolling = () => {
-    console.log("Starting polling", { signer });
     intervalRef.current = setInterval(async () => {
       try {
         const response = await fetch(
