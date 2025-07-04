@@ -62,13 +62,10 @@ export const SearchPage = () => {
   const { data: trendingResults, isLoading: isTrendingLoading } = useSWR<
     User[]
   >(
-    sessionToken ? "/api/search/trending" : null,
-    (url: string) =>
-      fetch(url, {
-        headers: {
-          Authorization: `Bearer ${sessionToken}`,
-        },
-      }).then((res) => res.json()),
+    sessionToken
+      ? `/api/search/trending?viewerFid=${context?.user?.fid}`
+      : null,
+    (url: string) => fetch(url).then((res) => res.json()),
     {
       revalidateOnFocus: false,
       revalidateOnMount: true,
@@ -105,7 +102,7 @@ export const SearchPage = () => {
             </div>
           ) : search.length === 0 ? (
             <>
-              {trendingResults && trendingResults.length  > 0 && (
+              {trendingResults && trendingResults.length > 0 && (
                 <h2 className="text-sm font-medium mb-3 text-gray-300">
                   Trending users
                 </h2>

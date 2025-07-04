@@ -1,23 +1,20 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
-import { verify } from "@/utils/verify";
 
 export async function GET(request: Request) {
   try {
-    const authHeader = request.headers.get("Authorization") as string;
+    const { searchParams } = new URL(request.url);
+    const viewerFid = Number(searchParams.get("viewerFid")) || undefined;
 
-    const payload = await verify(authHeader);
-    const fid = payload.sub;
-
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
 
     const trendingQueries = await prisma.search.groupBy({
       by: ["queryId"],
       where: {
         createdAt: {
-          gte: sevenDaysAgo,
+          gte: weekAgo,
         },
         type: "user",
       },
@@ -38,7 +35,7 @@ export async function GET(request: Request) {
 
     const { users } = await neynar.fetchBulkUsers({
       fids: trendingQueries.map((item) => Number(item.queryId)),
-      viewerFid: fid,
+      viewerFid,
     });
 
     return NextResponse.json(users);
