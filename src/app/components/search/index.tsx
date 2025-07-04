@@ -15,7 +15,7 @@ export const SearchPage = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { trackEvent } = useAnalytics();
 
-  const { context } = useFrame();
+  const { context, sessionToken } = useFrame();
 
   const searchKey =
     search.trim().length > 0 && context?.user?.fid
@@ -68,8 +68,21 @@ export const SearchPage = () => {
                 onClick={() => {
                   setSelectedUser(user);
                   setIsProfileOpen(true);
-                  trackEvent("opened_user_profile_from_search", {
-                    target: user.username,
+
+                  trackEvent("opened_from_search", {
+                    type: "user",
+                    targetFid: user.fid,
+                  });
+
+                  fetch("/api/search/track", {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${sessionToken}`,
+                    },
+                    body: JSON.stringify({
+                      type: "user",
+                      queryId: user.fid,
+                    }),
                   });
                 }}
               >
