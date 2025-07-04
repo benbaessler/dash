@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     await prisma.search.create({
       data: {
         searcherFid: fid.toString(),
-        queryId,
+        queryId: queryId.toString(),
         type,
       },
     });
