@@ -3,10 +3,13 @@
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useFrame } from "@/providers/FrameProvider";
 import sdk from "@farcaster/frame-sdk";
-import { UserIcon, HouseIcon, PlusIcon } from "@phosphor-icons/react";
+import {
+  UserIcon,
+  HouseIcon,
+  PlusIcon,
+  MagnifyingGlassIcon,
+} from "@phosphor-icons/react";
 import { motion } from "motion/react";
-
-type Tab = "home" | "profile";
 
 export function Navbar({
   selected,
@@ -30,6 +33,12 @@ export function Navbar({
       selectedIcon: <PlusIcon weight="bold" size={28} />,
       selected: false,
       label: "create" as const,
+    },
+    {
+      icon: <MagnifyingGlassIcon weight="bold" size={28} />,
+      selectedIcon: <MagnifyingGlassIcon weight="fill" size={28} />,
+      selected: selected === "search",
+      label: "search" as const,
     },
     {
       icon: <UserIcon weight="bold" size={28} />,
@@ -57,7 +66,7 @@ export function Navbar({
                     user: user?.username,
                   });
                   return await sdk.actions.composeCast({
-                    text: "[Upload your video here]",
+                    text: "[upload your video here]",
                   });
                 }
 
