@@ -92,7 +92,7 @@ export function App({ children }: Props) {
             }}
             transition={{
               type: "tween",
-              duration: 0.15,
+              duration: 0.12,
               ease: "easeInOut",
             }}
           >
@@ -115,7 +115,7 @@ export function App({ children }: Props) {
             }}
             transition={{
               type: "tween",
-              duration: 0.15,
+              duration: 0.12,
               ease: "easeInOut",
             }}
           >
@@ -126,14 +126,14 @@ export function App({ children }: Props) {
             className="absolute inset-0"
             animate={{
               x: selectedTab === "home"
-                ? "200%"
+                ? "100%"
                 : selectedTab === "search"
                 ? "100%"
                 : "0%",
             }}
             transition={{
               type: "tween",
-              duration: 0.15,
+              duration: 0.12,
               ease: "easeInOut",
             }}
           >
