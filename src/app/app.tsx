@@ -56,6 +56,10 @@ export function App({ children }: Props) {
   const [selectedTab, setSelectedTab] = useState<Tab | null>(initialTab);
 
   useEffect(() => {
+    setSelectedTab(initialTab);
+  }, [initialTab]);
+
+  useEffect(() => {
     if (!sessionToken) signIn();
   }, [sessionToken, signIn]);
 
@@ -84,11 +88,12 @@ export function App({ children }: Props) {
           <motion.div
             className="absolute inset-0"
             animate={{
-              x: selectedTab === "search"
-                ? "-100%"
-                : selectedTab === "profile"
-                ? "-100%"
-                : "0%",
+              x:
+                selectedTab === "search"
+                  ? "-100%"
+                  : selectedTab === "profile"
+                  ? "-100%"
+                  : "0%",
             }}
             transition={{
               type: "tween",
@@ -107,11 +112,12 @@ export function App({ children }: Props) {
           <motion.div
             className="absolute inset-0"
             animate={{
-              x: selectedTab === "home"
-                ? "100%"
-                : selectedTab === "profile"
-                ? "-100%"
-                : "0%",
+              x:
+                selectedTab === "home"
+                  ? "100%"
+                  : selectedTab === "profile"
+                  ? "-100%"
+                  : "0%",
             }}
             transition={{
               type: "tween",
@@ -125,11 +131,12 @@ export function App({ children }: Props) {
           <motion.div
             className="absolute inset-0"
             animate={{
-              x: selectedTab === "home"
-                ? "100%"
-                : selectedTab === "search"
-                ? "100%"
-                : "0%",
+              x:
+                selectedTab === "home"
+                  ? "100%"
+                  : selectedTab === "search"
+                  ? "100%"
+                  : "0%",
             }}
             transition={{
               type: "tween",

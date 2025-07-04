@@ -19,6 +19,7 @@ export async function GET(request: Request) {
         createdAt: {
           gte: sevenDaysAgo,
         },
+        type: "user",
       },
       _count: {
         queryId: true,

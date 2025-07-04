@@ -110,7 +110,7 @@ export const SearchPage = () => {
                 <UserResult
                   key={user.fid}
                   user={user}
-                  onClick={() => handleUserClick(user)}
+                  onClick={() => handleUserClick(user, true)}
                 />
               ))}
             </>
