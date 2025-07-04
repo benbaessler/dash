@@ -1,5 +1,4 @@
 import { FarcasterIcon } from "@/assets/icons";
-import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -11,13 +10,13 @@ import {
 import sdk from "@farcaster/frame-sdk";
 import { appUrl } from "@/constants";
 import { useMemo, useState } from "react";
-import { Input } from "@/components/ui/input";
 import useSWR from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api/models/user";
 import { useFrame } from "@/providers/FrameProvider";
 import { Loader } from "lucide-react";
 import { Avatar } from "./avatar";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { SearchBar } from "../../common/search-bar";
 
 interface ShareProps {
   children: React.ReactNode;
@@ -104,19 +103,13 @@ export const Share = ({ children, data }: ShareProps) => {
             <DrawerTitle>Share</DrawerTitle>
           </DrawerHeader>
           <div className="flex flex-col w-full h-full overflow-hidden">
-            <div className="relative mb-4">
-              <MagnifyingGlassIcon
-                weight="bold"
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none"
-              />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                maxLength={255}
-                placeholder="Search"
-                className="w-full rounded pl-9"
-              />
-            </div>
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Search"
+              maxLength={255}
+              className="mb-4"
+            />
             <div className="flex-1 overflow-y-auto min-h-0">
               {isLoading ? (
                 <div className="flex justify-center items-center px-2 py-4">

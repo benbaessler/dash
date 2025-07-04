@@ -26,6 +26,8 @@ interface PromotionData {
 
 type FeedItem = VideoData | PromotionData;
 
+type Tab = "home" | "search" | "profile";
+
 interface CommentData {
   hash: string;
   author: {

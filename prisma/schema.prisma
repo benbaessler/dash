@@ -15,23 +15,33 @@ datasource db {
 }
 
 model User {
-  fid String @id @unique
-  createdAt DateTime @default(now())
-  expiresAt DateTime
+  fid        String   @id @unique
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
   signerUuid String
-  publicKey String
+  publicKey  String
 
   @@index([fid])
 }
 
 model Share {
-  id Int @id @default(autoincrement())
-  senderFid String
+  id           Int      @id @default(autoincrement())
+  senderFid    String
   recipientFid String
-  updatedAt DateTime @updatedAt
+  updatedAt    DateTime @updatedAt
 
   @@unique([senderFid, recipientFid])
   @@index([senderFid])
   @@index([recipientFid])
 }
 
+model Search {
+  id          Int      @id @default(autoincrement())
+  searcherFid String
+  queryId       String
+  type        String // User, Channel, Video
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([queryId, type, createdAt])
+}
