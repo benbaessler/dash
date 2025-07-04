@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 
 interface Props {
@@ -29,6 +29,13 @@ export const SearchBar = ({
         placeholder={placeholder}
         className="w-full rounded pl-9"
       />
+      {value && (
+        <XIcon
+          weight="bold"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10 cursor-pointer hover:text-gray-300"
+          onClick={() => onChange("")}
+        />
+      )}
     </div>
   );
 };
