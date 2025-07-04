@@ -32,9 +32,11 @@ export async function GET(request: Request) {
       take: 5,
     });
 
+    if (trendingQueries.length === 0) return [];
+
     const { users } = await neynar.fetchBulkUsers({
       fids: trendingQueries.map((item) => Number(item.queryId)),
-      viewerFid: Number(fid),
+      viewerFid: fid,
     });
 
     return NextResponse.json(users);

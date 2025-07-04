@@ -105,7 +105,11 @@ export const SearchPage = () => {
             </div>
           ) : search.length === 0 ? (
             <>
-              <h2 className="text-sm font-medium mb-3 text-gray-300">Trending users</h2>
+              {trendingResults && trendingResults.length  > 0 && (
+                <h2 className="text-sm font-medium mb-3 text-gray-300">
+                  Trending users
+                </h2>
+              )}
               {trendingResults?.map((user) => (
                 <UserResult
                   key={user.fid}
