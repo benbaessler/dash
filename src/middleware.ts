@@ -7,6 +7,10 @@ const corsOptions = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+export const config = {
+  matcher: ["/api/:path*"],
+};
+
 const client = createClient();
 
 export const middleware = async (request: NextRequest) => {
@@ -54,13 +58,23 @@ export const middleware = async (request: NextRequest) => {
       domain: appDomain,
     });
 
-    if (!payload) throw new Error("Not authorized");
+    if (!payload || payload.sub === 0) throw new Error("Not authorized");
+
+    console.log(payload.sub);
 
     const headers = new Headers(request.headers);
     headers.set("x-fid", String(payload.sub));
 
+    const updatedRequest = new NextRequest(request.url, {
+      method: request.method,
+      headers,
+      body: request.body,
+    });
+
     // Handle simple requests
-    const response = NextResponse.next();
+    const response = NextResponse.next({
+      request: updatedRequest,
+    });
 
     if (isAllowedOrigin) {
       response.headers.set("Access-Control-Allow-Origin", origin);
