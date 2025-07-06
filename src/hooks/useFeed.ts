@@ -9,15 +9,15 @@ import { fetcher } from "@/utils/fetcher";
 
 interface UseFeedProps {
   initialLimit?: number;
-  initialPost?: VideoData;
+  initialVideo?: VideoData;
 }
 
-export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
+export const useFeed = ({ initialLimit = 15, initialVideo }: UseFeedProps) => {
   const { isSDKLoaded, context, added, sessionToken } = useFrame();
   const fid = isDevelopment ? 367782 : context?.user.fid;
 
   const [feed, setFeed] = useState<FeedItem[]>(
-    initialPost ? [initialPost] : []
+    initialVideo ? [initialVideo] : []
   );
   const [fetching, setFetching] = useState(false);
 
@@ -43,10 +43,10 @@ export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
 
   useEffect(() => {
     if (data && feed.length <= 1) {
-      const videos = initialPost
+      const videos = initialVideo
         ? [
-            initialPost,
-            ...data.filter((item: VideoData) => item.id !== initialPost.id),
+            initialVideo,
+            ...data.filter((item: VideoData) => item.id !== initialVideo.id),
           ]
         : data;
 
@@ -86,7 +86,7 @@ export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
         setFetching(false);
       }
     },
-    [initialLimit, fid, setFetching, setFeed, sessionToken]
+    [initialLimit, setFetching, setFeed, sessionToken]
   );
 
   return {

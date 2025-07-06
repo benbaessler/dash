@@ -1,5 +1,5 @@
 import { useFrame } from "@/providers/FrameProvider";
-import { FeedView } from "../feed";
+import { FeedView } from "./feed-view";
 import useSWRInfinite from "swr/infinite";
 import { fetcher } from "@/utils/fetcher";
 import { useCallback, useEffect, useMemo, useState } from "react";

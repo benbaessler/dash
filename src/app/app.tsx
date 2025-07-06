@@ -8,13 +8,11 @@ import { useSigner } from "@/providers/SignerProvider";
 import { useFrame } from "@/providers/FrameProvider";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Profile } from "./components/profile";
-import { FeedView } from "./components/feed";
-import { ChannelFeed } from "./components/channel/channel-feed";
 import { SearchPage } from "./components/search";
 import useSWR from "swr";
-import { useFeed } from "@/hooks/useFeed";
 import { useToast } from "@/hooks/use-toast";
 import { fetcher } from "@/utils/fetcher";
+import { FeedPage } from "./components/feed";
 
 interface Props {
   children?: ReactNode;
@@ -74,7 +72,6 @@ export function App({ children }: Props) {
   }, [videoData, toast]);
 
   const initialPost = videoData && videoData.video_url ? videoData : undefined;
-  const { feed, fetching, fetchMore } = useFeed({ initialPost });
 
   return (
     <>
@@ -96,13 +93,7 @@ export function App({ children }: Props) {
               ease: "easeInOut",
             }}
           >
-            {/* <FeedView
-              idle={selectedTab !== "home"}
-              feed={feed}
-              fetching={fetching}
-              fetchMore={fetchMore}
-            /> */}
-            <ChannelFeed channelId={"science"} />
+            <FeedPage initialFeed="explore" initialVideo={initialPost} />
           </motion.div>
 
           <motion.div
