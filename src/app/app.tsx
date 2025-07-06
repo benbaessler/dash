@@ -9,6 +9,7 @@ import { useFrame } from "@/providers/FrameProvider";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Profile } from "./components/profile";
 import { FeedView } from "./components/feed";
+import { ChannelFeed } from "./components/channel/channel-feed";
 import { SearchPage } from "./components/search";
 import useSWR from "swr";
 import { useFeed } from "@/hooks/useFeed";
@@ -95,12 +96,13 @@ export function App({ children }: Props) {
               ease: "easeInOut",
             }}
           >
-            <FeedView
+            {/* <FeedView
               idle={selectedTab !== "home"}
               feed={feed}
               fetching={fetching}
               fetchMore={fetchMore}
-            />
+            /> */}
+            <ChannelFeed channelId={"science"} />
           </motion.div>
 
           <motion.div
