@@ -19,19 +19,12 @@ import { Loader } from "lucide-react";
 import { sdk } from "@farcaster/frame-sdk";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useSigner } from "@/providers/SignerProvider";
+import { fetcher } from "@/utils/fetcher";
 
 interface CommentSectionProps {
   children: React.ReactNode;
   castHash: string;
 }
-
-const fetcher = async (url: string) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Failed to fetch comments");
-  }
-  return response.json();
-};
 
 export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
   const [comments, setComments] = useState<CommentData[]>([]);
@@ -49,13 +42,10 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     pageIndex: number,
     previousPageData: { data: CommentData[]; cursor?: string } | null
   ) => {
-    if (!user?.fid || (previousPageData && !previousPageData.cursor))
+    if (!sessionToken || (previousPageData && !previousPageData.cursor))
       return null;
 
-    const url = new URL(
-      `/api/comments?viewerFid=${user?.fid}&hash=${castHash}`,
-      appUrl
-    );
+    const url = new URL(`/api/comments?hash=${castHash}`, appUrl);
 
     if (pageIndex !== 0) {
       url.searchParams.append("cursor", previousPageData?.cursor || "");
@@ -69,7 +59,7 @@ export const CommentSection = ({ children, castHash }: CommentSectionProps) => {
     setSize,
     isLoading,
     isValidating,
-  } = useSWRInfinite(getKey, fetcher, {
+  } = useSWRInfinite(getKey, (url: string) => fetcher(url, sessionToken!), {
     revalidateOnFocus: false,
     revalidateIfStale: false,
     revalidateOnReconnect: false,

@@ -17,6 +17,7 @@ import { Loader } from "lucide-react";
 import { Avatar } from "./avatar";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { SearchBar } from "../../common/search-bar";
+import { fetcher } from "@/utils/fetcher";
 
 interface ShareProps {
   children: React.ReactNode;
@@ -26,26 +27,24 @@ interface ShareProps {
 export const Share = ({ children, data }: ShareProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const { context } = useFrame();
+  const { context, sessionToken } = useFrame();
   const { trackEvent } = useAnalytics();
 
   const { data: friends, isLoading: isFriendsLoading } = useSWR<User[]>(
-    context?.user?.fid ? `/api/friends/${context.user.fid}` : null,
-    (url: string) => fetch(url).then((res) => res.json()),
+    sessionToken ? `/api/friends` : null,
+    (url: string) => fetcher(url, sessionToken!),
     { revalidateOnFocus: false, revalidateOnReconnect: false }
   );
 
   // Fetch users based on the search query
   const searchKey =
-    search.trim().length > 0 && context?.user?.fid
-      ? `/api/search/users?query=${encodeURIComponent(search)}&viewerFid=${
-          context.user.fid
-        }`
+    search.trim().length > 0 && sessionToken
+      ? `/api/search/users?query=${encodeURIComponent(search)}`
       : null;
 
   const { data: searchResults, isLoading: isSearching } = useSWR<User[]>(
     searchKey,
-    (url: string) => fetch(url).then((res) => res.json()),
+    (url: string) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
       revalidateOnMount: true,
@@ -76,10 +75,9 @@ export const Share = ({ children, data }: ShareProps) => {
       await fetch("/api/shares/track", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({
-          senderFid: context.user.fid.toString(),
           recipientFid: recipient.fid.toString(),
         }),
       });

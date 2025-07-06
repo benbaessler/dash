@@ -5,15 +5,7 @@ import { isDevelopment } from "@/constants";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { insertPromotions } from "@/utils/insertPromotions";
-
-const fetcher = async (url: string) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch feed: ${response.status}`);
-  }
-  const { data } = await response.json();
-  return data;
-};
+import { fetcher } from "@/utils/fetcher";
 
 interface UseFeedProps {
   initialLimit?: number;
@@ -21,7 +13,7 @@ interface UseFeedProps {
 }
 
 export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
-  const { isSDKLoaded, context, added } = useFrame();
+  const { isSDKLoaded, context, added, sessionToken } = useFrame();
   const fid = isDevelopment ? 367782 : context?.user.fid;
 
   const [feed, setFeed] = useState<FeedItem[]>(
@@ -30,8 +22,10 @@ export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
   const [fetching, setFetching] = useState(false);
 
   const { data, isValidating } = useSWR(
-    fid && isSDKLoaded ? `/api/feed/${fid}?limit=${initialLimit}` : null,
-    fetcher,
+    sessionToken && fid && isSDKLoaded
+      ? `/api/feed?limit=${initialLimit}`
+      : null,
+    (url) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
     }
@@ -50,11 +44,11 @@ export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
   useEffect(() => {
     if (data && feed.length <= 1) {
       const videos = initialPost
-      ? [
-          initialPost,
-          ...data.filter((item: VideoData) => item.id !== initialPost.id),
-        ]
-      : data
+        ? [
+            initialPost,
+            ...data.filter((item: VideoData) => item.id !== initialPost.id),
+          ]
+        : data;
 
       const feedWithPromotions = insertPromotions(videos, promotions);
       setFeed(feedWithPromotions);
@@ -63,15 +57,19 @@ export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
 
   const fetchMore = useCallback(
     async (limit: number = initialLimit) => {
-      if (!fid) return;
+      if (!sessionToken) return;
 
       setFetching(true);
       try {
-        const response = await fetch(`/api/feed/${fid}?limit=${limit}`);
+        const response = await fetch(`/api/feed?limit=${limit}`, {
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+          },
+        });
         if (!response.ok) {
           throw new Error(`Failed to fetch feed: ${response.status}`);
         }
-        const { data } = await response.json();
+        const data = await response.json();
         setFeed((prev) => {
           const existingFeed = prev || [];
           const uniqueVideos = data.filter(

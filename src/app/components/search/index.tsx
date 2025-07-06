@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Profile } from "../profile";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { UserResult } from "./components/user-result";
+import { fetcher } from "@/utils/fetcher";
 
 export const SearchPage = () => {
   const [search, setSearch] = useState("");
@@ -17,7 +18,7 @@ export const SearchPage = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { trackEvent } = useAnalytics();
 
-  const { context, sessionToken } = useFrame();
+  const { sessionToken } = useFrame();
 
   const handleUserClick = (user: User, fromTrending: boolean = false) => {
     setSelectedUser(user);
@@ -42,15 +43,13 @@ export const SearchPage = () => {
   };
 
   const searchKey =
-    search.trim().length > 0 && context?.user?.fid
-      ? `/api/search/users?query=${encodeURIComponent(search)}&viewerFid=${
-          context.user.fid
-        }`
+    sessionToken && search.trim().length > 0
+      ? `/api/search/users?query=${encodeURIComponent(search)}`
       : null;
 
   const { data: results, isLoading: isResultsLoading } = useSWR<User[]>(
     searchKey,
-    (url: string) => fetch(url).then((res) => res.json()),
+    (url: string) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
       revalidateOnMount: true,
@@ -62,10 +61,8 @@ export const SearchPage = () => {
   const { data: trendingResults, isLoading: isTrendingLoading } = useSWR<
     User[]
   >(
-    sessionToken
-      ? `/api/search/trending?viewerFid=${context?.user?.fid}`
-      : null,
-    (url: string) => fetch(url).then((res) => res.json()),
+    sessionToken ? `/api/search/trending` : null,
+    (url: string) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
       revalidateOnMount: true,

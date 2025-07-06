@@ -6,18 +6,15 @@ import useSWR from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { useFrame } from "@/providers/FrameProvider";
 import { Loading } from "../../components/common/loading";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { fetcher } from "@/utils/fetcher";
 
 export default function Page() {
   const { handle } = useParams();
-  const { user } = useFrame();
+  const { sessionToken } = useFrame();
 
   const { data, isLoading, error } = useSWR<User>(
-    handle && user?.fid
-      ? `/api/user/handle/${handle}?viewerFid=${user?.fid}`
-      : null,
-    fetcher,
+    handle && sessionToken ? `/api/user/handle/${handle}` : null,
+    (url: string) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
       revalidateIfStale: false,
@@ -25,10 +22,9 @@ export default function Page() {
     }
   );
 
-  
   // TODO: handle not found page
   if (!handle || error || (!data && !isLoading)) return null;
-  
+
   if (isLoading) return <Loading />;
   return (
     <div className="fixed inset-0 bg-black z-[10]">

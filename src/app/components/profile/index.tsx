@@ -18,6 +18,7 @@ import { Loader } from "lucide-react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { appUrl } from "@/constants";
 import { motion, AnimatePresence } from "motion/react";
+import { fetcher } from "@/utils/fetcher";
 
 interface ProfileProps {
   user: User | null;
@@ -25,14 +26,12 @@ interface ProfileProps {
   onClose?: () => void;
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 export function Profile({
   user,
   isCurrentUser = false,
   onClose = undefined,
 }: ProfileProps) {
-  const { context, sessionToken, user: currentUser } = useFrame();
+  const { sessionToken, user: currentUser } = useFrame();
   const { verifySigner } = useSigner();
   const { trackEvent } = useAnalytics();
 
@@ -54,9 +53,7 @@ export function Profile({
     previousPageData: { data: VideoData[]; cursor: string | null } | null
   ) => {
     if (pageIndex === 0) {
-      return user && context?.user?.fid
-        ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}`
-        : null;
+      return user && sessionToken ? `/api/videos/${user.fid}` : null;
     }
     if (
       previousPageData &&
@@ -64,10 +61,8 @@ export function Profile({
     ) {
       return null;
     }
-    return user && context?.user?.fid
-      ? `/api/posts/${user.fid}?viewerFid=${context.user.fid}&cursor=${
-          previousPageData?.cursor || ""
-        }`
+    return user && sessionToken
+      ? `/api/videos/${user.fid}?cursor=${previousPageData?.cursor || ""}`
       : null;
   };
 
@@ -76,7 +71,7 @@ export function Profile({
     setSize,
     isLoading,
     isValidating,
-  } = useSWRInfinite(getKey, fetcher, {
+  } = useSWRInfinite(getKey, (url: string) => fetcher(url, sessionToken!), {
     revalidateOnFocus: false,
     revalidateIfStale: false,
     revalidateOnReconnect: false,
@@ -159,10 +154,8 @@ export function Profile({
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${sessionToken}`,
         },
-        body: JSON.stringify({ fid: user?.fid }),
       }
     );
 
