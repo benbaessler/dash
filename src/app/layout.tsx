@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { getSession } from "@/auth";
 import "@/app/globals.css";
 import "@vidstack/react/player/styles/base.css";
 import { Providers } from "@/app/providers";
@@ -24,8 +23,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getSession();
-
   return (
     <html lang="en" className={`bg-[${backgroundColor}]`}>
       <head>
@@ -35,7 +32,7 @@ export default async function RootLayout({
         />
       </head>
       <body lang="en" className={`${inter.variable} bg-${backgroundColor}`}>
-        <Providers session={session}>{children}</Providers>
+        <Providers>{children}</Providers>
         <Analytics />
         <Toaster />
       </body>
