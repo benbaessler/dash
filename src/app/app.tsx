@@ -11,24 +11,17 @@ import { Profile } from "./components/profile";
 import { FeedView } from "./components/feed";
 import { SearchPage } from "./components/search";
 import useSWR from "swr";
+import { useFeed } from "@/hooks/useFeed";
 import { useToast } from "@/hooks/use-toast";
+import { fetcher } from "@/utils/fetcher";
 
 interface Props {
   children?: ReactNode;
 }
 
-const fetcher = async (url: string) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Video not found");
-  }
-  const { data } = await response.json();
-  return data;
-};
-
 export function App({ children }: Props) {
   const { showDialog, setShowDialog } = useSigner();
-  const { sessionToken, signIn, user, context } = useFrame();
+  const { sessionToken, signIn, user } = useFrame();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -38,10 +31,8 @@ export function App({ children }: Props) {
     : undefined;
 
   const { data: videoData, error } = useSWR<VideoData>(
-    hash && context?.user.fid
-      ? `/api/post/${hash}?fid=${context.user.fid}`
-      : null,
-    fetcher,
+    sessionToken && hash ? `/api/video/${hash}` : null,
+    (url) => fetcher(url, sessionToken!),
     { revalidateOnFocus: false }
   );
 
@@ -81,6 +72,9 @@ export function App({ children }: Props) {
     }
   }, [videoData, toast]);
 
+  const initialPost = videoData && videoData.video_url ? videoData : undefined;
+  const { feed, fetching, fetchMore } = useFeed({ initialPost });
+
   return (
     <>
       <div className="h-screen w-screen flex flex-col">
@@ -103,9 +97,9 @@ export function App({ children }: Props) {
           >
             <FeedView
               idle={selectedTab !== "home"}
-              initialPost={
-                videoData && videoData.video_url ? videoData : undefined
-              }
+              feed={feed}
+              fetching={fetching}
+              fetchMore={fetchMore}
             />
           </motion.div>
 
