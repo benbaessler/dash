@@ -86,7 +86,7 @@ export const useFeed = ({ initialLimit = 15, initialPost }: UseFeedProps) => {
         setFetching(false);
       }
     },
-    [initialLimit, fid, setFetching, setFeed]
+    [initialLimit, fid, setFetching, setFeed, sessionToken]
   );
 
   return {
