@@ -14,7 +14,7 @@ export const GridItem = ({ data, onClick }: Props) => (
     <div className="absolute inset-0 flex items-center justify-center p-4">
       <div className="text-center w-full">
         <span 
-          className="text-white text-balance text-xs leading-snug drop-shadow-md block overflow-hidden break-words line-clamp-2"
+          className="text-white text-balance text-xs leading-snug drop-shadow-sm block overflow-hidden break-words line-clamp-2"
           style={{
             display: '-webkit-box',
             WebkitBoxOrient: 'vertical',
