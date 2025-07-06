@@ -78,7 +78,7 @@ export const Share = ({ children, data }: ShareProps) => {
           Authorization: `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({
-          recipientFid: recipient.fid.toString(),
+          targetFid: recipient.fid.toString(),
         }),
       });
 

@@ -45,22 +45,19 @@ export const middleware = async (request: NextRequest) => {
     }
 
     const authHeader = request.headers.get("Authorization");
-    const authToken = authHeader?.replace("Bearer ", "");
-    if (!authToken) throw new Error("Not authorized");
-
-    const token = request.headers.get("Authorization");
-
-    if (!token) throw new Error("No token provided");
+    if (!authHeader) throw new Error("No authorization header provided");
+    
+    const authToken = authHeader.replace("Bearer ", "");
+    if (!authToken) throw new Error("Invalid authorization format");
+    
     if (!appDomain) throw new Error("App domain is not set");
 
     const payload = await client.verifyJwt({
-      token: token.split(" ")[1],
+      token: authToken,
       domain: appDomain,
     });
 
     if (!payload || payload.sub === 0) throw new Error("Not authorized");
-
-    console.log(payload.sub);
 
     const headers = new Headers(request.headers);
     headers.set("x-fid", String(payload.sub));
