@@ -12,11 +12,10 @@ export async function GET(
   }
 ) {
   const { hash } = await params;
-  const { searchParams } = new URL(request.url);
-  const fid = Number(searchParams.get("fid"));
+  const fid = Number(request.headers.get("x-fid"));
 
-  if (!hash || !fid) {
-    return NextResponse.json({ error: "Missing hash or fid" }, { status: 400 });
+  if (!hash) {
+    return NextResponse.json({ error: "Missing hash" }, { status: 400 });
   }
 
   try {
@@ -36,7 +35,7 @@ export async function GET(
       );
     } catch {}
 
-    const post = {
+    const video = {
       id: cast.hash,
       text: cast.text,
       video_url: videoEmbed ? videoEmbed.url : undefined,
@@ -56,14 +55,11 @@ export async function GET(
       },
     };
 
-    return NextResponse.json({
-      success: true,
-      data: post,
-    });
+    return NextResponse.json(video);
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Failed to fetch post" },
+      { error: "Failed to fetch video" },
       { status: 500 }
     );
   }

@@ -2,17 +2,17 @@
 
 import { Promotion } from "../promotion";
 import { VideoItem } from "../video";
-import { useFeed } from "@/hooks/useFeed";
 import { useEffect, useCallback, useState, useRef } from "react";
 import { Loading } from "../common/loading";
 
 interface FeedViewProps {
-  initialPost?: VideoData;
+  feed: FeedItem[];
+  fetching: boolean;
+  fetchMore: () => void;
   idle?: boolean;
 }
 
-export function FeedView({ initialPost, idle = false }: FeedViewProps) {
-  const { feed, fetching, fetchMore } = useFeed({ initialPost });
+export function FeedView({ feed, fetching, fetchMore, idle = false }: FeedViewProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
@@ -21,7 +21,7 @@ export function FeedView({ initialPost, idle = false }: FeedViewProps) {
     if (feed.length > 1 && !fetching && activeIndex > feed.length - 10) {
       fetchMore();
     }
-  }, [activeIndex, feed.length, fetching, fetchMore]);
+  }, [activeIndex, feed, fetching, fetchMore]);
 
   useEffect(() => {
     return () => {
@@ -48,7 +48,7 @@ export function FeedView({ initialPost, idle = false }: FeedViewProps) {
     setActiveIndex(newIndex);
   }, []);
 
-  if (feed.length <= 1) return <Loading />;
+  if (feed.length === 0) return <Loading />;
 
   return (
     <div

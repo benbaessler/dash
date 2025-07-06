@@ -32,25 +32,27 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout>();
 
-  const fid = context?.user?.fid;
-
   useEffect(() => {
-    if (!isSDKLoaded || !context) return;
+    if (!isSDKLoaded || !context || !sessionToken) return;
 
     const checkSigner = async () => {
-      const response = await fetch(`/api/verify/signer?fid=${fid}`);
+      const response = await fetch(`/api/verify`, {
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+        },
+      });
       const { verified } = await response.json();
       setValid(verified);
     };
 
     checkSigner();
-  }, [isSDKLoaded, context, fid]);
+  }, [isSDKLoaded, context, sessionToken]);
 
   const startPolling = () => {
     intervalRef.current = setInterval(async () => {
       try {
         const response = await fetch(
-          `/api/signer?signer_uuid=${signer?.signer_uuid}`
+          `/api/public/signer?signer_uuid=${signer?.signer_uuid}`
         );
         const data = await response.json();
 
@@ -76,7 +78,7 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   async function createSigner() {
     try {
-      const response = await fetch("/api/signer", {
+      const response = await fetch("/api/public/signer", {
         method: "POST",
       });
       const data = await response.json();
@@ -88,10 +90,9 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const storeUser = async (data: Signer) => {
     try {
-      const response = await fetch(`/api/verify/signer`, {
+      const response = await fetch(`/api/verify`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({

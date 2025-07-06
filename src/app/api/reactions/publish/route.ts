@@ -2,28 +2,23 @@ import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import { ReactionType } from "@neynar/nodejs-sdk/build/api";
 import prisma from "@/lib/prisma";
-import { verify } from "@/utils/verify";
 
 // Valid reaction types
 const VALID_REACTION_TYPES = ["like", "recast"] as const;
 type ValidReactionType = (typeof VALID_REACTION_TYPES)[number];
 
 export async function POST(request: Request) {
+  const fid = Number(request.headers.get("x-fid"));
+  const { castHash, type } = await request.json();
+  
+  if (!castHash || !type) {
+    return NextResponse.json(
+      { error: "Missing required parameters" },
+      { status: 400 }
+    );
+  }
+  
   try {
-    const authHeader = request.headers.get("Authorization") as string;
-
-    const payload = await verify(authHeader);
-    const fid = payload.sub;
-
-    const { castHash, type } = await request.json();
-
-    if (!castHash || !type) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
-        { status: 400 }
-      );
-    }
-
     // Validate reaction type
     if (!VALID_REACTION_TYPES.includes(type as ValidReactionType)) {
       return NextResponse.json(

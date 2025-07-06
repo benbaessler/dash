@@ -2,34 +2,25 @@ import { neynar } from "@/lib/neynar";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const fid = Number(request.headers.get("x-fid"));
+  const searchParams = url.searchParams;
+  const query = searchParams.get("query");
+
+  if (!query) {
+    return NextResponse.json(
+      { error: "Query parameter is required" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const url = new URL(request.url);
-    const searchParams = url.searchParams;
-    const query = searchParams.get("query");
-    const viewerFid = searchParams.get("viewerFid");
-
-    if (!query) {
-      return NextResponse.json(
-        { error: "Query parameter is required" },
-        { status: 400 }
-      );
-    }
-
-    if (!Number(viewerFid)) {
-      return NextResponse.json(
-        { error: "Viewer FID parameter is required" },
-        { status: 400 }
-      );
-    }
-
     const response = await neynar.searchUser({
       q: query.trim(),
-      viewerFid: Number(viewerFid),
+      viewerFid: fid,
     });
 
-    return NextResponse.json(
-      response.result.users.filter((user) => user.fid !== Number(viewerFid))
-    );
+    return NextResponse.json(response.result.users);
   } catch (error) {
     console.error("Error searching users:", error);
     return NextResponse.json(

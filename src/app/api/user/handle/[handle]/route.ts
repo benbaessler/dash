@@ -7,8 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ handle: string }> }
 ) {
   const { handle } = await params;
-  const { searchParams } = new URL(request.url);
-  const viewerFid = Number(searchParams.get("viewerFid")) || undefined;
+  const viewerFid = Number(request.headers.get("x-fid"));
 
   if (!handle || handle.length < 1) {
     return NextResponse.json({ error: "Invalid handle" }, { status: 400 });

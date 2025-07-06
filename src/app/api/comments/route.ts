@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import prisma from "@/lib/prisma";
-import { verify } from "@/utils/verify";
+import { NextRequest } from "next/server";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
+  const viewerFid = Number(req.headers.get("x-fid"));
   const cursor = searchParams.get("cursor") || undefined;
   const hash = searchParams.get("hash") || undefined;
-  const viewerFid = Number(searchParams.get("viewerFid")) || undefined;
 
   if (!hash) {
     return NextResponse.json(
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
       type: "hash",
       sortType: "algorithmic",
       cursor,
-      viewerFid
+      viewerFid,
     });
 
     // Filter out duplicate comments based on hash
@@ -41,13 +41,9 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("Authorization") as string;
-
-    const payload = await verify(authHeader);
-
-    const fid = payload.sub;
+    const fid = Number(request.headers.get("x-fid"));
     const { castHash, text } = await request.json();
 
     if (!castHash || !text) {

@@ -3,7 +3,11 @@ import { Caption } from "./components/caption";
 import { InteractionButtons } from "./components/interaction-buttons";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useFrame } from "@/providers/FrameProvider";
-import { MediaPlayer, MediaProvider, type MediaPlayerInstance } from "@vidstack/react";
+import {
+  MediaPlayer,
+  MediaProvider,
+  type MediaPlayerInstance,
+} from "@vidstack/react";
 import { PlayIcon, FastForwardIcon } from "@phosphor-icons/react";
 import { useEffect, useState, useRef } from "react";
 import sdk from "@farcaster/frame-sdk";
@@ -14,6 +18,7 @@ import useSWR from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { motion, AnimatePresence } from "motion/react";
 import { Loader } from "lucide-react";
+import { fetcher } from "@/utils/fetcher";
 
 interface VideoItemProps {
   data: VideoData;
@@ -23,8 +28,6 @@ interface VideoItemProps {
   disableProfile?: boolean;
   render?: boolean;
 }
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const VideoItem = ({
   data,
@@ -45,19 +48,19 @@ export const VideoItem = ({
   );
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout>();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  
+
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isHolding, setIsHolding] = useState(false);
   const [holdTimeout, setHoldTimeout] = useState<NodeJS.Timeout>();
   const playerRef = useRef<MediaPlayerInstance>(null);
 
   const { data: authorData } = useSWR<User>(
-    render && data.author.username && user?.fid
-      ? `/api/user/handle/${data.author.username}?viewerFid=${user?.fid}`
-      : render && data.author.fid && user?.fid
-      ? `/api/user/${data.author.fid}?viewerFid=${user?.fid}`
+    render && data.author.username && sessionToken
+      ? `/api/user/handle/${data.author.username}`
+      : render && data.author.fid && sessionToken
+      ? `/api/user/${data.author.fid}`
       : null,
-    fetcher,
+    (url: string) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
       revalidateIfStale: false,
@@ -145,7 +148,7 @@ export const VideoItem = ({
       }
 
       await sdk.haptics.impactOccurred("medium");
-      
+
       trackEvent("hold_for_2x_speed", {
         user: user?.username,
         castHash: data.id,
@@ -164,11 +167,11 @@ export const VideoItem = ({
     if (isHolding) {
       setIsHolding(false);
       setPlaybackRate(1);
-      
+
       if (playerRef.current) {
         playerRef.current.playbackRate = 1;
       }
-      
+
       await sdk.haptics.impactOccurred("light");
     }
   };
@@ -305,7 +308,11 @@ export const VideoItem = ({
               >
                 <div className="bg-black bg-opacity-60 rounded-lg px-3 py-1">
                   <div className="flex items-center gap-2">
-                    <FastForwardIcon weight="fill" size={18} className="text-white" />
+                    <FastForwardIcon
+                      weight="fill"
+                      size={18}
+                      className="text-white"
+                    />
                     <span className="text-white font-semibold text-lg">2x</span>
                   </div>
                 </div>

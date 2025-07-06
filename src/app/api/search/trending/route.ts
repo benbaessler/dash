@@ -3,10 +3,9 @@ import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 
 export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const viewerFid = Number(searchParams.get("viewerFid")) || undefined;
+  const fid = Number(request.headers.get("x-fid"));
 
+  try {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
 
@@ -35,7 +34,7 @@ export async function GET(request: Request) {
 
     const { users } = await neynar.fetchBulkUsers({
       fids: trendingQueries.map((item) => Number(item.queryId)),
-      viewerFid,
+      viewerFid: fid,
     });
 
     return NextResponse.json(users);

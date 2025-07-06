@@ -10,6 +10,7 @@ import useSWR, { SWRResponse } from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
 import { onboardUser } from "@/utils/onboarding";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { fetcher } from "@/utils/fetcher";
 
 interface FrameContextType {
   isSDKLoaded: boolean;
@@ -29,14 +30,6 @@ const FrameContext = React.createContext<FrameContextType | undefined>(
   undefined
 );
 
-const fetcher = (url: string) =>
-  fetch(url).then((res) => {
-    if (!res.ok) {
-      throw new Error("An error occurred while fetching the data.");
-    }
-    return res.json();
-  });
-
 export function FrameProvider({ children }: { children: React.ReactNode }) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext>();
@@ -53,11 +46,15 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
     data: user,
     error: userError,
     isLoading: userLoading,
-  }: SWRResponse<User> = useSWR(fid ? `/api/user/${fid}` : null, fetcher, {
-    revalidateOnFocus: false,
-    shouldRetryOnError: true,
-    errorRetryCount: 3,
-  });
+  }: SWRResponse<User> = useSWR(
+    sessionToken && fid ? `/api/user/${fid}` : null,
+    (url: string) => fetcher(url, sessionToken!),
+    {
+      revalidateOnFocus: false,
+      shouldRetryOnError: true,
+      errorRetryCount: 3,
+    }
+  );
 
   const addFrame = useCallback(async () => {
     setNotificationDetails(null);
@@ -79,6 +76,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const load = async () => {
+      await signIn();
       const context = await sdk.context;
       setContext(context);
       setIsSDKLoaded(true);
@@ -101,7 +99,7 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
         sdk.removeAllListeners();
       };
     }
-  }, [isSDKLoaded, identifyUser]);
+  }, [isSDKLoaded, identifyUser, signIn]);
 
   const values = {
     isSDKLoaded,

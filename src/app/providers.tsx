@@ -1,7 +1,5 @@
 "use client";
 
-import type { Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
 import { FrameProvider } from "@/providers/FrameProvider";
 import { SignerProvider } from "@/providers/SignerProvider";
 import { appDomain } from "@/constants";
@@ -10,26 +8,18 @@ import { App } from "./app";
 import { Suspense } from "react";
 import { NotFound } from "./components/common/not-found";
 
-export function Providers({
-  session,
-  children,
-}: {
-  session: Session | null;
-  children: React.ReactNode;
-}) {
+export function Providers({ children }: { children: React.ReactNode }) {
   if (!appDomain) throw new Error("NEXT_PUBLIC_DOMAIN is not set");
 
   return (
     <PostHogProvider>
-      <SessionProvider session={session}>
-        <FrameProvider>
-          <SignerProvider>
-            <Suspense fallback={<NotFound />}>
-              <App>{children}</App>
-            </Suspense>
-          </SignerProvider>
-        </FrameProvider>
-      </SessionProvider>
+      <FrameProvider>
+        <SignerProvider>
+          <Suspense fallback={<NotFound />}>
+            <App>{children}</App>
+          </Suspense>
+        </SignerProvider>
+      </FrameProvider>
     </PostHogProvider>
   );
 }

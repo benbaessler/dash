@@ -7,13 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ fid: string }> }
 ) {
   const { fid } = await params;
+  const viewerFid = Number(request.headers.get("x-fid"));
   const { searchParams } = new URL(request.url);
-  const viewerFid = Number(searchParams.get("viewerFid"));
   const cursor = searchParams.get("cursor") || undefined;
-
-  if (isNaN(Number(fid))) {
-    return NextResponse.json({ error: "Invalid FID" }, { status: 400 });
-  }
 
   try {
     const response = await neynar.fetchCastsForUser({

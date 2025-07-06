@@ -2,15 +2,10 @@ import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import { ReactionType } from "@neynar/nodejs-sdk/build/api";
 import prisma from "@/lib/prisma";
-import { verify } from "@/utils/verify";
 
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get("Authorization") as string;
-
-    const payload = await verify(authHeader);
-
-    const fid = payload.sub;
+    const fid = request.headers.get("x-fid");
 
     const { castHash, type } = await request.json();
 
