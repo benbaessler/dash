@@ -93,7 +93,11 @@ export function App({ children }: Props) {
               ease: "easeInOut",
             }}
           >
-            <FeedPage initialFeed="explore" initialVideo={initialPost} />
+            <FeedPage
+              initialFeed="explore"
+              initialVideo={initialPost}
+              idle={selectedTab !== "home"}
+            />
           </motion.div>
 
           <motion.div
