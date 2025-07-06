@@ -6,8 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ fid: string }> }
 ) {
   const { fid } = await params;
-  const { searchParams } = new URL(request.url);
-  const viewerFid = Number(searchParams.get("viewerFid")) || undefined;
+  const viewerFid = Number(request.headers.get("x-fid"));
 
   if (isNaN(Number(fid))) {
     return NextResponse.json({ error: "Invalid FID" }, { status: 400 });

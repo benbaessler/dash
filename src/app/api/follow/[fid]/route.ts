@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import prisma from "@/lib/prisma";
-import { verify } from "@/utils/verify";
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ fid: string }> }
+) {
+  const fid = Number(request.headers.get("x-fid"));
+  const { fid: targetFid } = await params;
+
+  if (!targetFid) {
+    return NextResponse.json(
+      { error: "Missing required parameters" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const authHeader = request.headers.get("Authorization") as string;
-
-    const payload = await verify(authHeader);
-    const fid = payload.sub;
-
-    const { fid: targetFid } = await request.json();
-
-    if (!targetFid) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
-        { status: 400 }
-      );
-    }
 
     const user = await prisma.user.findUnique({
       where: { fid: fid.toString() },
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
 
     const result = await neynar.followUser({
       signerUuid: user.signerUuid,
-      targetFids: [targetFid],
+      targetFids: [Number(targetFid)],
     });
 
     if (!result.success) {

@@ -1,23 +1,12 @@
-import { appUrl } from "@/constants";
+import { appUrl, developmentFid, isDevelopment } from "@/constants";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(
-  request: NextRequest,
-  {
-    params,
-  }: {
-    params: Promise<{
-      fid: string;
-    }>;
-  }
-) {
-  const { fid } = await params;
+export async function GET(request: NextRequest) {
+  const fid = isDevelopment
+    ? developmentFid
+    : Number(request.headers.get("x-fid"));
   const { searchParams } = new URL(request.url);
   const limit = Number(searchParams.get("limit")) || 10;
-
-  if (!Number(fid)) {
-    return NextResponse.json({ error: "Missing FID" }, { status: 400 });
-  }
 
   try {
     const url = "https://api.mbd.xyz/v2/farcaster/casts/feed/for-you";
@@ -25,8 +14,8 @@ export async function GET(
       method: "POST",
       headers: {
         accept: "application/json",
-        'HTTP-Referer': appUrl || "",
-        'X-Title': 'Dash',
+        "HTTP-Referer": appUrl || "",
+        "X-Title": "Dash",
         "content-type": "application/json",
         authorization: `Bearer ${process.env.MBD_API_KEY}`,
       },
@@ -40,8 +29,8 @@ export async function GET(
       }),
     });
     const data = await res.json();
-    
-    const posts: VideoData[] = data.body
+
+    const videos: VideoData[] = data.body
       .filter((item: any) =>
         item.metadata.embed_items.find((url: string) => url.includes("video"))
       )
@@ -65,10 +54,7 @@ export async function GET(
         };
       });
 
-    return NextResponse.json({
-      success: true,
-      data: posts,
-    });
+    return NextResponse.json(videos);
   } catch (error) {
     console.error(error);
     return NextResponse.json(
