@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const fid = Number(request.headers.get("x-fid"));
   const searchParams = url.searchParams;
   const query = searchParams.get("query");
   const limit = searchParams.get("limit");
@@ -16,17 +15,16 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await neynar.searchUser({
+    const response = await neynar.searchChannels({
       q: query.trim(),
-      viewerFid: fid,
       limit: limit ? Number(limit) : undefined,
     });
 
-    return NextResponse.json(response.result.users);
+    return NextResponse.json(response.channels);
   } catch (error) {
-    console.error("Error searching users:", error);
+    console.error("Error searching channels:", error);
     return NextResponse.json(
-      { error: "Failed to search users" },
+      { error: "Failed to search channels" },
       { status: 500 }
     );
   }

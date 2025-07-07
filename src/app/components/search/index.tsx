@@ -4,12 +4,13 @@ import { useState } from "react";
 import { SearchBar } from "../common/search-bar";
 import { useFrame } from "@/providers/FrameProvider";
 import useSWR from "swr";
-import { User } from "@neynar/nodejs-sdk/build/api";
+import { User, Channel } from "@neynar/nodejs-sdk/build/api";
 import { Loader } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Profile } from "../profile";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { UserResult } from "./components/user-result";
+import { ChannelResult } from "./components/channel-result";
 import { fetcher } from "@/utils/fetcher";
 
 export const SearchPage = () => {
@@ -26,7 +27,7 @@ export const SearchPage = () => {
 
     trackEvent(fromTrending ? "opened_trending_user" : "opened_from_search", {
       type: "user",
-      targetFid: user.fid,
+      targetId: user.fid,
     });
 
     if (!fromTrending)
@@ -42,13 +43,30 @@ export const SearchPage = () => {
       });
   };
 
-  const searchKey =
+  const handleChannelClick = (channel: Channel) => {
+    // TODO: open channel profile
+
+    trackEvent("opened_from_search", {
+      type: "channel",
+      targetId: channel.id,
+    });
+
+    fetch("/api/track/search", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({
+        type: "channel",
+        queryId: channel.id,
+      }),
+    });
+  };
+
+  const { data: userResults, isLoading: isUserResultsLoading } = useSWR<User[]>(
     sessionToken && search.trim().length > 0
-      ? `/api/search/users?query=${encodeURIComponent(search)}`
-      : null;
-
-  const { data: results, isLoading: isResultsLoading } = useSWR<User[]>(
-    searchKey,
+      ? `/api/search/users?query=${encodeURIComponent(search)}&limit=3`
+      : null,
     (url: string) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
@@ -58,10 +76,12 @@ export const SearchPage = () => {
     }
   );
 
-  const { data: trendingResults, isLoading: isTrendingLoading } = useSWR<
-    User[]
+  const { data: channelResults, isLoading: isChannelResultsLoading } = useSWR<
+    Channel[]
   >(
-    sessionToken ? `/api/search/trending` : null,
+    sessionToken && search.trim().length > 0
+      ? `/api/search/channels?query=${encodeURIComponent(search)}&limit=3`
+      : null,
     (url: string) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
@@ -71,7 +91,22 @@ export const SearchPage = () => {
     }
   );
 
-  const isLoading = isResultsLoading || isTrendingLoading;
+  const { data: trendingUserResults, isLoading: isTrendingUserResultsLoading } =
+    useSWR<User[]>(
+      sessionToken ? `/api/trending/users?limit=3` : null,
+      (url: string) => fetcher(url, sessionToken!),
+      {
+        revalidateOnFocus: false,
+        revalidateOnMount: true,
+        revalidateOnReconnect: false,
+        keepPreviousData: true,
+      }
+    );
+
+  const isLoading =
+    isUserResultsLoading ||
+    isChannelResultsLoading ||
+    isTrendingUserResultsLoading;
 
   return (
     <>
@@ -90,7 +125,7 @@ export const SearchPage = () => {
         <SearchBar
           value={search}
           onChange={setSearch}
-          placeholder="Search for users"
+          placeholder="Search for users and channels"
         />
         <div className="overflow-y-auto min-h-0 mt-4">
           {isLoading ? (
@@ -99,12 +134,12 @@ export const SearchPage = () => {
             </div>
           ) : search.length === 0 ? (
             <>
-              {trendingResults && trendingResults.length > 0 && (
+              {trendingUserResults && trendingUserResults.length > 0 && (
                 <h2 className="text-sm font-medium mb-3 text-gray-300">
                   Trending users
                 </h2>
               )}
-              {trendingResults?.map((user) => (
+              {trendingUserResults?.map((user) => (
                 <UserResult
                   key={user.fid}
                   user={user}
@@ -113,13 +148,36 @@ export const SearchPage = () => {
               ))}
             </>
           ) : (
-            results?.map((user) => (
-              <UserResult
-                key={user.fid}
-                user={user}
-                onClick={handleUserClick}
-              />
-            ))
+            <>
+              {userResults && userResults.length > 0 && (
+                <>
+                  <h2 className="text-sm font-medium mb-3 text-gray-300">
+                    Users
+                  </h2>
+                  {userResults.map((user) => (
+                    <UserResult
+                      key={user.fid}
+                      user={user}
+                      onClick={handleUserClick}
+                    />
+                  ))}
+                </>
+              )}
+              {channelResults && channelResults.length > 0 && (
+                <>
+                  <h2 className="text-sm font-medium mb-3 mt-6 text-gray-300">
+                    Channels
+                  </h2>
+                  {channelResults.map((channel) => (
+                    <ChannelResult
+                      key={channel.id}
+                      channel={channel}
+                      onClick={handleChannelClick}
+                    />
+                  ))}
+                </>
+              )}
+            </>
           )}
         </div>
       </motion.div>
