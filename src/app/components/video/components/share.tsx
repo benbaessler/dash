@@ -72,7 +72,7 @@ export const Share = ({ children, data }: ShareProps) => {
     if (!context?.user?.fid) return;
 
     try {
-      await fetch("/api/shares/track", {
+      await fetch("/api/track/share", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${sessionToken}`,

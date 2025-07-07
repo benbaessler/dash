@@ -30,7 +30,7 @@ export const SearchPage = () => {
     });
 
     if (!fromTrending)
-      fetch("/api/search/track", {
+      fetch("/api/track/search", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${sessionToken}`,

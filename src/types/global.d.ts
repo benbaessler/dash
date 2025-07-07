@@ -1,5 +1,6 @@
 interface VideoData {
   id: string;
+  channelId?: string;
   text: string;
   video_url: string;
   duration?: number;

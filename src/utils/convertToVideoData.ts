@@ -1,7 +1,10 @@
 import { CastWithInteractions } from "@neynar/nodejs-sdk/build/api";
 import { convertISOToUnix } from "./formatTime";
 
-export function convertToVideoData(casts: CastWithInteractions[]): VideoData[] {
+export function convertToVideoData(
+  casts: CastWithInteractions[],
+  channelId?: string
+): VideoData[] {
   const castsWithVideo = casts.filter(
     (cast) =>
       cast.embeds &&
@@ -28,6 +31,7 @@ export function convertToVideoData(casts: CastWithInteractions[]): VideoData[] {
 
     return {
       id: cast.hash,
+      channelId,
       text: cast.text,
       video_url: videoEmbed ? videoEmbed.url : undefined,
       duration,

@@ -48,6 +48,7 @@ export const VideoItem = ({
   );
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout>();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [viewed, setViewed] = useState(false);
 
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isHolding, setIsHolding] = useState(false);
@@ -213,6 +214,20 @@ export const VideoItem = ({
         clearTimeout(holdTimeout);
         setHoldTimeout(undefined);
       }
+      if (viewed) {
+        fetch("/api/track/view", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({
+            castHash: data.id,
+            channelId: data.channelId,
+          }),
+        });
+      }
+    } else {
+      setViewed(true);
     }
   }, [active, holdTimeout]);
 

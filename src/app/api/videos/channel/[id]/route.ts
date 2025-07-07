@@ -19,7 +19,7 @@ export async function GET(
       cursor,
     });
 
-    const data = convertToVideoData(response.casts);
+    const data = convertToVideoData(response.casts, id);
 
     return NextResponse.json({
       data,
