@@ -53,7 +53,7 @@ export function FeedView({
     setActiveIndex(newIndex);
   }, []);
 
-  if (feed.length === 0) return <Loading />;
+  if (feed.length === 0) return <Loading zIndex={5} />;
 
   return (
     <div

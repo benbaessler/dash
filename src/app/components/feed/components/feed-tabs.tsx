@@ -1,8 +1,23 @@
-import { PlusIcon } from "@phosphor-icons/react";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
 import useSWR from "swr";
 import { fetcher } from "@/utils/fetcher";
+import { Loader } from "lucide-react";
+import { CaretDownIcon } from "@phosphor-icons/react";
+import { motion } from "motion/react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface Props {
   activeFeed: string;
@@ -13,11 +28,12 @@ interface Props {
 export const FeedTabs = ({
   activeFeed,
   setActiveFeed,
-  onAddChannel,
 }: Props) => {
   const { sessionToken } = useFrame();
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const { data, isLoading } = useSWR(
+  const { data } = useSWR(
     sessionToken ? "/api/feed/saved" : null,
     (url: string) => fetcher(url, sessionToken!),
     {
@@ -28,33 +44,90 @@ export const FeedTabs = ({
     }
   );
 
+  const { data: searchResults, isLoading: isSearchLoading } = useSWR(
+    searchQuery
+      ? `/api/search/channels?query=${encodeURIComponent(searchQuery)}&limit=3`
+      : null,
+    (url: string) => fetcher(url, sessionToken!),
+    {
+      revalidateOnFocus: false,
+      keepPreviousData: true,
+    }
+  );
+
   const tabs = useMemo(() => ["Explore", ...(data || [])], [data]);
 
+  const displayOptions = useMemo(() => {
+    if (searchQuery) {
+      return searchResults?.map((channel: any) => channel.id) || [];
+    } else {
+      return tabs;
+    }
+  }, [tabs, searchResults, searchQuery]);
+
+  const displayedFeedName = tabs.find(
+    (tab: string) => tab.toLowerCase() === activeFeed.toLowerCase()
+  ) || activeFeed;
+
   return (
-    <div className="absolute top-3 left-5 flex gap-4 z-[5] items-center drop-shadow-sm bg-black/5 backdrop-blur-sm rounded-lg px-4 py-2">
-      {isLoading ? (
-        <span className="text-gray-200">Loading...</span>
-      ) : (
-        tabs.map((tab) => (
-          <span
-            key={tab}
-            onClick={() => setActiveFeed(tab.toLowerCase())}
-            className={`font-medium cursor-pointer hover:text-white transition-colors duration-150 ${
-              activeFeed.toLowerCase() === tab.toLowerCase()
-                ? "text-white"
-                : "text-gray-200"
-            }`}
+    <div className="absolute top-3 left-5 z-[9] drop-shadow-sm">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <div
+            role="combobox"
+            aria-expanded={open}
+            className="flex items-center cursor-pointer gap-2 font-medium"
+            tabIndex={0}
+            onClick={() => setOpen(!open)}
           >
-            {tab}
-          </span>
-        ))
-      )}
-      <PlusIcon
-        size={20}
-        weight="bold"
-        className="text-gray-200 cursor-pointer hover:text-white transition-colors duration-150"
-        onClick={onAddChannel}
-      />
+            <motion.div
+              animate={{ rotate: open ? 180 : 0 }}
+              transition={{ duration: 0.15, ease: "easeInOut" }}
+            >
+              <CaretDownIcon size={20} weight="bold" />
+            </motion.div>
+            <span className="truncate">{displayedFeedName}</span>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-[200px] p-0 bg-slate-900 rounded-lg border-none mt-1 ml-3">
+          <Command className="bg-transparent">
+            <CommandInput
+              placeholder="Search channels"
+              value={searchQuery}
+              onValueChange={setSearchQuery}
+              className="text-white focus:ring-0 focus:outline-none placeholder:text-gray-400"
+            />
+            <CommandList className="text-sm p-1">
+              {isSearchLoading ? (
+                <div className="flex items-center justify-center py-2">
+                  <Loader className="h-4 w-4 animate-spin text-white" />
+                </div>
+              ) : (
+                <>
+                  <CommandEmpty className="p-2">No channels found</CommandEmpty>
+                  <CommandGroup>
+                    {displayOptions
+                      .filter((option: string) => option.toLowerCase() !== activeFeed)
+                      .map((option: string) => (
+                        <CommandItem
+                          key={option}
+                          value={option}
+                          onSelect={(currentValue) => {
+                            setActiveFeed(currentValue.toLowerCase());
+                            setOpen(false);
+                          }}
+                          className="text-white hover:bg-slate-800 py-2 rounded-md cursor-pointer"
+                        >
+                          {option}
+                        </CommandItem>
+                      ))}
+                  </CommandGroup>
+                </>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
