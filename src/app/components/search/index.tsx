@@ -12,6 +12,7 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 import { UserResult } from "./components/user-result";
 import { ChannelResult } from "./components/channel-result";
 import { fetcher } from "@/utils/fetcher";
+import { AnimatedPlaceholder } from "./components/animated-placeholder";
 
 export const SearchPage = () => {
   const [search, setSearch] = useState("");
@@ -147,11 +148,14 @@ export const SearchPage = () => {
           ease: "easeInOut",
         }}
       >
-        <SearchBar
-          value={search}
-          onChange={setSearch}
-          placeholder="Search for users and channels"
-        />
+        <div className="relative">
+          <SearchBar value={search} onChange={setSearch} placeholder="" />
+          {!search && (
+            <div className="absolute left-9 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+              <AnimatedPlaceholder />
+            </div>
+          )}
+        </div>
         <div className="overflow-y-auto min-h-0 mt-4">
           {isLoading ? (
             <div className="flex justify-center items-center px-2 py-4">
