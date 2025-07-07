@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import { convertToVideoData } from "@/utils/convertToVideoData";
+import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
@@ -12,15 +13,26 @@ export async function GET(
   const cursor = searchParams.get("cursor") || undefined;
 
   try {
-    const response = await neynar.fetchCastsForUser({
-      fid: Number(fid),
-      viewerFid,
-      limit: 150,
-      cursor,
-      includeReplies: false,
-    });
+    const [response, viewedVideos] = await Promise.all([
+      neynar.fetchCastsForUser({
+        fid: Number(fid),
+        viewerFid,
+        limit: 150,
+        cursor,
+        includeReplies: false,
+      }),
+      prisma.view.findMany({
+        where: {
+          viewerFid: viewerFid.toString(),
+          creatorFid: fid.toString(),
+        },
+        select: {
+          castHash: true,
+        },
+      }),
+    ]);
 
-    const data = convertToVideoData(response.casts);
+    const data = convertToVideoData(response.casts, viewedVideos);
 
     return NextResponse.json({
       data,

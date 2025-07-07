@@ -14,25 +14,26 @@ export async function GET(
   const excludeViewed = searchParams.get("excludeViewed") === "true";
 
   try {
-    const response = await neynar.fetchFeedByChannelIds({
-      channelIds: [id],
-      viewerFid,
-      limit: 100,
-      cursor,
-    });
-
-    const viewedVideos = await prisma.view.findMany({
-      where: {
-        viewerFid: viewerFid.toString(),
-        channelId: id,
-      },
-      select: {
-        castHash: true,
-      },
-    });
+    const [response, viewedVideos] = await Promise.all([
+      neynar.fetchFeedByChannelIds({
+        channelIds: [id],
+        viewerFid,
+        limit: 100,
+        cursor,
+      }),
+      prisma.view.findMany({
+        where: {
+          viewerFid: viewerFid.toString(),
+          channelId: id,
+        },
+        select: {
+          castHash: true,
+        },
+      }),
+    ]);
 
     let currentResponse = response;
-    let data = convertToVideoData(currentResponse.casts, id, viewedVideos);
+    let data = convertToVideoData(currentResponse.casts, viewedVideos, id);
     let filteredData = data;
     if (excludeViewed) {
       filteredData = data.filter(

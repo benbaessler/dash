@@ -3,8 +3,8 @@ import { convertISOToUnix } from "./formatTime";
 
 export function convertToVideoData(
   casts: CastWithInteractions[],
-  channelId?: string,
-  views?: { castHash: string }[]
+  views?: { castHash: string }[],
+  channelId?: string
 ): VideoData[] {
   const castsWithVideo = casts.filter(
     (cast) =>
