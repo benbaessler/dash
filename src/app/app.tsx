@@ -93,11 +93,13 @@ export function App({ children }: Props) {
               ease: "easeInOut",
             }}
           >
-            <FeedPage
-              initialFeed="explore"
-              initialVideo={initialPost}
-              idle={selectedTab !== "home"}
-            />
+            {selectedTab === "home" && (
+              <FeedPage
+                initialFeed="explore"
+                initialVideo={initialPost}
+                idle={selectedTab !== "home"}
+              />
+            )}
           </motion.div>
 
           <motion.div
@@ -116,7 +118,7 @@ export function App({ children }: Props) {
               ease: "easeInOut",
             }}
           >
-            <SearchPage />
+            {selectedTab === "search" && <SearchPage />}
           </motion.div>
 
           <motion.div
@@ -135,7 +137,9 @@ export function App({ children }: Props) {
               ease: "easeInOut",
             }}
           >
-            <Profile type="user" data={user || null} isCurrentUser />
+            {selectedTab === "profile" && (
+              <Profile type="user" data={user || null} isCurrentUser />
+            )}
           </motion.div>
 
           {selectedTab === null && children}

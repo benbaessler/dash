@@ -12,7 +12,12 @@ interface FeedViewProps {
   idle?: boolean;
 }
 
-export function FeedView({ feed, fetching, fetchMore, idle = false }: FeedViewProps) {
+export function FeedView({
+  feed,
+  fetching,
+  fetchMore,
+  idle = false,
+}: FeedViewProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
@@ -21,7 +26,7 @@ export function FeedView({ feed, fetching, fetchMore, idle = false }: FeedViewPr
     if (feed.length > 1 && !fetching && activeIndex > feed.length - 10) {
       fetchMore();
     }
-  }, [activeIndex, feed, fetching, fetchMore]);
+  }, [activeIndex, feed, fetching]);
 
   useEffect(() => {
     return () => {
