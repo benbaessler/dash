@@ -4,9 +4,19 @@ import { FrameProvider } from "@/providers/FrameProvider";
 import { SignerProvider } from "@/providers/SignerProvider";
 import { appDomain } from "@/constants";
 import { PostHogProvider } from "@/providers/PostHogProvider";
-import { App } from "./app";
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { NotFound } from "./components/common/not-found";
+import { Loading } from "./components/common/loading";
+import { NavigationProvider } from "@/providers/NavigationProvider";
+
+const App = dynamic(
+  () => import("./app").then((mod) => ({ default: mod.App })),
+  {
+    ssr: false,
+    loading: () => <Loading />,
+  }
+);
 
 export function Providers({ children }: { children: React.ReactNode }) {
   if (!appDomain) throw new Error("NEXT_PUBLIC_DOMAIN is not set");
@@ -15,9 +25,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <PostHogProvider>
       <FrameProvider>
         <SignerProvider>
-          <Suspense fallback={<NotFound />}>
-            <App>{children}</App>
-          </Suspense>
+          <NavigationProvider>
+            <Suspense fallback={<NotFound />}>
+              <App>{children}</App>
+            </Suspense>
+          </NavigationProvider>
         </SignerProvider>
       </FrameProvider>
     </PostHogProvider>
