@@ -4,7 +4,12 @@ import { User, Channel } from "@neynar/nodejs-sdk/build/api";
 import { Button } from "@/components/ui/button";
 import { ClickableText } from "@/app/components/common/text";
 import { FarcasterIcon } from "@/assets/icons";
-import { ArrowLeftIcon, ExportIcon, PlusIcon } from "@phosphor-icons/react";
+import {
+  ArrowLeftIcon,
+  ExportIcon,
+  PlusIcon,
+  CheckIcon,
+} from "@phosphor-icons/react";
 import sdk from "@farcaster/frame-sdk";
 import { Avatar } from "@/app/components/video/components/avatar";
 import { useFrame } from "@/providers/FrameProvider";
@@ -22,7 +27,7 @@ import { fetcher } from "@/utils/fetcher";
 
 interface Props {
   data: User | Channel | null;
-  type: 'user' | 'channel';
+  type: "user" | "channel";
   isCurrentUser?: boolean;
   onClose?: () => void;
 }
@@ -42,8 +47,9 @@ export function Profile({
   );
 
   const [following, setFollowing] = useState(
-    type === 'user' ? (data as User)?.viewer_context?.following || false : false
+    type === "user" ? (data as User)?.viewer_context?.following || false : false
   );
+  const [feedAdded, setFeedAdded] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -55,10 +61,14 @@ export function Profile({
     previousPageData: { data: VideoData[]; cursor: string | null } | null
   ) => {
     if (pageIndex === 0) {
-      if (type === 'user') {
-        return data && sessionToken ? `/api/videos/user/${(data as User).fid}` : null;
+      if (type === "user") {
+        return data && sessionToken
+          ? `/api/videos/user/${(data as User).fid}`
+          : null;
       } else {
-        return data && sessionToken ? `/api/videos/channel/${(data as Channel).id}` : null;
+        return data && sessionToken
+          ? `/api/videos/channel/${(data as Channel).id}`
+          : null;
       }
     }
     if (
@@ -67,13 +77,17 @@ export function Profile({
     ) {
       return null;
     }
-    if (type === 'user') {
+    if (type === "user") {
       return data && sessionToken
-        ? `/api/videos/user/${(data as User).fid}?cursor=${previousPageData?.cursor || ""}`
+        ? `/api/videos/user/${(data as User).fid}?cursor=${
+            previousPageData?.cursor || ""
+          }`
         : null;
     } else {
       return data && sessionToken
-        ? `/api/videos/channel/${(data as Channel).id}?cursor=${previousPageData?.cursor || ""}`
+        ? `/api/videos/channel/${(data as Channel).id}?cursor=${
+            previousPageData?.cursor || ""
+          }`
         : null;
     }
   };
@@ -155,8 +169,8 @@ export function Profile({
   }, [loadMore, hasReachedEnd]);
 
   const handleFollowChange = async (state: boolean) => {
-    if (type !== 'user') return;
-    
+    if (type !== "user") return;
+
     const valid = await verifySigner();
     if (!valid) return;
 
@@ -164,7 +178,9 @@ export function Profile({
     setFollowing(state);
 
     const response = await fetch(
-      state ? `/api/follow/${(data as User)?.fid}` : `/api/unfollow/${(data as User)?.fid}`,
+      state
+        ? `/api/follow/${(data as User)?.fid}`
+        : `/api/unfollow/${(data as User)?.fid}`,
       {
         method: "POST",
         headers: {
@@ -183,23 +199,44 @@ export function Profile({
     });
   };
 
+  const handleAddFeed = async () => {
+    if (feedAdded) return;
+
+    setFeedAdded(true);
+    const response = await fetch(`/api/feed/saved`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({
+        channelId: (data as Channel)?.id,
+      }),
+    });
+
+    if (!response.ok) {
+      setFeedAdded(false);
+    }
+  };
+
   const handleShare = async () => {
     const result = await sdk.actions.composeCast({
       text: isCurrentUser
         ? `Check out my videos on /dash!`
-        : type === 'user'
-          ? `Check out @${(data as User)?.username} on /dash!`
-          : `Check out /${(data as Channel)?.id} on /dash!`,
-      embeds: [type === 'user' 
-        ? `${appUrl}/u/${(data as User)?.username}?utm_source=share_profile`
-        : `${appUrl}/c/${(data as Channel)?.id}?utm_source=share_profile`
+        : type === "user"
+        ? `Check out @${(data as User)?.username} on /dash!`
+        : `Check out /${(data as Channel)?.id} on /dash!`,
+      embeds: [
+        type === "user"
+          ? `${appUrl}/u/${(data as User)?.username}?utm_source=share_profile`
+          : `${appUrl}/c/${(data as Channel)?.id}?utm_source=share_profile`,
       ],
     });
 
     if (result && result.cast) {
       trackEvent("shared_profile", {
         user: currentUser?.username,
-        target: type === 'user' ? (data as User)?.username : (data as Channel)?.id,
+        target:
+          type === "user" ? (data as User)?.username : (data as Channel)?.id,
         castHash: result.cast.hash,
       });
     }
@@ -242,7 +279,9 @@ export function Profile({
             )}
             {data && (
               <h1 className="font-medium text-center">
-                {type === 'user' ? `@${(data as User).username}` : `/${(data as Channel).id}`}
+                {type === "user"
+                  ? `@${(data as User).username}`
+                  : `/${(data as Channel).id}`}
               </h1>
             )}
             {!isCurrentUser && (
@@ -255,8 +294,9 @@ export function Profile({
                 </div>
                 <div
                   onClick={() => {
-                    if (type === 'user') {
-                      data && sdk.actions.viewProfile({ fid: (data as User).fid })
+                    if (type === "user") {
+                      data &&
+                        sdk.actions.viewProfile({ fid: (data as User).fid });
                     }
                   }}
                 >
@@ -268,12 +308,13 @@ export function Profile({
 
           <div className="flex justify-center mb-2">
             {data ? (
-              type === 'user' ? (
+              type === "user" ? (
                 <Avatar
                   user={{
                     fid: (data as User).fid,
                     username: (data as User).username,
-                    displayName: (data as User).display_name || (data as User).username,
+                    displayName:
+                      (data as User).display_name || (data as User).username,
                     pfpUrl: (data as User).pfp_url || "",
                   }}
                   className="w-20 h-20"
@@ -293,16 +334,15 @@ export function Profile({
           <div className="text-center mb-2">
             {data && (
               <h2 className="text-lg font-bold text-white">
-                {type === 'user' 
+                {type === "user"
                   ? (data as User).display_name || (data as User).username
-                  : (data as Channel).name || (data as Channel).id
-                }
+                  : (data as Channel).name || (data as Channel).id}
               </h2>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-2 mb-2 max-w-40 mx-auto">
-            {type === 'user' ? (
+            {type === "user" ? (
               <>
                 <div className="text-center">
                   <div className="text-base font-bold text-white">
@@ -337,33 +377,51 @@ export function Profile({
 
           <div className="flex justify-center mb-4 max-w-48 mx-auto gap-2">
             <Button
-              variant={following ? "outlineAction" : "action"}
+              variant={following || feedAdded ? "outlineAction" : "action"}
               size="sm"
               className="flex-grow"
               disabled={!data}
               onClick={() => {
+                if (feedAdded) return;
                 if (isCurrentUser) {
                   handleShare();
-                } else if (type === 'user') {
+                } else if (type === "user") {
                   handleFollowChange(!following);
+                } else if (type === "channel") {
+                  handleAddFeed();
                 }
               }}
             >
               {isCurrentUser && <ExportIcon size={16} weight="bold" />}
-              {isCurrentUser ? "Share" : type === 'channel' ? "Add feed" : following ? "Following" : "Follow"}
-              {type === 'channel' && <PlusIcon size={16} weight="bold" />}
+              {isCurrentUser
+                ? "Share"
+                : type === "channel"
+                ? feedAdded
+                  ? "Added"
+                  : "Add feed"
+                : following
+                ? "Following"
+                : "Follow"}
+              {type === "channel" ? (
+                feedAdded ? (
+                  <CheckIcon size={16} weight="bold" />
+                ) : (
+                  <PlusIcon size={16} weight="bold" />
+                )
+              ) : null}
             </Button>
           </div>
 
-          {((type === 'user' && (data as User)?.profile?.bio?.text) || 
-            (type === 'channel' && (data as Channel)?.description)) && (
+          {((type === "user" && (data as User)?.profile?.bio?.text) ||
+            (type === "channel" && (data as Channel)?.description)) && (
             <div className="text-center mx-4">
               <p className="text-sm text-gray-300 leading-relaxed">
-                <ClickableText 
-                  text={type === 'user' 
-                    ? (data as User)?.profile?.bio?.text || ''
-                    : (data as Channel)?.description || ''
-                  } 
+                <ClickableText
+                  text={
+                    type === "user"
+                      ? (data as User)?.profile?.bio?.text || ""
+                      : (data as Channel)?.description || ""
+                  }
                 />
               </p>
             </div>
@@ -379,7 +437,7 @@ export function Profile({
               user: currentUser?.username,
               target: flattenedData[index].author.username,
               castHash: flattenedData[index].id,
-              channelId: type === 'channel' ? (data as Channel)?.id : undefined,
+              channelId: type === "channel" ? (data as Channel)?.id : undefined,
             });
           }}
         />

@@ -3,6 +3,7 @@ import { ChannelFeed } from "./components/channel-feed";
 import { FeedView } from "./components/feed-view";
 import { useFeed } from "@/hooks/useFeed";
 import { PlusIcon } from "@phosphor-icons/react";
+import { FeedTabs } from "./components/feed-tabs";
 
 interface Props {
   initialFeed: string; // define type for feeds (explore, following, channelIds)
@@ -40,26 +41,11 @@ export const FeedPage = ({
           idle={!activeFeed.startsWith("/") || idle}
         />
       )}
-      <div className="absolute top-3 left-5 flex gap-4 z-[5] items-center drop-shadow-sm bg-black/5 backdrop-blur-sm rounded-lg px-4 py-2">
-        {tabs.map((tab) => (
-          <span
-            key={tab}
-            onClick={() => setActiveFeed(tab.toLowerCase())}
-            className={`font-medium cursor-pointer hover:text-white transition-colors duration-150 ${
-              activeFeed.toLowerCase() === tab.toLowerCase()
-                ? "text-white"
-                : "text-gray-200"
-            }`}
-          >
-            {tab}
-          </span>
-        ))}
-        <PlusIcon
-          size={20}
-          weight="bold"
-          className="text-gray-200 cursor-pointer hover:text-white transition-colors duration-150"
-        />
-      </div>
+      <FeedTabs
+        activeFeed={activeFeed}
+        setActiveFeed={setActiveFeed}
+        onAddChannel={() => { /* TODO: handle add channel */ }}
+      />
     </div>
   );
 };

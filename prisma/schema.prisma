@@ -18,6 +18,16 @@ model User {
   @@index([fid])
 }
 
+model SavedFeed {
+  id         Int      @id @default(autoincrement())
+  fid        String
+  channelId  String
+  createdAt  DateTime @default(now())
+
+  @@unique([fid, channelId])
+  @@index([fid])
+}
+
 model View {
   id         Int      @id @default(autoincrement())
   castHash   String
