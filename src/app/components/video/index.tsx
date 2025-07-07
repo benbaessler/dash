@@ -363,7 +363,8 @@ export const VideoItem = ({
       <AnimatePresence>
         {isProfileOpen && (
           <Profile
-            user={authorData || null}
+            type="user"
+            data={authorData || null}
             onClose={() => setIsProfileOpen(false)}
           />
         )}

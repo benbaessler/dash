@@ -135,7 +135,7 @@ export function App({ children }: Props) {
               ease: "easeInOut",
             }}
           >
-            <Profile user={user || null} isCurrentUser />
+            <Profile type="user" data={user || null} isCurrentUser />
           </motion.div>
 
           {selectedTab === null && children}

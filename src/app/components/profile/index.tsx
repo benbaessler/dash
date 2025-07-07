@@ -1,10 +1,10 @@
 "use client";
 
-import { User } from "@neynar/nodejs-sdk/build/api";
+import { User, Channel } from "@neynar/nodejs-sdk/build/api";
 import { Button } from "@/components/ui/button";
 import { ClickableText } from "@/app/components/common/text";
 import { FarcasterIcon } from "@/assets/icons";
-import { ArrowLeftIcon, ExportIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, ExportIcon, PlusIcon } from "@phosphor-icons/react";
 import sdk from "@farcaster/frame-sdk";
 import { Avatar } from "@/app/components/video/components/avatar";
 import { useFrame } from "@/providers/FrameProvider";
@@ -20,17 +20,19 @@ import { appUrl } from "@/constants";
 import { motion, AnimatePresence } from "motion/react";
 import { fetcher } from "@/utils/fetcher";
 
-interface ProfileProps {
-  user: User | null;
+interface Props {
+  data: User | Channel | null;
+  type: 'user' | 'channel';
   isCurrentUser?: boolean;
   onClose?: () => void;
 }
 
 export function Profile({
-  user,
+  data,
+  type,
   isCurrentUser = false,
   onClose = undefined,
-}: ProfileProps) {
+}: Props) {
   const { sessionToken, user: currentUser } = useFrame();
   const { verifySigner } = useSigner();
   const { trackEvent } = useAnalytics();
@@ -40,7 +42,7 @@ export function Profile({
   );
 
   const [following, setFollowing] = useState(
-    user?.viewer_context?.following || false
+    type === 'user' ? (data as User)?.viewer_context?.following || false : false
   );
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -53,7 +55,11 @@ export function Profile({
     previousPageData: { data: VideoData[]; cursor: string | null } | null
   ) => {
     if (pageIndex === 0) {
-      return user && sessionToken ? `/api/videos/${user.fid}` : null;
+      if (type === 'user') {
+        return data && sessionToken ? `/api/videos/user/${(data as User).fid}` : null;
+      } else {
+        return data && sessionToken ? `/api/videos/channel/${(data as Channel).id}` : null;
+      }
     }
     if (
       previousPageData &&
@@ -61,9 +67,15 @@ export function Profile({
     ) {
       return null;
     }
-    return user && sessionToken
-      ? `/api/videos/${user.fid}?cursor=${previousPageData?.cursor || ""}`
-      : null;
+    if (type === 'user') {
+      return data && sessionToken
+        ? `/api/videos/user/${(data as User).fid}?cursor=${previousPageData?.cursor || ""}`
+        : null;
+    } else {
+      return data && sessionToken
+        ? `/api/videos/channel/${(data as Channel).id}?cursor=${previousPageData?.cursor || ""}`
+        : null;
+    }
   };
 
   const {
@@ -143,6 +155,8 @@ export function Profile({
   }, [loadMore, hasReachedEnd]);
 
   const handleFollowChange = async (state: boolean) => {
+    if (type !== 'user') return;
+    
     const valid = await verifySigner();
     if (!valid) return;
 
@@ -150,7 +164,7 @@ export function Profile({
     setFollowing(state);
 
     const response = await fetch(
-      state ? `/api/follow/${user?.fid}` : `/api/unfollow/${user?.fid}`,
+      state ? `/api/follow/${(data as User)?.fid}` : `/api/unfollow/${(data as User)?.fid}`,
       {
         method: "POST",
         headers: {
@@ -165,7 +179,7 @@ export function Profile({
 
     trackEvent(state ? "followed_from_profile" : "unfollowed", {
       user: currentUser?.username,
-      target: user?.username,
+      target: (data as User)?.username,
     });
   };
 
@@ -173,14 +187,19 @@ export function Profile({
     const result = await sdk.actions.composeCast({
       text: isCurrentUser
         ? `Check out my videos on /dash!`
-        : `Check out @${user?.username} on /dash!`,
-      embeds: [`${appUrl}/u/${user?.username}?utm_source=share_profile`],
+        : type === 'user'
+          ? `Check out @${(data as User)?.username} on /dash!`
+          : `Check out /${(data as Channel)?.id} on /dash!`,
+      embeds: [type === 'user' 
+        ? `${appUrl}/u/${(data as User)?.username}?utm_source=share_profile`
+        : `${appUrl}/c/${(data as Channel)?.id}?utm_source=share_profile`
+      ],
     });
 
     if (result && result.cast) {
       trackEvent("shared_profile", {
         user: currentUser?.username,
-        target: user?.username,
+        target: type === 'user' ? (data as User)?.username : (data as Channel)?.id,
         castHash: result.cast.hash,
       });
     }
@@ -221,8 +240,10 @@ export function Profile({
                 onClick={onClose}
               />
             )}
-            {user && (
-              <h1 className="font-medium text-center">@{user.username}</h1>
+            {data && (
+              <h1 className="font-medium text-center">
+                {type === 'user' ? `@${(data as User).username}` : `/${(data as Channel).id}`}
+              </h1>
             )}
             {!isCurrentUser && (
               <div className="absolute right-0 gap-3 cursor-pointer flex items-center">
@@ -233,9 +254,11 @@ export function Profile({
                   <ExportIcon weight="bold" size={21} />
                 </div>
                 <div
-                  onClick={() =>
-                    user && sdk.actions.viewProfile({ fid: user.fid })
-                  }
+                  onClick={() => {
+                    if (type === 'user') {
+                      data && sdk.actions.viewProfile({ fid: (data as User).fid })
+                    }
+                  }}
                 >
                   <FarcasterIcon className="w-6 h-6 text-white hover:text-slate-300 transition-colors" />
                 </div>
@@ -244,43 +267,72 @@ export function Profile({
           </div>
 
           <div className="flex justify-center mb-2">
-            {user ? (
-              <Avatar
-                user={{
-                  fid: user.fid,
-                  username: user.username,
-                  displayName: user.display_name || user.username,
-                  pfpUrl: user.pfp_url || "",
-                }}
-                className="w-20 h-20"
-              />
+            {data ? (
+              type === 'user' ? (
+                <Avatar
+                  user={{
+                    fid: (data as User).fid,
+                    username: (data as User).username,
+                    displayName: (data as User).display_name || (data as User).username,
+                    pfpUrl: (data as User).pfp_url || "",
+                  }}
+                  className="w-20 h-20"
+                />
+              ) : (
+                <img
+                  src={(data as Channel).image_url}
+                  alt={(data as Channel).name || (data as Channel).id}
+                  className="w-20 h-20 rounded-full object-cover"
+                />
+              )
             ) : (
               <Skeleton className="w-20 h-20 rounded-full" />
             )}
           </div>
 
           <div className="text-center mb-2">
-            {user && (
+            {data && (
               <h2 className="text-lg font-bold text-white">
-                {user.display_name || user.username}
+                {type === 'user' 
+                  ? (data as User).display_name || (data as User).username
+                  : (data as Channel).name || (data as Channel).id
+                }
               </h2>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-2 mb-2 max-w-40 mx-auto">
-            <div className="text-center">
-              <div className="text-base font-bold text-white">
-                {user?.following_count || "-"}
-              </div>
-              <div className="text-xs text-slate-400">Following</div>
-            </div>
-
-            <div className="text-center">
-              <div className="text-base font-bold text-white">
-                {user?.follower_count || "-"}
-              </div>
-              <div className="text-xs text-slate-400">Followers</div>
-            </div>
+            {type === 'user' ? (
+              <>
+                <div className="text-center">
+                  <div className="text-base font-bold text-white">
+                    {(data as User)?.following_count || "-"}
+                  </div>
+                  <div className="text-xs text-slate-400">Following</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-base font-bold text-white">
+                    {(data as User)?.follower_count || "-"}
+                  </div>
+                  <div className="text-xs text-slate-400">Followers</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-center">
+                  <div className="text-base font-bold text-white">
+                    {(data as Channel)?.member_count || "-"}
+                  </div>
+                  <div className="text-xs text-slate-400">Members</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-base font-bold text-white">
+                    {(data as Channel)?.follower_count || "-"}
+                  </div>
+                  <div className="text-xs text-slate-400">Followers</div>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex justify-center mb-4 max-w-48 mx-auto gap-2">
@@ -288,20 +340,31 @@ export function Profile({
               variant={following ? "outlineAction" : "action"}
               size="sm"
               className="flex-grow"
-              disabled={!user}
-              onClick={() =>
-                isCurrentUser ? handleShare() : handleFollowChange(!following)
-              }
+              disabled={!data}
+              onClick={() => {
+                if (isCurrentUser) {
+                  handleShare();
+                } else if (type === 'user') {
+                  handleFollowChange(!following);
+                }
+              }}
             >
               {isCurrentUser && <ExportIcon size={16} weight="bold" />}
-              {isCurrentUser ? "Share" : following ? "Following" : "Follow"}
+              {isCurrentUser ? "Share" : type === 'channel' ? "Add feed" : following ? "Following" : "Follow"}
+              {type === 'channel' && <PlusIcon size={16} weight="bold" />}
             </Button>
           </div>
 
-          {user?.profile?.bio?.text && (
+          {((type === 'user' && (data as User)?.profile?.bio?.text) || 
+            (type === 'channel' && (data as Channel)?.description)) && (
             <div className="text-center mx-4">
               <p className="text-sm text-gray-300 leading-relaxed">
-                <ClickableText text={user.profile.bio.text} />
+                <ClickableText 
+                  text={type === 'user' 
+                    ? (data as User)?.profile?.bio?.text || ''
+                    : (data as Channel)?.description || ''
+                  } 
+                />
               </p>
             </div>
           )}
@@ -314,8 +377,9 @@ export function Profile({
             setSelectedVideoIndex(index);
             trackEvent("opened_profile_video", {
               user: currentUser?.username,
-              target: user?.username,
+              target: flattenedData[index].author.username,
               castHash: flattenedData[index].id,
+              channelId: type === 'channel' ? (data as Channel)?.id : undefined,
             });
           }}
         />

@@ -16,18 +16,28 @@ import { fetcher } from "@/utils/fetcher";
 export const SearchPage = () => {
   const [search, setSearch] = useState("");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedType, setSelectedType] = useState<"user" | "channel" | null>(
+    null
+  );
+  const [selectedResult, setSelectedResult] = useState<User | Channel | null>(
+    null
+  );
   const { trackEvent } = useAnalytics();
 
   const { sessionToken } = useFrame();
 
-  const handleUserClick = (user: User, fromTrending: boolean = false) => {
-    setSelectedUser(user);
+  const handleResultClick = (
+    type: "user" | "channel",
+    data: User | Channel,
+    fromTrending: boolean = false
+  ) => {
+    setSelectedType(type);
+    setSelectedResult(data);
     setIsProfileOpen(true);
 
     trackEvent(fromTrending ? "opened_trending_user" : "opened_from_search", {
-      type: "user",
-      targetId: user.fid,
+      type,
+      targetId: type === "user" ? (data as User).fid : (data as Channel).id,
     });
 
     if (!fromTrending)
@@ -37,8 +47,8 @@ export const SearchPage = () => {
           Authorization: `Bearer ${sessionToken}`,
         },
         body: JSON.stringify({
-          type: "user",
-          queryId: user.fid,
+          type,
+          queryId: type === "user" ? (data as User).fid : (data as Channel).id,
         }),
       });
   };
@@ -103,9 +113,10 @@ export const SearchPage = () => {
       }
     );
 
-  const { data: trendingChannelResults, isLoading: isTrendingChannelResultsLoading } = useSWR<
-    Channel[]
-  >(
+  const {
+    data: trendingChannelResults,
+    isLoading: isTrendingChannelResultsLoading,
+  } = useSWR<Channel[]>(
     sessionToken ? `/api/trending/channels` : null,
     (url: string) => fetcher(url, sessionToken!),
     {
@@ -157,7 +168,7 @@ export const SearchPage = () => {
                     <UserResult
                       key={user.fid}
                       user={user}
-                      onClick={() => handleUserClick(user, true)}
+                      onClick={() => handleResultClick("user", user, true)}
                     />
                   ))}
                 </>
@@ -171,7 +182,9 @@ export const SearchPage = () => {
                     <ChannelResult
                       key={channel.id}
                       channel={channel}
-                      onClick={handleChannelClick}
+                      onClick={() =>
+                        handleResultClick("channel", channel, true)
+                      }
                     />
                   ))}
                 </>
@@ -188,7 +201,7 @@ export const SearchPage = () => {
                     <UserResult
                       key={user.fid}
                       user={user}
-                      onClick={handleUserClick}
+                      onClick={() => handleResultClick("user", user, false)}
                     />
                   ))}
                 </>
@@ -202,7 +215,9 @@ export const SearchPage = () => {
                     <ChannelResult
                       key={channel.id}
                       channel={channel}
-                      onClick={handleChannelClick}
+                      onClick={() =>
+                        handleResultClick("channel", channel, false)
+                      }
                     />
                   ))}
                 </>
@@ -212,9 +227,10 @@ export const SearchPage = () => {
         </div>
       </motion.div>
       <AnimatePresence>
-        {isProfileOpen && selectedUser && (
+        {isProfileOpen && selectedResult && selectedType && (
           <Profile
-            user={selectedUser}
+            type={selectedType}
+            data={selectedResult}
             onClose={() => setIsProfileOpen(false)}
           />
         )}
