@@ -18,7 +18,7 @@ model User {
   @@index([fid])
 }
 
-model SavedFeed {
+model FeedSearch {
   id         Int      @id @default(autoincrement())
   fid        String
   channelId  String
@@ -26,6 +26,7 @@ model SavedFeed {
 
   @@unique([fid, channelId])
   @@index([fid])
+  @@index([channelId])
 }
 
 model View {

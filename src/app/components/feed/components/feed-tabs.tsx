@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useFrame } from "@/providers/FrameProvider";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { fetcher } from "@/utils/fetcher";
 import { Loader } from "lucide-react";
 import { CaretDownIcon } from "@phosphor-icons/react";
@@ -25,16 +25,13 @@ interface Props {
   onAddChannel?: () => void;
 }
 
-export const FeedTabs = ({
-  activeFeed,
-  setActiveFeed,
-}: Props) => {
+export const FeedTabs = ({ activeFeed, setActiveFeed }: Props) => {
   const { sessionToken } = useFrame();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data } = useSWR(
-    sessionToken ? "/api/feed/saved" : null,
+  const { data, isLoading } = useSWR(
+    sessionToken ? "/api/trending/feeds" : null,
     (url: string) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
@@ -46,7 +43,7 @@ export const FeedTabs = ({
 
   const { data: searchResults, isLoading: isSearchLoading } = useSWR(
     searchQuery
-      ? `/api/search/channels?query=${encodeURIComponent(searchQuery)}&limit=3`
+      ? `/api/search/channels?query=${encodeURIComponent(searchQuery)}&limit=5`
       : null,
     (url: string) => fetcher(url, sessionToken!),
     {
@@ -59,15 +56,35 @@ export const FeedTabs = ({
 
   const displayOptions = useMemo(() => {
     if (searchQuery) {
-      return searchResults?.map((channel: any) => channel.id) || [];
+      return searchResults?.map((channel: any) => `/${channel.id}`) || [];
     } else {
       return tabs;
     }
   }, [tabs, searchResults, searchQuery]);
 
-  const displayedFeedName = tabs.find(
-    (tab: string) => tab.toLowerCase() === activeFeed.toLowerCase()
-  ) || activeFeed;
+  const displayedFeedName =
+    tabs.find(
+      (tab: string) => tab.toLowerCase() === activeFeed.toLowerCase()
+    ) || activeFeed;
+
+  const handleSelect = async (feed: string) => {
+    setActiveFeed(feed.toLowerCase());
+    setOpen(false);
+
+    if (feed !== "Explore") {
+      fetch(`/api/track/feed`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          channelId: feed.replace("/", ""),
+        }),
+      });
+
+      mutate("/api/trending/feeds");
+    }
+  };
 
   return (
     <div className="absolute top-3 left-5 z-[9] drop-shadow-sm">
@@ -89,33 +106,32 @@ export const FeedTabs = ({
             <span className="truncate">{displayedFeedName}</span>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0 bg-slate-900 rounded-lg border-none mt-1 ml-3">
+        <PopoverContent className="w-[200px] p-0 bg-black/10 backdrop-blur-sm rounded-lg border-none mt-1 ml-3 drop-shadow-sm">
           <Command className="bg-transparent">
             <CommandInput
               placeholder="Search channels"
               value={searchQuery}
               onValueChange={setSearchQuery}
-              className="text-white focus:ring-0 focus:outline-none placeholder:text-gray-400"
+              className="text-white focus:ring-0 focus:outline-none placeholder:text-white/70"
             />
             <CommandList className="text-sm p-1">
-              {isSearchLoading ? (
+              {isSearchLoading || isLoading ? (
                 <div className="flex items-center justify-center py-2">
                   <Loader className="h-4 w-4 animate-spin text-white" />
                 </div>
               ) : (
                 <>
-                  <CommandEmpty className="p-2">No channels found</CommandEmpty>
+                  <CommandEmpty className="px-3 py-3">No channels found</CommandEmpty>
                   <CommandGroup>
                     {displayOptions
-                      .filter((option: string) => option.toLowerCase() !== activeFeed)
+                      .filter(
+                        (option: string) => option.toLowerCase() !== activeFeed
+                      )
                       .map((option: string) => (
                         <CommandItem
                           key={option}
                           value={option}
-                          onSelect={(currentValue) => {
-                            setActiveFeed(currentValue.toLowerCase());
-                            setOpen(false);
-                          }}
+                          onSelect={handleSelect}
                           className="text-white hover:bg-slate-800 py-2 rounded-md cursor-pointer"
                         >
                           {option}
