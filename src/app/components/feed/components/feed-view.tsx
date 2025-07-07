@@ -10,6 +10,8 @@ interface FeedViewProps {
   fetching: boolean;
   fetchMore: () => void;
   idle?: boolean;
+  initialIndex?: number;
+  onIndexChange?: (index: number) => void;
 }
 
 export function FeedView({
@@ -17,10 +19,36 @@ export function FeedView({
   fetching,
   fetchMore,
   idle = false,
+  initialIndex = 0,
+  onIndexChange,
 }: FeedViewProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [isScrolling, setIsScrolling] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const isInternalScrollingRef = useRef(false);
+
+  useEffect(() => {
+    if (scrollContainerRef.current && !isInternalScrollingRef.current) {
+      const container = scrollContainerRef.current;
+
+      const scrollToPosition = () => {
+        const windowHeight = container.clientHeight;
+        const targetScrollPosition = initialIndex * windowHeight;
+
+        container.scrollTo({
+          top: targetScrollPosition,
+          behavior: "instant",
+        });
+      };
+
+      if (container.clientHeight > 0) {
+        scrollToPosition();
+      } else {
+        requestAnimationFrame(scrollToPosition);
+      }
+    }
+  }, [initialIndex]);
 
   useEffect(() => {
     if (feed.length > 1 && !fetching && activeIndex > feed.length - 10) {
@@ -36,28 +64,37 @@ export function FeedView({
     };
   }, []);
 
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const scrollPosition = container.scrollTop;
-    const windowHeight = container.clientHeight;
-    const newIndex = Math.round(scrollPosition / windowHeight);
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const container = e.currentTarget;
+      const scrollPosition = container.scrollTop;
+      const windowHeight = container.clientHeight;
+      const newIndex = Math.round(scrollPosition / windowHeight);
+      const clampedIndex = Math.max(0, Math.min(feed.length - 1, newIndex));
 
-    setIsScrolling(true);
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsScrolling(false);
-    }, 100);
+      isInternalScrollingRef.current = true;
+      
+      setIsScrolling(true);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+        isInternalScrollingRef.current = false;
+      }, 100);
 
-    setActiveIndex(newIndex);
-  }, []);
+      setActiveIndex(clampedIndex);
+      onIndexChange?.(clampedIndex);
+    },
+    [feed.length, onIndexChange]
+  );
 
   if (feed.length === 0) return <Loading zIndex={5} />;
 
   return (
     <div
-      className="flex-1 w-full h-full overflow-y-auto snap-y snap-mandatory"
+      ref={scrollContainerRef}
+      className="w-full h-full overflow-y-auto snap-y snap-mandatory"
       onScroll={handleScroll}
     >
       {feed.map((item, index) =>

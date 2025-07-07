@@ -7,9 +7,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 interface Props {
   channelId: string;
   idle?: boolean;
+  initialIndex?: number;
+  onIndexChange?: (index: number) => void;
 }
 
-export const ChannelFeed = ({ channelId, idle = false }: Props) => {
+export const ChannelFeed = ({ 
+  channelId, 
+  idle = false,
+  initialIndex = 0,
+  onIndexChange,
+}: Props) => {
   const { sessionToken } = useFrame();
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
 
@@ -39,7 +46,7 @@ export const ChannelFeed = ({ channelId, idle = false }: Props) => {
     isLoading,
     isValidating,
   } = useSWRInfinite(getKey, (url: string) => fetcher(url, sessionToken!), {
-    revalidateOnFocus: false,
+    revalidateOnFocus: true,
     revalidateIfStale: false,
     revalidateOnReconnect: false,
     persistSize: true,
@@ -77,6 +84,8 @@ export const ChannelFeed = ({ channelId, idle = false }: Props) => {
       feed={feedData}
       fetching={isLoading || isValidating}
       fetchMore={fetchMore}
+      initialIndex={initialIndex}
+      onIndexChange={onIndexChange}
     />
   );
 };

@@ -18,10 +18,15 @@ export const FeedPage = ({
 }: Props) => {
   const { activeFeed, setActiveFeed, setSelectedTab } = useNavigation();
   const { feed, fetching, fetchMore } = useFeed({ initialVideo });
+  const [feedIndices, setFeedIndices] = useState<Record<string, number>>({});
 
   useEffect(() => {
     setActiveFeed(initialFeed);
   }, [initialFeed]);
+
+  const handleIndexChange = (index: number) => {
+    setFeedIndices((prev) => ({ ...prev, [activeFeed]: index }));
+  };
 
   return (
     <div className="relative h-full w-full">
@@ -31,12 +36,16 @@ export const FeedPage = ({
           fetching={fetching}
           fetchMore={fetchMore}
           idle={activeFeed !== "explore" || idle}
+          initialIndex={feedIndices["explore"] || 0}
+          onIndexChange={handleIndexChange}
         />
       )}
       {activeFeed.startsWith("/") && (
         <ChannelFeed
           channelId={activeFeed.slice(1)}
           idle={!activeFeed.startsWith("/") || idle}
+          initialIndex={feedIndices[activeFeed] || 0}
+          onIndexChange={handleIndexChange}
         />
       )}
       <FeedTabs
