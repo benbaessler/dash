@@ -227,7 +227,7 @@ export function Profile({
         ? `Check out my videos on /dash!`
         : type === "user"
         ? `Check out @${(data as User)?.username} on /dash!`
-        : `Check out /${(data as Channel)?.id} on /dash!`,
+        : `Check out the /${(data as Channel)?.id} channel on /dash!`,
       embeds: [
         type === "user"
           ? `${appUrl}/u/${(data as User)?.username}?utm_source=share_profile`
@@ -300,6 +300,13 @@ export function Profile({
                     if (type === "user") {
                       data &&
                         sdk.actions.viewProfile({ fid: (data as User).fid });
+                    } else {
+                      data &&
+                        sdk.actions.openUrl(
+                          `https://farcaster.xyz/~/channel/${
+                            (data as Channel).id
+                          }`
+                        );
                     }
                   }}
                 >
@@ -458,6 +465,7 @@ export function Profile({
         {selectedVideoIndex !== null && flattenedData && (
           <VideoFeed
             data={flattenedData}
+            isChannelFeed={type === "channel"}
             initialIndex={selectedVideoIndex}
             onClose={() => setSelectedVideoIndex(null)}
           />
