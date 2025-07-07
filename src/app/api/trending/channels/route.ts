@@ -3,8 +3,6 @@ import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 
 export async function GET(request: Request) {
-  const fid = Number(request.headers.get("x-fid"));
-
   try {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -15,7 +13,7 @@ export async function GET(request: Request) {
         createdAt: {
           gte: weekAgo,
         },
-        type: "user",
+        type: "channel",
       },
       _count: {
         queryId: true,
@@ -32,12 +30,11 @@ export async function GET(request: Request) {
       return NextResponse.json([]);
     }
 
-    const { users } = await neynar.fetchBulkUsers({
-      fids: trendingQueries.map((item) => Number(item.queryId)),
-      viewerFid: fid,
+    const { channels } = await neynar.fetchBulkChannels({
+      ids: trendingQueries.map((item) => item.queryId),
     });
 
-    return NextResponse.json(users);
+    return NextResponse.json(channels);
   } catch (error) {
     console.error("Failed to fetch trending searches:", error);
     return NextResponse.json(

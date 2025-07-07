@@ -93,7 +93,7 @@ export const SearchPage = () => {
 
   const { data: trendingUserResults, isLoading: isTrendingUserResultsLoading } =
     useSWR<User[]>(
-      sessionToken ? `/api/trending/users?limit=3` : null,
+      sessionToken ? `/api/trending/users` : null,
       (url: string) => fetcher(url, sessionToken!),
       {
         revalidateOnFocus: false,
@@ -103,10 +103,24 @@ export const SearchPage = () => {
       }
     );
 
+  const { data: trendingChannelResults, isLoading: isTrendingChannelResultsLoading } = useSWR<
+    Channel[]
+  >(
+    sessionToken ? `/api/trending/channels` : null,
+    (url: string) => fetcher(url, sessionToken!),
+    {
+      revalidateOnFocus: false,
+      revalidateOnMount: true,
+      revalidateOnReconnect: false,
+      keepPreviousData: true,
+    }
+  );
+
   const isLoading =
     isUserResultsLoading ||
     isChannelResultsLoading ||
-    isTrendingUserResultsLoading;
+    isTrendingUserResultsLoading ||
+    isTrendingChannelResultsLoading;
 
   return (
     <>
@@ -135,17 +149,33 @@ export const SearchPage = () => {
           ) : search.length === 0 ? (
             <>
               {trendingUserResults && trendingUserResults.length > 0 && (
-                <h2 className="text-sm font-medium mb-3 text-gray-300">
-                  Trending users
-                </h2>
+                <>
+                  <h2 className="text-sm font-medium mb-3 text-gray-300">
+                    Trending users
+                  </h2>
+                  {trendingUserResults.map((user) => (
+                    <UserResult
+                      key={user.fid}
+                      user={user}
+                      onClick={() => handleUserClick(user, true)}
+                    />
+                  ))}
+                </>
               )}
-              {trendingUserResults?.map((user) => (
-                <UserResult
-                  key={user.fid}
-                  user={user}
-                  onClick={() => handleUserClick(user, true)}
-                />
-              ))}
+              {trendingChannelResults && trendingChannelResults.length > 0 && (
+                <>
+                  <h2 className="text-sm font-medium mb-3 mt-6 text-gray-300">
+                    Trending channels
+                  </h2>
+                  {trendingChannelResults.map((channel) => (
+                    <ChannelResult
+                      key={channel.id}
+                      channel={channel}
+                      onClick={handleChannelClick}
+                    />
+                  ))}
+                </>
+              )}
             </>
           ) : (
             <>
