@@ -129,6 +129,10 @@ export async function GET(
           weight: 700,
         },
       ],
+      headers: {
+        "cache-control":
+          "max-age=14400,must-revalidate,public,no-transform,immutable",
+      },
     }
   );
 }
