@@ -24,6 +24,7 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 import { appUrl } from "@/constants";
 import { motion, AnimatePresence } from "motion/react";
 import { fetcher } from "@/utils/fetcher";
+import { mutate } from "swr";
 
 interface Props {
   data: User | Channel | null;
@@ -215,6 +216,8 @@ export function Profile({
 
     if (!response.ok) {
       setFeedAdded(false);
+    } else {
+      mutate("/api/feed/saved");
     }
   };
 

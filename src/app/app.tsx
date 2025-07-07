@@ -13,6 +13,7 @@ import useSWR from "swr";
 import { useToast } from "@/hooks/use-toast";
 import { fetcher } from "@/utils/fetcher";
 import { FeedPage } from "./components/feed";
+import { useNavigation } from "@/providers/NavigationProvider";
 
 interface Props {
   children?: ReactNode;
@@ -24,6 +25,7 @@ export function App({ children }: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { selectedTab, setSelectedTab } = useNavigation();
 
   const hash = pathname.startsWith("/v")
     ? searchParams.get("castHash")
@@ -43,10 +45,8 @@ export function App({ children }: Props) {
     return null;
   }, [pathname, user?.username]);
 
-  const [selectedTab, setSelectedTab] = useState<Tab | null>(initialTab);
-
   useEffect(() => {
-    setSelectedTab(initialTab);
+    if (initialTab) setSelectedTab(initialTab);
   }, [initialTab]);
 
   useEffect(() => {

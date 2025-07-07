@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { ChannelFeed } from "./components/channel-feed";
 import { FeedView } from "./components/feed-view";
 import { useFeed } from "@/hooks/useFeed";
-import { PlusIcon } from "@phosphor-icons/react";
 import { FeedTabs } from "./components/feed-tabs";
+import { useNavigation } from "@/providers/NavigationProvider";
 
 interface Props {
   initialFeed: string; // define type for feeds (explore, following, channelIds)
@@ -16,10 +16,8 @@ export const FeedPage = ({
   initialVideo,
   idle = false,
 }: Props) => {
-  const [activeFeed, setActiveFeed] = useState(initialFeed);
+  const { activeFeed, setActiveFeed, setSelectedTab } = useNavigation();
   const { feed, fetching, fetchMore } = useFeed({ initialVideo });
-
-  const tabs = ["Explore", "/science"];
 
   useEffect(() => {
     setActiveFeed(initialFeed);
@@ -44,7 +42,7 @@ export const FeedPage = ({
       <FeedTabs
         activeFeed={activeFeed}
         setActiveFeed={setActiveFeed}
-        onAddChannel={() => { /* TODO: handle add channel */ }}
+        onAddChannel={() => setSelectedTab("search")}
       />
     </div>
   );
