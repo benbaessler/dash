@@ -43,6 +43,7 @@ export const ChannelFeed = ({ channelId, idle = false }: Props) => {
     revalidateIfStale: false,
     revalidateOnReconnect: false,
     persistSize: true,
+    revalidateFirstPage: false,
     revalidateAll: false,
   });
 

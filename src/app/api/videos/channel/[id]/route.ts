@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { neynar } from "@/lib/neynar";
 import { convertToVideoData } from "@/utils/convertToVideoData";
+import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
@@ -19,11 +20,37 @@ export async function GET(
       cursor,
     });
 
-    const data = convertToVideoData(response.casts, id);
+    const viewedVideos = await prisma.view.findMany({
+      where: {
+        fid: viewerFid.toString(),
+        channelId: id,
+      },
+    });
+
+    let currentResponse = response;
+    let data = convertToVideoData(currentResponse.casts, id);
+    let filteredData = data.filter((video) =>
+      !viewedVideos.some((view) => view.castHash === video.id)
+    );
+    let nextCursor = currentResponse.next?.cursor;
+
+    while (data.length > 0 && filteredData.length === 0 && nextCursor) {
+      currentResponse = await neynar.fetchFeedByChannelIds({
+        channelIds: [id],
+        viewerFid,
+        limit: 100,
+        cursor: nextCursor,
+      });
+      data = convertToVideoData(currentResponse.casts, id);
+      filteredData = data.filter((video) =>
+        !viewedVideos.some((view) => view.castHash === video.id)
+      );
+      nextCursor = currentResponse.next?.cursor;
+    }
 
     return NextResponse.json({
-      data,
-      cursor: response.next.cursor,
+      data: filteredData,
+      cursor: nextCursor,
     });
   } catch (error) {
     console.error("Error fetching channel videos:", error);

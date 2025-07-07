@@ -26,7 +26,8 @@ model View {
   fid       String
 
   @@unique([fid, castHash])
-  @@index([fid, castHash])
+  @@index([fid, channelId])
+  @@index([castHash])
 }
 
 model Share {
