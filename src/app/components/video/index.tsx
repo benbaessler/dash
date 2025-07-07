@@ -223,6 +223,7 @@ export const VideoItem = ({
           },
           body: JSON.stringify({
             castHash: data.id,
+            creatorFid: data.author.fid,
             channelId: data.channelId,
           }),
         });

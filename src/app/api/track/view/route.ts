@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   const fid = Number(req.headers.get("x-fid"));
-  const { castHash, channelId } = await req.json();
+  const { castHash, channelId, creatorFid } = await req.json();
 
   if (!castHash) {
     return NextResponse.json({ error: "Missing cast hash" }, { status: 400 });
@@ -12,14 +12,15 @@ export async function POST(req: NextRequest) {
   try {
     const view = await prisma.view.upsert({
       where: {
-        fid_castHash: {
-          fid: fid.toString(),
+        viewerFid_castHash: {
+          viewerFid: fid.toString(),
           castHash,
-        },
+        }
       },
       update: {},
       create: {
-        fid: fid.toString(),
+        viewerFid: fid.toString(),
+        creatorFid: creatorFid.toString(),
         castHash,
         channelId,
       },

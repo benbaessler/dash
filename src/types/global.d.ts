@@ -8,6 +8,7 @@ interface VideoData {
   recastCount: number;
   commentCount: number;
   timestamp: number;
+  viewed?: boolean;
   author: {
     fid: number;
     displayName: string;

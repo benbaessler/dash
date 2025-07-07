@@ -19,15 +19,15 @@ model User {
 }
 
 model View {
-  id        Int      @id @default(autoincrement())
-  castHash  String
-  channelId String?
-  createdAt DateTime @default(now())
-  fid       String
+  id         Int      @id @default(autoincrement())
+  castHash   String
+  viewerFid  String
+  creatorFid String
+  channelId  String?
+  createdAt  DateTime @default(now())
 
-  @@unique([fid, castHash])
-  @@index([fid, channelId])
-  @@index([castHash])
+  @@unique([viewerFid, castHash])
+  @@index([viewerFid, channelId])
 }
 
 model Share {

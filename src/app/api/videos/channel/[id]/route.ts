@@ -11,6 +11,7 @@ export async function GET(
   const viewerFid = Number(request.headers.get("x-fid"));
   const { searchParams } = new URL(request.url);
   const cursor = searchParams.get("cursor") || undefined;
+  const excludeViewed = searchParams.get("excludeViewed") === "true";
 
   try {
     const response = await neynar.fetchFeedByChannelIds({
@@ -22,16 +23,22 @@ export async function GET(
 
     const viewedVideos = await prisma.view.findMany({
       where: {
-        fid: viewerFid.toString(),
+        viewerFid: viewerFid.toString(),
         channelId: id,
+      },
+      select: {
+        castHash: true,
       },
     });
 
     let currentResponse = response;
-    let data = convertToVideoData(currentResponse.casts, id);
-    let filteredData = data.filter((video) =>
-      !viewedVideos.some((view) => view.castHash === video.id)
-    );
+    let data = convertToVideoData(currentResponse.casts, id, viewedVideos);
+    let filteredData = data;
+    if (excludeViewed) {
+      filteredData = data.filter(
+        (video) => !viewedVideos.some((view) => view.castHash === video.id)
+      );
+    }
     let nextCursor = currentResponse.next?.cursor;
 
     while (data.length > 0 && filteredData.length === 0 && nextCursor) {
@@ -41,9 +48,9 @@ export async function GET(
         limit: 100,
         cursor: nextCursor,
       });
-      data = convertToVideoData(currentResponse.casts, id);
-      filteredData = data.filter((video) =>
-        !viewedVideos.some((view) => view.castHash === video.id)
+      data = convertToVideoData(currentResponse.casts, id, viewedVideos);
+      filteredData = data.filter(
+        (video) => !viewedVideos.some((view) => view.castHash === video.id)
       );
       nextCursor = currentResponse.next?.cursor;
     }
