@@ -89,13 +89,13 @@ export const FeedTabs = ({ activeFeed, setActiveFeed }: Props) => {
   };
 
   return (
-    <div className="absolute top-3 left-5 z-[9] drop-shadow-sm">
+    <div className="absolute top-5 left-5 z-[9] drop-shadow-sm">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div
             role="combobox"
             aria-expanded={open}
-            className="flex items-center cursor-pointer gap-2 font-semibold text-white"
+            className="flex items-center cursor-pointer gap-2 font-semibold text-white text-lg"
             tabIndex={0}
             onClick={() => setOpen(!open)}
           >
