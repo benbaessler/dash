@@ -114,7 +114,7 @@ export function FeedView({
           />
         )
       )}
-      {channelId && (
+      {channelId && !fetching && (
         <div className="w-full h-full snap-start">
           <FeedEnd channelId={channelId} />
         </div>
