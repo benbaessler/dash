@@ -92,7 +92,8 @@ export function FeedView({
     [feed.length, onIndexChange]
   );
 
-  if (feed.length === 0 && !fetching) return <Loading zIndex={5} />;
+  if (feed.length === 0) return <Loading zIndex={5}/>;
+
 
   return (
     <div
