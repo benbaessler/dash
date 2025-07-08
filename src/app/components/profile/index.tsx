@@ -4,12 +4,7 @@ import { User, Channel } from "@neynar/nodejs-sdk/build/api";
 import { Button } from "@/components/ui/button";
 import { ClickableText } from "@/app/components/common/text";
 import { FarcasterIcon } from "@/assets/icons";
-import {
-  ArrowLeftIcon,
-  ExportIcon,
-  PlusIcon,
-  CheckIcon,
-} from "@phosphor-icons/react";
+import { ArrowLeftIcon, ExportIcon } from "@phosphor-icons/react";
 import sdk from "@farcaster/frame-sdk";
 import { Avatar } from "@/app/components/video/components/avatar";
 import { useFrame } from "@/providers/FrameProvider";
@@ -24,7 +19,6 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 import { appUrl } from "@/constants";
 import { motion, AnimatePresence } from "motion/react";
 import { fetcher } from "@/utils/fetcher";
-import { mutate } from "swr";
 
 interface Props {
   data: User | Channel | null;
@@ -47,10 +41,7 @@ export function Profile({
     null
   );
 
-  const [following, setFollowing] = useState(
-    type === "user" ? (data as User)?.viewer_context?.following || false : false
-  );
-  const [feedAdded, setFeedAdded] = useState(false);
+  const [following, setFollowing] = useState(data?.viewer_context?.following);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -170,8 +161,6 @@ export function Profile({
   }, [loadMore, hasReachedEnd]);
 
   const handleFollowChange = async (state: boolean) => {
-    if (type !== "user") return;
-
     const valid = await verifySigner();
     if (!valid) return;
 
@@ -180,8 +169,12 @@ export function Profile({
 
     const response = await fetch(
       state
-        ? `/api/follow/${(data as User)?.fid}`
-        : `/api/unfollow/${(data as User)?.fid}`,
+        ? `/api/follow/${type}/${
+            type === "user" ? (data as User)?.fid : (data as Channel)?.id
+          }`
+        : `/api/unfollow/${type}/${
+            type === "user" ? (data as User)?.fid : (data as Channel)?.id
+          }`,
       {
         method: "POST",
         headers: {
@@ -196,29 +189,9 @@ export function Profile({
 
     trackEvent(state ? "followed_from_profile" : "unfollowed", {
       user: currentUser?.username,
-      target: (data as User)?.username,
+      target:
+        type === "user" ? (data as User)?.username : (data as Channel)?.id,
     });
-  };
-
-  const handleAddFeed = async () => {
-    if (feedAdded) return;
-
-    setFeedAdded(true);
-    const response = await fetch(`/api/feed/saved`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${sessionToken}`,
-      },
-      body: JSON.stringify({
-        channelId: (data as Channel)?.id,
-      }),
-    });
-
-    if (!response.ok) {
-      setFeedAdded(false);
-    } else {
-      mutate("/api/feed/saved");
-    }
   };
 
   const handleShare = async () => {
@@ -289,24 +262,24 @@ export function Profile({
             )}
             {!isCurrentUser && (
               <div className="absolute right-0 gap-3 cursor-pointer flex items-center">
-                <div
-                  onClick={handleShare}
-                  className="hover:text-slate-300 transition-colors"
-                >
-                  <ExportIcon weight="bold" size={21} />
-                </div>
+                {type === "user" && (
+                  <div
+                    onClick={handleShare}
+                    className="hover:text-slate-300 transition-colors"
+                  >
+                    <ExportIcon weight="bold" size={21} />
+                  </div>
+                )}
                 <div
                   onClick={() => {
                     if (type === "user") {
-                      data &&
-                        sdk.actions.viewProfile({ fid: (data as User).fid });
+                      sdk.actions.viewProfile({ fid: (data as User).fid });
                     } else {
-                      data &&
-                        sdk.actions.openUrl(
-                          `https://farcaster.xyz/~/channel/${
-                            (data as Channel).id
-                          }`
-                        );
+                      sdk.actions.openUrl(
+                        `https://farcaster.xyz/~/channel/${
+                          (data as Channel).id
+                        }`
+                      );
                     }
                   }}
                 >
@@ -387,38 +360,26 @@ export function Profile({
 
           <div className="flex justify-center mb-4 max-w-48 mx-auto gap-2">
             <Button
-              variant={following || feedAdded ? "outlineAction" : "action"}
+              variant={
+                following && type === "user" ? "outlineAction" : "action"
+              }
               size="sm"
               className="flex-grow"
               disabled={!data}
               onClick={() => {
-                if (feedAdded) return;
-                if (isCurrentUser) {
+                if (isCurrentUser || type === "channel") {
                   handleShare();
-                } else if (type === "user") {
-                  handleFollowChange(!following);
-                } else if (type === "channel") {
-                  handleAddFeed();
-                }
+                } else handleFollowChange(!following);
               }}
             >
-              {isCurrentUser && <ExportIcon size={16} weight="bold" />}
-              {isCurrentUser
+              {isCurrentUser || type === "channel" ? (
+                <ExportIcon size={16} weight="bold" />
+              ) : null}
+              {isCurrentUser || type === "channel"
                 ? "Share"
-                : type === "channel"
-                ? feedAdded
-                  ? "Added"
-                  : "Add feed"
                 : following
                 ? "Following"
                 : "Follow"}
-              {type === "channel" ? (
-                feedAdded ? (
-                  <CheckIcon size={16} weight="bold" />
-                ) : (
-                  <PlusIcon size={16} weight="bold" />
-                )
-              ) : null}
             </Button>
           </div>
 
