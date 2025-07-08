@@ -28,6 +28,8 @@ export const useFeed = ({ initialLimit = 15, initialVideo }: UseFeedProps) => {
     (url) => fetcher(url, sessionToken!),
     {
       revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
     }
   );
 

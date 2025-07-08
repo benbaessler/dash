@@ -90,7 +90,7 @@ export function VideoFeed({
       <div className="w-full h-full bg-black">
         <div
           ref={scrollContainerRef}
-          className="flex-1 w-full h-[calc(100vh-76px)] overflow-y-auto snap-y snap-mandatory"
+          className="w-full h-[calc(100vh-76px)] overflow-y-auto snap-y snap-mandatory"
           onScroll={handleScroll}
         >
           {data.map((item, index) => (

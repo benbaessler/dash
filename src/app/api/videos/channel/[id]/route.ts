@@ -49,7 +49,7 @@ export async function GET(
         limit: 100,
         cursor: nextCursor,
       });
-      data = convertToVideoData(currentResponse.casts, id, viewedVideos);
+      data = convertToVideoData(currentResponse.casts, viewedVideos, id);
       filteredData = data.filter(
         (video) => !viewedVideos.some((view) => view.castHash === video.id)
       );
