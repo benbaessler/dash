@@ -12,7 +12,7 @@ interface UseFeedProps {
   initialVideo?: VideoData;
 }
 
-export const useFeed = ({ initialLimit = 15, initialVideo }: UseFeedProps) => {
+export const useFeed = ({ initialLimit = 30, initialVideo }: UseFeedProps) => {
   const { isSDKLoaded, context, added, sessionToken } = useFrame();
   const fid = isDevelopment ? 367782 : context?.user.fid;
 
@@ -58,7 +58,7 @@ export const useFeed = ({ initialLimit = 15, initialVideo }: UseFeedProps) => {
   }, [data]);
 
   const fetchMore = useCallback(
-    async (limit: number = initialLimit) => {
+    async (limit: number = 25) => {
       if (!sessionToken) return;
 
       setFetching(true);
@@ -88,7 +88,7 @@ export const useFeed = ({ initialLimit = 15, initialVideo }: UseFeedProps) => {
         setFetching(false);
       }
     },
-    [initialLimit, setFetching, setFeed, sessionToken]
+    [setFetching, setFeed, sessionToken]
   );
 
   return {
