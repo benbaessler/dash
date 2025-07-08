@@ -32,7 +32,7 @@ export function FeedView({
   const isInternalScrollingRef = useRef(false);
 
   useEffect(() => {
-    if (scrollContainerRef.current && !isInternalScrollingRef.current) {
+    if (scrollContainerRef.current && !isInternalScrollingRef.current && !idle) {
       const container = scrollContainerRef.current;
 
       const scrollToPosition = () => {
@@ -51,7 +51,11 @@ export function FeedView({
         requestAnimationFrame(scrollToPosition);
       }
     }
-  }, [initialIndex]);
+    
+    if (initialIndex !== activeIndex && !isInternalScrollingRef.current && !idle) {
+      setActiveIndex(initialIndex);
+    }
+  }, [initialIndex, idle]);
 
   useEffect(() => {
     if (feed.length > 1 && !fetching && activeIndex > feed.length - 10) {
