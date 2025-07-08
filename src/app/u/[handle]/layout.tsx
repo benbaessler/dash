@@ -16,14 +16,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${handle} on Dash`,
     openGraph: {
       title: `${handle} on Dash`,
-      images: [`${appUrl}/api/og/profile/${handle}`],
+      images: [`${appUrl}/api/og/user/${handle}`],
       description: `View videos from ${handle} on Dash`,
     },
     metadataBase: new URL(appUrl || ""),
     other: {
       "fc:frame": JSON.stringify({
         version: "next",
-        imageUrl: `${appUrl}/api/og/profile/${handle}`,
+        imageUrl: `${appUrl}/api/og/user/${handle}`,
         button: {
           title: "View Videos 📲",
           action: {
