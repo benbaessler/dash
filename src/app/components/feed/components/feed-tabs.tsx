@@ -18,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Channel } from "@neynar/nodejs-sdk/build/api/models/channel";
 
 interface Props {
   activeFeed: string;
@@ -56,7 +57,7 @@ export const FeedTabs = ({ activeFeed, setActiveFeed }: Props) => {
 
   const displayOptions = useMemo(() => {
     if (searchQuery) {
-      return searchResults?.map((channel: any) => `/${channel.id}`) || [];
+      return searchResults?.map((channel: Channel) => `/${channel.id}`) || [];
     } else {
       return tabs;
     }
@@ -70,6 +71,7 @@ export const FeedTabs = ({ activeFeed, setActiveFeed }: Props) => {
   const handleSelect = async (feed: string) => {
     setActiveFeed(feed.toLowerCase());
     setOpen(false);
+    setSearchQuery("");
 
     if (feed !== "Explore") {
       fetch(`/api/track/feed`, {
@@ -93,7 +95,7 @@ export const FeedTabs = ({ activeFeed, setActiveFeed }: Props) => {
           <div
             role="combobox"
             aria-expanded={open}
-            className="flex items-center cursor-pointer gap-2 font-medium"
+            className="flex items-center cursor-pointer gap-2 font-semibold text-white"
             tabIndex={0}
             onClick={() => setOpen(!open)}
           >
@@ -109,19 +111,22 @@ export const FeedTabs = ({ activeFeed, setActiveFeed }: Props) => {
         <PopoverContent className="w-[200px] p-0 bg-black/10 backdrop-blur-sm rounded-lg border-none mt-1 ml-3 drop-shadow-sm">
           <Command className="bg-transparent">
             <CommandInput
+              autoFocus={false}
               placeholder="Search channels"
               value={searchQuery}
               onValueChange={setSearchQuery}
-              className="text-white focus:ring-0 focus:outline-none placeholder:text-white/70"
+              className="text-white text-md focus:ring-0 focus:outline-none placeholder:text-white/70"
             />
-            <CommandList className="text-sm p-1">
+            <CommandList className="text-md p-1">
               {isSearchLoading || isLoading ? (
                 <div className="flex items-center justify-center py-2">
                   <Loader className="h-4 w-4 animate-spin text-white" />
                 </div>
               ) : (
                 <>
-                  <CommandEmpty className="px-3 py-3">No channels found</CommandEmpty>
+                  <CommandEmpty className="px-3 py-3">
+                    No channels found
+                  </CommandEmpty>
                   <CommandGroup>
                     {displayOptions
                       .filter(
@@ -132,7 +137,7 @@ export const FeedTabs = ({ activeFeed, setActiveFeed }: Props) => {
                           key={option}
                           value={option}
                           onSelect={handleSelect}
-                          className="text-white hover:bg-slate-800 py-2 rounded-md cursor-pointer"
+                          className="text-white hover:text-white/80 hover:bg-black/40 py-2 rounded-md cursor-pointer"
                         >
                           {option}
                         </CommandItem>
