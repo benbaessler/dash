@@ -4,6 +4,7 @@ import { Promotion } from "../../promotion";
 import { VideoItem } from "../../video";
 import { useEffect, useCallback, useState, useRef } from "react";
 import { Loading } from "../../common/loading";
+import { FeedEnd } from "../../common/feed-end";
 
 interface FeedViewProps {
   feed: FeedItem[];
@@ -12,6 +13,7 @@ interface FeedViewProps {
   idle?: boolean;
   initialIndex?: number;
   onIndexChange?: (index: number) => void;
+  channelId?: string;
 }
 
 export function FeedView({
@@ -21,6 +23,7 @@ export function FeedView({
   idle = false,
   initialIndex = 0,
   onIndexChange,
+  channelId,
 }: FeedViewProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [isScrolling, setIsScrolling] = useState(false);
@@ -54,7 +57,7 @@ export function FeedView({
     if (feed.length > 1 && !fetching && activeIndex > feed.length - 10) {
       fetchMore();
     }
-  }, [activeIndex, feed, fetching]);
+  }, [activeIndex]);
 
   useEffect(() => {
     return () => {
@@ -73,7 +76,7 @@ export function FeedView({
       const clampedIndex = Math.max(0, Math.min(feed.length - 1, newIndex));
 
       isInternalScrollingRef.current = true;
-      
+
       setIsScrolling(true);
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
@@ -89,7 +92,7 @@ export function FeedView({
     [feed.length, onIndexChange]
   );
 
-  if (feed.length === 0) return <Loading zIndex={5} />;
+  if (feed.length === 0 && !fetching) return <Loading zIndex={5} />;
 
   return (
     <div
@@ -110,6 +113,11 @@ export function FeedView({
             isScrolling={isScrolling}
           />
         )
+      )}
+      {channelId && (
+        <div className="w-full h-full snap-start">
+          <FeedEnd channelId={channelId} />
+        </div>
       )}
     </div>
   );

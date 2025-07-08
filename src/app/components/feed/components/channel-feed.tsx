@@ -11,8 +11,8 @@ interface Props {
   onIndexChange?: (index: number) => void;
 }
 
-export const ChannelFeed = ({ 
-  channelId, 
+export const ChannelFeed = ({
+  channelId,
   idle = false,
   initialIndex = 0,
   onIndexChange,
@@ -34,7 +34,7 @@ export const ChannelFeed = ({
       return null;
     }
     return !idle && sessionToken
-      ? `/api/videos/channel/${channelId}?cursor=${
+      ? `/api/videos/channel/${channelId}?excludeViewed=true&cursor=${
           previousPageData?.cursor || ""
         }`
       : null;
@@ -86,6 +86,7 @@ export const ChannelFeed = ({
       fetchMore={fetchMore}
       initialIndex={initialIndex}
       onIndexChange={onIndexChange}
+      channelId={channelId}
     />
   );
 };
