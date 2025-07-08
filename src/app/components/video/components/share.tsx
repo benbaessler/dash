@@ -33,7 +33,11 @@ export const Share = ({ children, data }: ShareProps) => {
   const { data: friends, isLoading: isFriendsLoading } = useSWR<User[]>(
     sessionToken ? `/api/friends` : null,
     (url: string) => fetcher(url, sessionToken!),
-    { revalidateOnFocus: false, revalidateOnReconnect: false }
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+    }
   );
 
   // Fetch users based on the search query
@@ -72,7 +76,7 @@ export const Share = ({ children, data }: ShareProps) => {
     if (!context?.user?.fid) return;
 
     try {
-      await fetch("/api/shares/track", {
+      await fetch("/api/track/share", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${sessionToken}`,

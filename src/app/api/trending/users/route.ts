@@ -25,7 +25,7 @@ export async function GET(request: Request) {
           queryId: "desc",
         },
       },
-      take: 5,
+      take: 3,
     });
 
     if (trendingQueries.length === 0) {

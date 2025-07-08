@@ -1,74 +1,58 @@
-"use client";
+import { useEffect, useState } from "react";
+import { ChannelFeed } from "./components/channel-feed";
+import { FeedView } from "./components/feed-view";
+import { useFeed } from "@/hooks/useFeed";
+import { FeedTabs } from "./components/feed-tabs";
+import { useNavigation } from "@/providers/NavigationProvider";
 
-import { Promotion } from "../promotion";
-import { VideoItem } from "../video";
-import { useEffect, useCallback, useState, useRef } from "react";
-import { Loading } from "../common/loading";
-
-interface FeedViewProps {
-  feed: FeedItem[];
-  fetching: boolean;
-  fetchMore: () => void;
+interface Props {
+  initialFeed: string; // define type for feeds (explore, following, channelIds)
+  initialVideo?: VideoData;
   idle?: boolean;
 }
 
-export function FeedView({ feed, fetching, fetchMore, idle = false }: FeedViewProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+export const FeedPage = ({
+  initialFeed,
+  initialVideo,
+  idle = false,
+}: Props) => {
+  const { activeFeed, setActiveFeed, setSelectedTab } = useNavigation();
+  const { feed, fetching, fetchMore } = useFeed({ initialVideo });
+  const [feedIndices, setFeedIndices] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (feed.length > 1 && !fetching && activeIndex > feed.length - 10) {
-      fetchMore();
-    }
-  }, [activeIndex, feed, fetching, fetchMore]);
+    setActiveFeed(initialFeed);
+  }, [initialFeed]);
 
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const scrollPosition = container.scrollTop;
-    const windowHeight = container.clientHeight;
-    const newIndex = Math.round(scrollPosition / windowHeight);
-
-    setIsScrolling(true);
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsScrolling(false);
-    }, 100);
-
-    setActiveIndex(newIndex);
-  }, []);
-
-  if (feed.length === 0) return <Loading />;
+  const handleIndexChange = (index: number) => {
+    setFeedIndices((prev) => ({ ...prev, [activeFeed]: index }));
+  };
 
   return (
-    <div
-      className="flex-1 w-full h-full overflow-y-auto snap-y snap-mandatory"
-      onScroll={handleScroll}
-    >
-      {feed.map((item, index) =>
-        "type" in item ? (
-          <Promotion key={index} type={item.type} />
-        ) : (
-          <VideoItem
-            key={index}
-            data={item as VideoData}
-            active={activeIndex === index && !idle}
-            preload={Math.abs(index - activeIndex) <= 3}
-            render={Math.abs(index - activeIndex) <= 5}
-            isScrolling={isScrolling}
-          />
-        )
+    <div className="relative h-full w-full">
+      {activeFeed === "explore" && (
+        <FeedView
+          feed={feed}
+          fetching={fetching}
+          fetchMore={fetchMore}
+          idle={activeFeed !== "explore" || idle}
+          initialIndex={feedIndices["explore"] || 0}
+          onIndexChange={handleIndexChange}
+        />
       )}
+      {activeFeed.startsWith("/") && (
+        <ChannelFeed
+          channelId={activeFeed.slice(1)}
+          idle={!activeFeed.startsWith("/") || idle}
+          initialIndex={feedIndices[activeFeed] || 0}
+          onIndexChange={handleIndexChange}
+        />
+      )}
+      <FeedTabs
+        activeFeed={activeFeed}
+        setActiveFeed={setActiveFeed}
+        onAddChannel={() => setSelectedTab("search")}
+      />
     </div>
   );
-}
+};

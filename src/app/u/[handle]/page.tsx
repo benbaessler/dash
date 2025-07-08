@@ -28,7 +28,7 @@ export default function Page() {
   if (isLoading) return <Loading />;
   return (
     <div className="fixed inset-0 bg-black z-[10]">
-      <Profile user={data!} />
+      <Profile type="user" data={data!} />
     </div>
   );
 }

@@ -16,7 +16,7 @@ export function VideoGrid({
   if (!isLoading && hasReachedEnd && (!data || data.length === 0)) {
     return (
       <div className="mt-4 text-center py-10">
-        <p className="text-slate-400">No videos yet.</p>
+        <p className="text-slate-400">No recent videos</p>
       </div>
     );
   }

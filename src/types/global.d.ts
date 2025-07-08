@@ -1,5 +1,6 @@
 interface VideoData {
   id: string;
+  channelId?: string;
   text: string;
   video_url: string;
   duration?: number;
@@ -7,6 +8,7 @@ interface VideoData {
   recastCount: number;
   commentCount: number;
   timestamp: number;
+  viewed?: boolean;
   author: {
     fid: number;
     displayName: string;

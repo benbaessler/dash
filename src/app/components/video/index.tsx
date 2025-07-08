@@ -48,6 +48,8 @@ export const VideoItem = ({
   );
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout>();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [viewed, setViewed] = useState(false);
+  const [tracked, setTracked] = useState(false);
 
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isHolding, setIsHolding] = useState(false);
@@ -213,6 +215,22 @@ export const VideoItem = ({
         clearTimeout(holdTimeout);
         setHoldTimeout(undefined);
       }
+      if (viewed && !tracked) {
+        fetch("/api/track/view", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({
+            castHash: data.id,
+            creatorFid: data.author.fid,
+            channelId: data.channelId,
+          }),
+        });
+        setTracked(true);
+      }
+    } else {
+      setViewed(true);
     }
   }, [active, holdTimeout]);
 
@@ -346,7 +364,8 @@ export const VideoItem = ({
       <AnimatePresence>
         {isProfileOpen && (
           <Profile
-            user={authorData || null}
+            type="user"
+            data={authorData || null}
             onClose={() => setIsProfileOpen(false)}
           />
         )}

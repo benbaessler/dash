@@ -1,7 +1,11 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-export function Loading() {
+interface Props {
+  zIndex?: number;
+}
+
+export function Loading({ zIndex = 40 }: Props) {
   const [loadingDots, setLoadingDots] = useState("");
 
   useEffect(() => {
@@ -16,7 +20,7 @@ export function Loading() {
   }, []);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black z-[40]">
+    <div className={`fixed inset-0 flex items-center justify-center bg-black z-[${zIndex}]`}>
       <div className="flex flex-col items-center -mt-[55px]">
         <Image
           priority

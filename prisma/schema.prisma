@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -24,6 +18,29 @@ model User {
   @@index([fid])
 }
 
+model FeedSearch {
+  id         Int      @id @default(autoincrement())
+  fid        String
+  channelId  String
+  createdAt  DateTime @default(now())
+
+  @@unique([fid, channelId])
+  @@index([fid])
+  @@index([channelId])
+}
+
+model View {
+  id         Int      @id @default(autoincrement())
+  castHash   String
+  viewerFid  String
+  creatorFid String
+  channelId  String?
+  createdAt  DateTime @default(now())
+
+  @@unique([viewerFid, castHash])
+  @@index([viewerFid, channelId])
+}
+
 model Share {
   id           Int      @id @default(autoincrement())
   senderFid    String
@@ -32,16 +49,15 @@ model Share {
 
   @@unique([senderFid, recipientFid])
   @@index([senderFid])
-  @@index([recipientFid])
 }
 
 model Search {
   id          Int      @id @default(autoincrement())
   searcherFid String
-  queryId       String
-  type        String // User, Channel, Video
+  queryId     String
+  type        String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([queryId, type, createdAt])
+  @@index([type])
 }

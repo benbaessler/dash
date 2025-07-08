@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const fid = Number(request.headers.get("x-fid"));
   const searchParams = url.searchParams;
   const query = searchParams.get("query");
+  const limit = searchParams.get("limit");
 
   if (!query) {
     return NextResponse.json(
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
     const response = await neynar.searchUser({
       q: query.trim(),
       viewerFid: fid,
+      limit: limit ? Number(limit) : undefined,
     });
 
     return NextResponse.json(response.result.users);

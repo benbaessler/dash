@@ -5,13 +5,20 @@ import { useCallback, useState, useEffect, useRef } from "react";
 import { VideoItem } from "@/app/components/video";
 import { motion } from "motion/react";
 
-interface VideoFeedProps {
+interface Props {
   data: VideoData[];
   initialIndex?: number;
   onClose?: () => void;
+  isChannelFeed?: boolean;
 }
 
-export function VideoFeed({ data, initialIndex = 0, onClose }: VideoFeedProps) {
+// Feed view for profile pages
+export function VideoFeed({
+  data,
+  initialIndex = 0,
+  onClose,
+  isChannelFeed = false,
+}: Props) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -83,7 +90,7 @@ export function VideoFeed({ data, initialIndex = 0, onClose }: VideoFeedProps) {
       <div className="w-full h-full bg-black">
         <div
           ref={scrollContainerRef}
-          className="flex-1 w-full h-[calc(100vh-76px)] overflow-y-auto snap-y snap-mandatory"
+          className="w-full h-[calc(100vh-76px)] overflow-y-auto snap-y snap-mandatory"
           onScroll={handleScroll}
         >
           {data.map((item, index) => (
@@ -94,7 +101,7 @@ export function VideoFeed({ data, initialIndex = 0, onClose }: VideoFeedProps) {
               preload={Math.abs(index - activeIndex) <= 3}
               render={Math.abs(index - activeIndex) <= 5}
               isScrolling={isScrolling}
-              disableProfile
+              disableProfile={!isChannelFeed}
             />
           ))}
         </div>
