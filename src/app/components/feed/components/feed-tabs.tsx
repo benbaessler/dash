@@ -3,7 +3,7 @@ import { useFrame } from "@/providers/FrameProvider";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/utils/fetcher";
 import { Loader } from "lucide-react";
-import { CaretDownIcon } from "@phosphor-icons/react";
+import { CaretDownIcon, LightningIcon } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import {
   Command,
@@ -19,6 +19,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Channel } from "@neynar/nodejs-sdk/build/api/models/channel";
+import sdk from "@farcaster/frame-sdk";
+import { activeCampaign, campaignUrl } from "@/constants";
 
 interface Props {
   activeFeed: string;
@@ -106,6 +108,17 @@ export const FeedTabs = ({ activeFeed, setActiveFeed }: Props) => {
               <CaretDownIcon size={20} weight="bold" />
             </motion.div>
             <span className="truncate">{displayedFeedName}</span>
+            {displayedFeedName === activeCampaign && (
+              <LightningIcon
+                onClick={(e) => {
+                  e.stopPropagation();
+                  sdk.actions.openUrl(campaignUrl);
+                }}
+                size={20}
+                weight="fill"
+                className="text-yellow-400/80 hover:text-yellow-400"
+              />
+            )}
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0 bg-black/10 backdrop-blur-sm rounded-lg border-none mt-1 ml-3 drop-shadow-sm">
@@ -140,6 +153,13 @@ export const FeedTabs = ({ activeFeed, setActiveFeed }: Props) => {
                           className="text-white hover:text-white/80 hover:bg-black/40 py-2 rounded-md cursor-pointer"
                         >
                           {option}
+                          {option === activeCampaign && (
+                            <LightningIcon
+                              size={18}
+                              weight="fill"
+                              className="text-yellow-500"
+                            />
+                          )}
                         </CommandItem>
                       ))}
                   </CommandGroup>

@@ -4,7 +4,11 @@ import { User, Channel } from "@neynar/nodejs-sdk/build/api";
 import { Button } from "@/components/ui/button";
 import { ClickableText } from "@/app/components/common/text";
 import { FarcasterIcon } from "@/assets/icons";
-import { ArrowLeftIcon, ExportIcon } from "@phosphor-icons/react";
+import {
+  ArrowLeftIcon,
+  ExportIcon,
+  LightningIcon,
+} from "@phosphor-icons/react";
 import sdk from "@farcaster/frame-sdk";
 import { Avatar } from "@/app/components/video/components/avatar";
 import { useFrame } from "@/providers/FrameProvider";
@@ -16,7 +20,7 @@ import { VideoFeed } from "./components/video-feed";
 import { useSigner } from "@/providers/SignerProvider";
 import { Loader } from "lucide-react";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { appUrl } from "@/constants";
+import { appUrl, campaignUrl, activeCampaign } from "@/constants";
 import { motion, AnimatePresence } from "motion/react";
 import { fetcher } from "@/utils/fetcher";
 
@@ -314,7 +318,7 @@ export function Profile({
             )}
           </div>
 
-          <div className="text-center mb-2">
+          <div className="text-center mb-2 gap-1 flex items-center justify-center">
             {data && (
               <h2 className="text-lg font-bold text-white">
                 {type === "user"
@@ -322,6 +326,15 @@ export function Profile({
                   : (data as Channel).name || (data as Channel).id}
               </h2>
             )}
+            {type === "channel" &&
+              activeCampaign === `/${(data as Channel)?.id}` && (
+                <LightningIcon
+                  onClick={() => sdk.actions.openUrl(campaignUrl)}
+                  size={22}
+                  weight="fill"
+                  className="text-yellow-400/80 hover:text-yellow-400 cursor-pointer"
+                />
+              )}
           </div>
 
           <div className="grid grid-cols-2 gap-2 mb-2 max-w-40 mx-auto">

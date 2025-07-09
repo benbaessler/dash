@@ -14,3 +14,6 @@ export const isDevelopment =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "development";
 
 export const developmentFid = 367782;
+
+export const activeCampaign = "/science";
+export const campaignUrl = "https://farcaster.xyz/patriciaxlee.eth/0x37bc8bcf";
