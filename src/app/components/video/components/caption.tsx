@@ -21,7 +21,7 @@ export function Caption({ data }: CaptionProps) {
     <div className="absolute bottom-0 left-0 right-0 px-5 pr-16 pb-7 bg-gradient-to-t from-black/70 via-black/40 to-transparent drop-shadow-sm">
       <div className="flex gap-2 items-center">
         <span className="text-white font-semibold truncate">
-          {author.displayName}
+          {author.username}
         </span>
         <span className="text-white/80 text-sm">
           {formatTimeAgo(timestamp)}
