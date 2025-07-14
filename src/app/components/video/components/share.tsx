@@ -18,6 +18,7 @@ import { Avatar } from "./avatar";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { SearchBar } from "../../common/search-bar";
 import { fetcher } from "@/utils/fetcher";
+import { ExportIcon } from "@phosphor-icons/react";
 
 interface ShareProps {
   children: React.ReactNode;
@@ -161,7 +162,7 @@ export const Share = ({ children, data }: ShareProps) => {
                 ))
               )}
             </div>
-            <div className="w-full my-4 bg-background">
+            <div className="w-full flex gap-2 my-4 bg-background">
               <Button
                 variant="action"
                 className="w-full text-md [&_svg]:!size-5 gap-2"
@@ -182,8 +183,20 @@ export const Share = ({ children, data }: ShareProps) => {
                   }
                 }}
               >
-                <FarcasterIcon className="w-5 h-5" />
+                <ExportIcon weight="bold" className="w-5 h-5" />
                 Share on Farcaster
+              </Button>
+              <Button
+                variant="outlineAction"
+                size="icon"
+                className="px-4"
+                onClick={() => {
+                  sdk.actions.openUrl(
+                    `https://farcaster.xyz/${data.author.username}/${data.id}`
+                  );
+                }}
+              >
+                <FarcasterIcon className="w-7 h-7" />
               </Button>
             </div>
           </div>
