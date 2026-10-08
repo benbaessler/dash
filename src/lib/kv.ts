@@ -47,3 +47,50 @@ export async function deleteUserNotificationDetails(
     localStore.delete(key);
   }
 }
+
+// In-memory fallback for rate limits and one-time flags
+const localCounters = new Map<string, { count: number; expiresAt: number }>();
+
+/**
+ * Fixed-window rate limiter. Returns true if the call is allowed.
+ */
+export async function rateLimit(
+  key: string,
+  limit: number,
+  windowSec: number
+): Promise<boolean> {
+  const fullKey = `${process.env.NEXT_PUBLIC_FRAME_NAME}:ratelimit:${key}`;
+
+  if (redis) {
+    const count = await redis.incr(fullKey);
+    if (count === 1) {
+      await redis.expire(fullKey, windowSec);
+    }
+    return count <= limit;
+  }
+
+  const now = Date.now();
+  const entry = localCounters.get(fullKey);
+  if (!entry || entry.expiresAt <= now) {
+    localCounters.set(fullKey, { count: 1, expiresAt: now + windowSec * 1000 });
+    return true;
+  }
+  entry.count += 1;
+  return entry.count <= limit;
+}
+
+/**
+ * Sets a flag if it doesn't exist yet. Returns true only for the first caller.
+ */
+export async function setOnce(key: string): Promise<boolean> {
+  const fullKey = `${process.env.NEXT_PUBLIC_FRAME_NAME}:once:${key}`;
+
+  if (redis) {
+    const result = await redis.set(fullKey, 1, { nx: true });
+    return result === "OK";
+  }
+
+  if (localCounters.has(fullKey)) return false;
+  localCounters.set(fullKey, { count: 1, expiresAt: Infinity });
+  return true;
+}
