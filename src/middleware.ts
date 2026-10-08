@@ -13,91 +13,78 @@ export const config = {
 
 const client = createClient();
 
+// Route handlers trust `x-fid` as the authenticated user. It must only ever be
+// set here, after the JWT is verified, so strip any client-supplied value.
+const stripFid = (request: NextRequest) => {
+  const headers = new Headers(request.headers);
+  headers.delete("x-fid");
+  return headers;
+};
+
+const unauthorized = () =>
+  NextResponse.json(
+    { status: "error", message: "Unauthorized" },
+    { status: 401 }
+  );
+
 export const middleware = async (request: NextRequest) => {
   const { pathname } = request.nextUrl;
+  const headers = stripFid(request);
 
-  // Allow access to static files and OG images
-  if (
-    pathname.startsWith("/img/") ||
-    pathname.startsWith("/api/og/") ||
-    pathname.startsWith("/api/public") ||
-    pathname.endsWith(".jpg") ||
-    pathname.endsWith(".png") ||
-    pathname.endsWith(".gif") ||
-    pathname.endsWith(".svg")
-  ) {
-    return NextResponse.next();
+  // OG images are fetched by Farcaster clients without a session
+  if (pathname.startsWith("/api/og/")) {
+    return NextResponse.next({ request: { headers } });
+  }
+
+  const origin = request.headers.get("origin") ?? "";
+  const isAllowedOrigin = origin === appUrl;
+
+  // Handle preflighted requests
+  if (request.method === "OPTIONS") {
+    const preflightHeaders = {
+      ...(isAllowedOrigin && { "Access-Control-Allow-Origin": origin }),
+      ...corsOptions,
+    };
+    return NextResponse.json({}, { headers: preflightHeaders });
+  }
+
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return unauthorized();
+
+  const authToken = authHeader.slice("Bearer ".length);
+  if (!authToken) return unauthorized();
+
+  if (!appDomain) {
+    console.error("[Middleware]: NEXT_PUBLIC_DOMAIN is not set");
+    return NextResponse.json(
+      { status: "error", message: "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 
   try {
-    const origin = request.headers.get("origin") ?? "";
-    const isAllowedOrigin = origin === appUrl;
-
-    // Handle preflighted requests
-    const isPreflight = request.method === "OPTIONS";
-
-    if (isPreflight) {
-      const preflightHeaders = {
-        ...(isAllowedOrigin && { "Access-Control-Allow-Origin": origin }),
-        ...corsOptions,
-      };
-      return NextResponse.json({}, { headers: preflightHeaders });
-    }
-
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
-    
-    const authToken = authHeader.replace("Bearer ", "");
-    if (!authToken) throw new Error("Invalid authorization format");
-    
-    if (!appDomain) throw new Error("App domain is not set");
-
     const payload = await client.verifyJwt({
       token: authToken,
       domain: appDomain,
     });
 
-    if (!payload || payload.sub === 0) throw new Error("Not authorized");
+    if (!payload || !payload.sub) return unauthorized();
 
-    const headers = new Headers(request.headers);
     headers.set("x-fid", String(payload.sub));
-
-    const updatedRequest = new NextRequest(request.url, {
-      method: request.method,
-      headers,
-      body: request.body,
-    });
-
-    // Handle simple requests
-    const response = NextResponse.next({
-      request: updatedRequest,
-    });
-
-    if (isAllowedOrigin) {
-      response.headers.set("Access-Control-Allow-Origin", origin);
-    }
-
-    Object.entries(corsOptions).forEach(([key, value]) => {
-      response.headers.set(key, value);
-    });
-
-    return response;
   } catch (error) {
     console.error("[Middleware]:", error);
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { status: "error", message: error.message },
-        { status: 401 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        status: "error",
-        message: `An unexpected error occurred`,
-      },
-      { status: 500 }
-    );
+    return unauthorized();
   }
+
+  const response = NextResponse.next({ request: { headers } });
+
+  if (isAllowedOrigin) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+  }
+
+  Object.entries(corsOptions).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+
+  return response;
 };

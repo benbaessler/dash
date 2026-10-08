@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { mnemonicToAccount } from "viem/accounts";
 
 interface FrameMetadata {
   accountAssociation?: {
@@ -31,15 +30,19 @@ interface FrameMetadata {
   };
 }
 
-export function getSecretEnvVars() {
-  const seedPhrase = process.env.SEED_PHRASE;
-  const fid = process.env.FID;
+function getAccountAssociation() {
+  const header = process.env.ACCOUNT_ASSOCIATION_HEADER;
+  const payload = process.env.ACCOUNT_ASSOCIATION_PAYLOAD;
+  const signature = process.env.ACCOUNT_ASSOCIATION_SIGNATURE;
 
-  if (!seedPhrase || !fid) {
-    return null;
+  if (!header || !payload || !signature) {
+    console.warn(
+      "Account association env vars not set -- serving unsigned manifest"
+    );
+    return undefined;
   }
 
-  return { seedPhrase, fid };
+  return { header, payload, signature };
 }
 
 export async function getFarcasterMetadata(): Promise<FrameMetadata> {
@@ -59,54 +62,6 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
     throw new Error("NEXT_PUBLIC_URL not configured");
   }
 
-  // Get the domain from the URL (without https:// prefix)
-  const domain = new URL(appUrl).hostname;
-  console.log("Using domain for manifest:", domain);
-
-  const secretEnvVars = getSecretEnvVars();
-  if (!secretEnvVars) {
-    console.warn(
-      "No seed phrase or FID found in environment variables -- generating unsigned metadata"
-    );
-  }
-
-  let accountAssociation;
-  if (secretEnvVars) {
-    // Generate account from seed phrase
-    const account = mnemonicToAccount(secretEnvVars.seedPhrase);
-    const custodyAddress = account.address;
-
-    const header = {
-      fid: parseInt(secretEnvVars.fid),
-      type: "custody",
-      key: custodyAddress,
-    };
-    const encodedHeader = Buffer.from(JSON.stringify(header), "utf-8").toString(
-      "base64"
-    );
-
-    const payload = {
-      domain,
-    };
-    const encodedPayload = Buffer.from(
-      JSON.stringify(payload),
-      "utf-8"
-    ).toString("base64url");
-
-    const signature = await account.signMessage({
-      message: `${encodedHeader}.${encodedPayload}`,
-    });
-    const encodedSignature = Buffer.from(signature, "utf-8").toString(
-      "base64url"
-    );
-
-    accountAssociation = {
-      header: encodedHeader,
-      payload: encodedPayload,
-      signature: encodedSignature,
-    };
-  }
-
   // Determine webhook URL based on whether Neynar is enabled
   const neynarApiKey = process.env.NEYNAR_API_KEY;
   const neynarClientId = process.env.NEYNAR_CLIENT_ID;
@@ -116,13 +71,7 @@ export async function getFarcasterMetadata(): Promise<FrameMetadata> {
       : `${appUrl}/api/webhook`;
 
   return {
-    accountAssociation: {
-      header:
-        "eyJmaWQiOjE5MTI5NCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDExNEQzYzE3MzMyNWNmYTQ1MDY1MDllZmYyQzJBNUFFY2NFODI0M2UifQ",
-      payload: "eyJkb21haW4iOiJkYXNoLmJuYnMuZGV2In0",
-      signature:
-        "MHg4MTJjMTFiZTQ1NDVkZjU0ZWZhMzFhYzVjOGI2YWE3YzM3MzM1NGQzY2NmYjRlNTA0NjI0YzcxNzEzYTk5OTU1MzJhM2M0NTY1MWU1ZGMyNmMwYjBkYjJiMDYxYWRlOGQ5ZDAxY2ZmMjg2YTBkNGY4ZGRiNmU0OGVmYzM3YzgyMzFi",
-    },
+    accountAssociation: getAccountAssociation(),
     frame: {
       version: "1",
       name: "Dash",
@@ -160,6 +109,9 @@ export async function GET() {
     return NextResponse.json(config);
   } catch (error) {
     console.error('Error generating metadata:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to generate manifest" },
+      { status: 500 }
+    );
   }
 }

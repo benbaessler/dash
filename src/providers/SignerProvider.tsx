@@ -52,7 +52,12 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
     intervalRef.current = setInterval(async () => {
       try {
         const response = await fetch(
-          `/api/public/signer?signer_uuid=${signer?.signer_uuid}`
+          `/api/signer?signer_uuid=${signer?.signer_uuid}`,
+          {
+            headers: {
+              Authorization: `Bearer ${sessionToken}`,
+            },
+          }
         );
         const data = await response.json();
 
@@ -78,8 +83,11 @@ export const SignerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   async function createSigner() {
     try {
-      const response = await fetch("/api/public/signer", {
+      const response = await fetch("/api/signer", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+        },
       });
       const data = await response.json();
       setSigner(data);

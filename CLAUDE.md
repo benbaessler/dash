@@ -16,7 +16,7 @@ This is a Farcaster Mini App (formerly Frames) built with Next.js 15, TypeScript
 ### Key Technologies
 - **Next.js 15** - React framework with App Router
 - **Prisma** - Database ORM with PostgreSQL
-- **NextAuth.js** - Authentication with Farcaster integration
+- **Farcaster Quick Auth** - JWT-based authentication for API routes
 - **TailwindCSS** - Styling with shadcn/ui components
 - **Neynar SDK** - Farcaster API integration
 - **Vidstack** - Video player component
@@ -33,14 +33,14 @@ This is a Farcaster Mini App (formerly Frames) built with Next.js 15, TypeScript
 
 #### API Routes Architecture
 The API is organized by feature:
-- `auth/` - NextAuth.js authentication endpoints
-- `og/` - Open Graph image generation for posts and profiles
-- `posts/`, `post/`, `comments/` - Content management
-- `reactions/` - Like/reaction system
+- `og/` - Open Graph image generation for posts, profiles and channels (public)
+- `feed/`, `videos/`, `video/`, `channel/` - Video feeds and content
+- `comments/`, `reactions/` - Replies, likes and recasts
 - `follow/`, `unfollow/`, `friends/` - Social features
-- `user/`, `search/` - User data and search
-- `signer/`, `verify/` - Farcaster signer management
-- `webhook/` - External webhook handling
+- `user/`, `search/`, `trending/` - User data, search and trending lists
+- `signer/`, `verify/` - Neynar signer creation and verification
+- `onboard/` - One-time onboarding after a user adds the mini app
+- `track/` - View, share and search tracking
 
 #### Component Organization
 - `src/app/components/` - Page-level components (feed, profile, video, navbar)
@@ -51,14 +51,15 @@ The API is organized by feature:
 - `src/lib/` - Core utilities (Prisma, Neynar SDK, Redis, notifications)
 - `src/utils/` - Helper functions and utilities
 - `src/hooks/` - Custom React hooks
-- `prisma/schema.prisma` - Database schema with User and Share models
+- `prisma/schema.prisma` - Database schema
 
 ### Authentication Flow
-Uses NextAuth.js with Farcaster credentials provider. Authentication verifies Farcaster signatures and manages user sessions with FID (Farcaster ID) as the primary identifier.
+The client obtains a Farcaster Quick Auth JWT (`sdk.experimental.quickAuth()`) and sends it as a Bearer token. `src/middleware.ts` verifies it for every `/api/*` route except `og/`, strips any client-supplied `x-fid` header and sets `x-fid` to the verified FID. Route handlers must only read the user's FID from `x-fid`, never from the request body or params. Write actions use the user's Neynar signer stored in the database.
 
 ### Database Schema
 - **User** - Stores Farcaster user data (FID, signer info, expiration)
 - **Share** - Tracks user-to-user sharing relationships
+- **View**, **Search**, **FeedSearch** - Viewing history and search tracking for feeds and trending lists
 
 ### Configuration Notes
 - Prisma client generates to `src/generated/prisma/` (custom output path)

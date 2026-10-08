@@ -8,7 +8,6 @@ import sdk, {
 import React from "react";
 import useSWR, { SWRResponse } from "swr";
 import { User } from "@neynar/nodejs-sdk/build/api";
-import { onboardUser } from "@/utils/onboarding";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { fetcher } from "@/utils/fetcher";
 
@@ -18,7 +17,7 @@ interface FrameContextType {
   added: boolean;
   notificationDetails: FrameNotificationDetails | null;
   sessionToken: string | null;
-  signIn: () => Promise<void>;
+  signIn: () => Promise<string | null>;
   loading: boolean;
   setLoading: (loading: boolean) => void;
   user: User | undefined;
@@ -67,16 +66,17 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = useCallback(async () => {
-    if (sessionToken) return;
+    if (sessionToken) return sessionToken;
 
     const { token } = await sdk.experimental.quickAuth();
 
     setSessionToken(token);
+    return token;
   }, [sessionToken]);
 
   useEffect(() => {
     const load = async () => {
-      await signIn();
+      const token = await signIn();
       const context = await sdk.context;
       setContext(context);
       setIsSDKLoaded(true);
@@ -85,7 +85,15 @@ export function FrameProvider({ children }: { children: React.ReactNode }) {
         setAdded(true);
         setNotificationDetails(notificationDetails ?? null);
 
-        await onboardUser(context.user.fid);
+        if (!token) return;
+        try {
+          await fetch("/api/onboard", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (error) {
+          console.error("Error onboarding user", error);
+        }
       });
 
       sdk.actions.ready({});

@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame } from "@/providers/FrameProvider";
-import { isDevelopment } from "@/constants";
+import { developmentFid, isDevelopment } from "@/constants";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { insertPromotions } from "@/utils/insertPromotions";
@@ -14,7 +14,7 @@ interface UseFeedProps {
 
 export const useFeed = ({ initialLimit = 30, initialVideo }: UseFeedProps) => {
   const { isSDKLoaded, context, added, sessionToken } = useFrame();
-  const fid = isDevelopment ? 367782 : context?.user.fid;
+  const fid = isDevelopment ? developmentFid : context?.user.fid;
 
   const [feed, setFeed] = useState<FeedItem[]>(
     initialVideo ? [initialVideo] : []

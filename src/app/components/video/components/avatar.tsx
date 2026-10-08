@@ -22,6 +22,9 @@ const AvatarComponent = ({
       alt={user.displayName}
       fill
       sizes="45px"
+      // Profile pictures can be hosted anywhere, so skip the image optimizer
+      // rather than letting it proxy arbitrary remote URLs
+      unoptimized
       className={`rounded-full object-cover ${
         user.username || user.fid ? "cursor-pointer" : ""
       }`}
